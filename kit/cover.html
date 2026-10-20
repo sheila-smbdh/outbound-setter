@@ -1,0 +1,126 @@
+<style>
+#card2{display:none} /* detail card dropped from the scorecard (Sheila, Oct 14) */
+#card1 .callouts{display:none} /* funnel card: no win of the day / one fix (Sheila, Oct 14); the cover carries them */
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi{border-radius:10px;padding:12px 10px 12px 11px;border:1px solid var(--line);border-left:6px solid var(--ink3);min-width:0;display:flex;flex-direction:column;gap:6px}
+.kpi.hit{border-left-color:var(--good);background:var(--good-soft)}
+.kpi.miss{border-left-color:var(--bad);background:var(--bad-soft)}
+.kpi{--yel:#e3a800;--yel-ink:#946c00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kpi{--yel-ink:#f2c94c}}
+:root[data-theme="dark"] .kpi{--yel-ink:#f2c94c}
+.kpi.close{border-left-color:var(--yel);background:color-mix(in srgb,#f5c400 20%,var(--card))}
+.kpi.track{border-left-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--card))}
+.kpi.none{border-left-color:var(--ink3)}
+.kpi .nm{font-size:12.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.kpi .v{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.kpi.hit .v{color:var(--good)} .kpi.miss .v{color:var(--bad)} .kpi.close .v{color:var(--yel-ink)} .kpi.track .v{color:var(--accent)} .kpi.none .v{color:var(--ink3)}
+.kpi .of{font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums;flex:1}
+.kpi .nt{font-size:10.5px;line-height:1.3;color:var(--ink3);margin-top:-3px}
+.kpi .tbar{position:relative;height:6px;background:var(--track);border-radius:3px}
+.kpi .tbar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.kpi.hit .tbar i{background:var(--good)} .kpi.miss .tbar i{background:var(--bad)} .kpi.close .tbar i{background:var(--yel)}
+.kpi .tbar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:1px}
+.kpi .st{display:flex;justify-content:space-between;align-items:center;gap:4px;font-size:11.5px;color:var(--ink2);white-space:nowrap}
+.kpi .pill{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:999px;color:#fff}
+.kpi.hit .pill{background:var(--good)} .kpi.miss .pill{background:var(--bad)} .kpi.close .pill{background:var(--yel);color:#2b2000} .kpi.track .pill{background:var(--accent);color:var(--card)} .kpi.none .pill{background:var(--ink3);color:var(--card)}
+/* priority tiles are a little bigger; the show rate tile carries the handoff steps */
+.pri .kpis{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
+.pri .kpi{padding:14px 12px 14px 13px}
+.pri .kpi.k-show{grid-column:2;grid-row:1/span 2}
+.pri .kpi .v{font-size:36px}
+.kpi .all{border-top:1px solid color-mix(in srgb,var(--ink3) 30%,transparent);padding-top:8px;display:flex;flex-direction:column;gap:2px}
+.kpi .all .al{font-size:12.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.kpi .all .av{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+.kpi .all .av span{font-size:14px;font-weight:600;letter-spacing:0;color:var(--ink2);margin-left:10px}
+.kpi .steps{display:flex;flex-direction:column;gap:3px;font-size:12px}
+.kpi .steps .sh{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)}
+.kpi .steps div.r{display:flex;justify-content:space-between;gap:6px}
+.kpi .steps div.r span:last-child{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .steps .ok{color:var(--good)} .kpi .steps .no{color:var(--bad)} .kpi .steps .na{color:var(--ink3);font-weight:600!important}
+.comp h2{color:var(--ink2)}
+.bl{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:12px}
+.bl .callout{display:flex;flex-direction:column;gap:6px}
+.closes{display:flex;align-items:baseline;gap:10px;border-top:1px solid color-mix(in srgb,var(--good) 25%,transparent);padding-top:8px;margin-top:4px}
+.closes + .closes{border-top:0;padding-top:0;margin-top:0}
+.closes .n{font-size:40px;font-weight:800;color:var(--good);line-height:1;font-variant-numeric:tabular-nums}
+.closes .t{font-size:14px;font-weight:600;color:var(--ink2)}
+.fixes{margin:4px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.fixes li{font-size:14px;font-weight:600}
+.fixes li b{font-weight:800}
+@media (max-width:560px){.kpis{grid-template-columns:1fr 1fr}.pri .kpis{grid-template-columns:1fr}.pri .kpi.k-show{grid-column:auto;grid-row:auto}.bl{grid-template-columns:1fr}}
+</style>
+
+<div class="card" id="card0">
+  <header>
+    <div class="eyebrow">Welcome Series test · round two · bottom line</div>
+    <h1 id="c0title">Bali's day</h1>
+    <div class="meta" id="c0meta"></div>
+  </header>
+  <div class="bl">
+    <div class="callout win">
+      <div class="k" id="c0wink">Wins of the day</div>
+      <ol class="fixes" id="c0wins"></ol>
+      <div class="closes" id="c0sets"><div class="n" id="c0setsn"></div><div class="t" id="c0setst"></div></div>
+      <div class="closes"><div class="n" id="c0closes"></div><div class="t" id="c0closest"></div></div>
+    </div>
+    <div class="callout fix">
+      <div class="k" id="c0fixk">Fixes for tomorrow</div>
+      <ol class="fixes" id="c0fixes"></ol>
+    </div>
+  </div>
+  <section class="pri">
+    <h2>Your priorities</h2>
+    <p class="lead" id="c0prilead">Speed to lead, dials and show rate come first. Green: you hit the target. Yellow: almost there (75% of the target or more). Red: you missed it. The black line on each bar is the target.</p>
+    <div class="kpis" id="c0kpis"></div>
+  </section>
+  <section class="comp">
+    <h2>Keep it up: compliance we still track</h2>
+    <p class="lead">You've been strong on these. Same colors and targets; anything in red goes on your fix list. Pickup rate counts everyone who picked up the phone; connect rate counts only the people you had a real conversation with. Blue: a number we track, with no target.</p>
+    <div class="kpis" id="c0comp"></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var D=JSON.parse(document.getElementById('scorecard-data').textContent), C=D.cover, m=D.metrics;
+  var $=function(id){return document.getElementById(id)};
+  var p=m.date.split('-'), dd=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));
+  $('c0title').textContent="Bali's day: "+dd.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'long',month:'short',day:'numeric'});
+  var pri=C.kpis.filter(function(k){return k.group!=='comp'}), comp=C.kpis.filter(function(k){return k.group==='comp'});
+  // voicemail, text and double dial share the first row (Sheila, Oct 13); pickup, connect and the blue tile below
+  var CO=['vm','text','dd','pickup','connect']; comp.sort(function(a,b){return CO.indexOf(a.key)-CO.indexOf(b.key)});
+  var scored=pri.filter(function(k){return k.status!=='none'});
+  var hit=scored.filter(function(k){return k.hit}).length, near=scored.filter(function(k){return k.status==='close'}).length;
+  $('c0meta').textContent='You hit '+hit+' of '+scored.length+' priority targets'+(near?', '+near+' almost':'')+' · '+m.dials+' dials to '+m.people_dialed+' people · '+m.first_call+' to '+m.last_call+' ET';
+  $('c0wink').textContent=C.wins.length===1?'Win of the day':'Wins of the day';
+  $('c0wins').innerHTML=C.wins.map(function(w){return '<li><b>'+w[0]+':</b> '+w[1]+'</li>'}).join('');
+  if(C.sets==null){$('c0sets').style.display='none'}else{$('c0setsn').textContent=C.sets;$('c0setst').textContent=C.sets_text;}
+  $('c0closes').textContent=C.closes;
+  $('c0closest').textContent=C.closes_text;
+  $('c0fixk').textContent=C.fixes.length===1?'Fix for tomorrow':'Fixes for tomorrow';
+  $('c0fixes').innerHTML=C.fixes.map(function(f){return '<li><b>'+f[0]+':</b> '+f[1]+'</li>'}).join('');
+  var PILL={hit:'Hit',close:'Almost',miss:'Missed',none:'No calls due'};
+  function tile(k){
+    var u=k.unit==='%'?'%':'', v=k.value==null?'–':k.value+u;
+    var scale=k.unit==='%'?100:Math.max(k.target*1.25,k.value||0), w=Math.min(100,100*(k.value||0)/scale), t=100*k.target/scale;
+    var x=k.extra||{}, more='';
+    if(x.all) more+='<div class="all">'+x.all+'</div>';
+    if(x.steps){
+      more+='<div class="steps"><div class="sh">'+x.steps_head+'</div>'+x.steps.map(function(s){
+        var cls=s.due?(s.done===s.due?'ok':'no'):'na', val=s.due?s.done+' of '+s.due:'none due yet';
+        return '<div class="r"><span>'+s.name+'</span><span class="'+cls+'">'+val+'</span></div>'}).join('')+'</div>';
+    }
+    return '<div class="kpi k-'+k.key+' '+k.status+'"><div class="nm">'+k.name+'</div>'+
+      '<div class="v">'+v+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+'<div class="of">'+k.detail+'</div>'+more+
+      '<div class="tbar"><i style="width:'+w+'%"></i><b style="left:calc('+t+'% - 1px)"></b></div>'+
+      '<div class="st"><span>Target '+k.target+u+'</span><span class="pill">'+PILL[k.status]+'</span></div></div>'}
+  function track(k){
+    return '<div class="kpi track"><div class="nm">'+k.name+'</div>'+
+      '<div class="v">'+k.value+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+'<div class="of">'+k.detail+'</div>'+
+      '<div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>'}
+  $('c0kpis').innerHTML=pri.map(tile).join('');
+  // compliance tiles, then tracked numbers (blue, no target); moved below the priorities Oct 13, 2026
+  $('c0comp').innerHTML=comp.map(tile).join('')+(C.track||[]).map(track).join('');
+  // no footnote on the cover (Sheila, Oct 14: it made the page too long); definitions live in the runbook
+})();
+</script>

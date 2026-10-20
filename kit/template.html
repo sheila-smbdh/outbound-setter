@@ -1,0 +1,233 @@
+<title>Bali's Daily Scorecard</title>
+<style>
+@font-face{font-family:"Manrope";src:url(data:font/woff2;base64,__FONT__) format("woff2");font-weight:200 800;font-display:block}
+:root{
+  --bg:#f1f0ec; --card:#fbfbf9; --ink:#15171a; --ink2:#55585e; --ink3:#86888d; --line:#e2e1db;
+  --accent:#2256b8; --older:#d08a2a; --track:#e9e8e3; --block:#dde6f6;
+  --s1:#2256b8; --s2:#5d86cf; --s3:#9db4e0; --s4:#c9d6ee;
+  --good:#1a7f37; --good-soft:#e2f2e6; --bad:#c23a32; --bad-soft:#f8e3e1; --warn:#9a6700;
+  --f:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141517; --card:#1c1d20; --ink:#f2f2f0; --ink2:#b4b5b8; --ink3:#8a8b8f; --line:#2d2e32;
+  --accent:#6f9cf0; --older:#e0a82e; --track:#2a2b2f; --block:#1f2d48;
+  --s1:#6f9cf0; --s2:#4f78c4; --s3:#355790; --s4:#253c63;
+  --good:#4cc26a; --good-soft:#17301f; --bad:#f07068; --bad-soft:#3a1d1b; --warn:#e0a82e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141517; --card:#1c1d20; --ink:#f2f2f0; --ink2:#b4b5b8; --ink3:#8a8b8f; --line:#2d2e32;
+  --accent:#6f9cf0; --older:#e0a82e; --track:#2a2b2f; --block:#1f2d48;
+  --s1:#6f9cf0; --s2:#4f78c4; --s3:#355790; --s4:#253c63;
+  --good:#4cc26a; --good-soft:#17301f; --bad:#f07068; --bad-soft:#3a1d1b; --warn:#e0a82e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.45;margin:0;padding-inline:16px;padding-block:20px}
+.card{max-width:720px;margin:0 auto 20px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px clamp(16px,4vw,28px);display:flex;flex-direction:column;gap:22px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:4px 0 2px;text-wrap:balance}
+.meta{color:var(--ink2);font-size:14px}
+.callouts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.callout{border-radius:10px;padding:12px 14px;min-width:0}
+.callout .k{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.callout p{margin:4px 0 0;font-size:15px;font-weight:600}
+.win{background:var(--good-soft)} .win .k{color:var(--good)}
+.fix{background:var(--bad-soft)} .fix .k{color:var(--bad)}
+h2{font-size:13px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+.lead{margin:0 0 10px;color:var(--ink2);font-size:14px}
+.legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink2);margin:0 0 10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+/* funnel */
+.fn{display:flex;flex-direction:column;gap:12px}
+.fr{display:grid;grid-template-columns:150px minmax(0,1fr) 92px;gap:12px;align-items:center}
+.fr .nm{font-size:14px;font-weight:700}
+.fr .n{text-align:right;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.1;color:var(--accent)}
+.fr .n .o{font-size:12px;font-weight:700;color:var(--older);letter-spacing:0;margin-top:2px}
+.fbar span.cut{position:relative;overflow:hidden}
+.fbar span.cut::after{content:"";position:absolute;top:-4px;bottom:-4px;left:45%;width:7px;background:var(--card);transform:skewX(-28deg);box-shadow:-1.5px 0 0 var(--ink2),1.5px 0 0 var(--ink2)}
+.fr .bw{min-width:0}
+.fbar{display:flex;gap:2px;height:16px}
+.fbar span{display:block;height:100%;min-width:3px}
+.fbar span:first-child{border-radius:4px 0 0 4px} .fbar span:last-child{border-radius:0 4px 4px 0} .fbar span:only-child{border-radius:4px}
+.fr .sub{font-size:12.5px;color:var(--ink2);margin-top:4px}
+.carry{border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px;color:var(--ink2)}
+.carry b{color:var(--ink)}
+/* rows */
+.rows{display:flex;flex-direction:column;gap:4px}
+.row{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:13px;line-height:1.3}
+.row .bar{height:8px;background:var(--track);border-radius:4px;overflow:hidden}
+.row .bar i{display:block;height:100%;border-radius:4px}
+.row .n{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.row .try{font-size:11.5px;font-weight:800;color:var(--ink3);letter-spacing:.05em;margin-right:6px}
+/* speed */
+.stack{display:flex;gap:2px;height:22px;margin:4px 0 8px}
+.stack span{display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;color:#fff;min-width:3px}
+.stack span:first-child{border-radius:4px 0 0 4px}.stack span:last-child{border-radius:0 4px 4px 0}
+.skeys{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink2)}
+.skeys i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+table.cmp{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}
+table.cmp th{font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);text-align:right;padding:4px 6px;border-bottom:1px solid var(--line)}
+table.cmp th:first-child,table.cmp td:first-child{text-align:left}
+table.cmp td{padding:7px 6px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line)}
+table.cmp td b{font-weight:800}
+.note{font-size:12.5px;color:var(--ink3);margin-top:6px}
+/* hours */
+.hrs{display:flex;flex-direction:column;gap:6px}
+.hrs .t{font-size:13px;font-weight:700;color:var(--ink2)}
+.hrs svg{width:100%;height:auto;display:block}
+.batches{font-size:13.5px;color:var(--ink2);margin-top:8px}
+.rec{background:var(--block);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
+.rec b{font-weight:800}
+.trend{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.spark{min-width:0}
+.spark .t{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:4px}
+.spark svg{width:100%;height:auto;display:block}
+.foot{font-size:12px;color:var(--ink3);border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:560px){.callouts,.trend{grid-template-columns:1fr}.fr{grid-template-columns:1fr 60px}.fr .bw{grid-column:1/-1;order:3}.row{grid-template-columns:1fr 70px}.row .bar{grid-column:1/-1;order:3}}
+</style>
+
+<div class="card" id="card1">
+  <header>
+    <div class="eyebrow">Welcome Series test · round two</div>
+    <h1 id="title">Bali's day</h1>
+    <div class="meta" id="meta"></div>
+  </header>
+  <div class="callouts">
+    <div class="callout win"><div class="k">Win of the day</div><p id="win"></p></div>
+    <div class="callout fix"><div class="k">One fix for tomorrow</div><p id="fix"></p></div>
+  </div>
+  <section>
+    <h2>Your day, step by step</h2>
+    <p class="lead">Your new sign-ups from that day, and how far each one got. Every number counts people.</p>
+    <div class="legend"><span><i style="background:var(--accent)"></i>New sign-ups that day</span><span><i style="background:var(--older)"></i>Older leads (bar cut short when it runs long)</span></div>
+    <div class="fn" id="funnel"></div>
+  </section>
+</div>
+
+<div class="card" id="card2">
+  <header>
+    <div class="eyebrow">Bali's day · the details</div>
+    <h1 id="title2" style="font-size:22px"></h1>
+  </header>
+  <section>
+    <h2>Follow-up on no-answers (SOP section 6)</h2>
+    <p class="lead" id="fulead" style="margin-bottom:6px"></p>
+    <div class="rows" id="furows"></div>
+  </section>
+  <section>
+    <h2>Speed to lead</h2>
+    <p class="lead" id="splead"></p>
+    <div class="stack" id="stack"></div>
+    <div class="skeys" id="skeys"></div>
+    <table class="cmp" id="cmp"></table>
+    <div class="note" id="cmpnote"></div>
+  </section>
+  <section>
+    <h2>Your dialing pattern</h2>
+    <div class="hrs" id="hrs"></div>
+    <div class="batches" id="batches"></div>
+    <div class="rec" id="rec"></div>
+  </section>
+  <section>
+    <h2>Last 7 dialing days</h2>
+    <div class="trend" id="trend"></div>
+  </section>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script type="application/json" id="scorecard-data">__DATA__</script>
+<script>
+(function(){
+  var D=JSON.parse(document.getElementById('scorecard-data').textContent);
+  var $=function(id){return document.getElementById(id)};
+  var pct=function(a,b){return b?Math.round(100*a/b):0};
+  var s=function(n,w,p){return n+' '+(n===1?w:(p||w+'s'))};
+  var fmtDay=function(x,long){var p=x.split('-');var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));return d.toLocaleDateString('en-US',{timeZone:'UTC',weekday:long?'long':'short',month:'short',day:'numeric'})};
+  var hr=function(h){var a=h%12||12;return a+(h<12||h===24?'am':'pm')};
+  var m=D.metrics,B=D.baseline,F=m.funnel,T=m.funnel_total;
+  var day=fmtDay(m.date,true);
+  $('title').textContent="Bali's day: "+day;
+  $('title2').textContent=day;
+  $('meta').textContent=m.dials+' dials to '+m.people_dialed+' people · first call '+m.first_call+', last call '+m.last_call+' ET';
+  $('win').textContent=D.win; $('fix').textContent=D.fix;
+
+  // funnel
+  // Funnel is scaled to NEW sign-ups. Older leads get a short stub; if it would run long, it is cut with a break mark.
+  var old=function(k){return F.due[k]+F.backlog[k]+F.other[k]};
+  var N=F.new, max=N.list||1, SPAN=80, CAP=14;
+  var ns=N.real-N.closer-N.self;
+  function touchLine(){var t=m.touch_new||{};if(!N.picked)return '';
+    if(t.first_dial===N.picked) return (N.picked===1?'They':'All '+N.picked)+' picked up on your first dial';
+    return t.first_dial+' of '+N.picked+' picked up on your first dial, '+t.after_more+' after more touches ('+t.with_prior_dials+' after an earlier call, '+t.with_text+' after a text, '+t.with_vm+' after a voicemail)'}
+  var steps=[
+    ['New sign-ups',N.list,old('list'),'Signed up that day'],
+    ['Dialed',N.dialed,old('dialed'),pct(N.dialed,N.list)+'% of new sign-ups got a call<br>'+m.dials+' dials in all: <b style="color:var(--accent)">'+N.dials+' to new leads</b>, <b style="color:var(--older)">'+old('dials')+' to older leads</b>'],
+    ['Picked up',N.picked,old('picked'),pct(N.picked,N.dialed)+'% of the new leads you dialed<br>'+touchLine()],
+    ['Real conversation',N.real,old('real'),N.real+' of '+N.picked+' new pickups were real conversations (60+ sec; set to self only if booked)'],
+    ['Booked',N.closer+N.self,old('closer')+old('self'),s(N.closer,'closer call')+' · '+N.self+' to your own calendar · '+s(ns,'real conversation')+' not booked']
+  ];
+  $('funnel').innerHTML=steps.map(function(r){
+    var wn=SPAN*r[1]/max, wo=SPAN*r[2]/max, cut=wo>CAP, bars='';
+    if(r[1]) bars+='<span title="New: '+r[1]+'" style="width:'+wn+'%;background:var(--accent)"></span>';
+    if(r[2]) bars+='<span class="'+(cut?'cut':'')+'" title="Older: '+r[2]+'" style="width:'+(cut?CAP:wo)+'%;background:var(--older)"></span>';
+    if(!r[1]&&!r[2]) bars='<span style="width:0;min-width:2px;background:var(--track)"></span>';
+    return '<div class="fr"><div class="nm">'+r[0]+'</div><div class="bw"><div class="fbar">'+bars+'</div><div class="sub">'+r[3]+'</div></div>'+
+      '<div class="n">'+r[1]+'<div class="o">'+(r[2]?'+'+r[2]+' older':'&nbsp;')+'</div></div></div>'}).join('');
+
+  // SOP rows
+  var n=m.missed_first, vp=(m.vm_possible==null?n:m.vm_possible), nov=n-vp;
+  var tp=(m.text_possible==null?n:m.text_possible);
+  var dl=m.dnc_left_out||0;
+  $('fulead').textContent=n+' people didn’t pick up on your first call'+(dl?' (not counting '+dl+' you marked Do Not Contact)':'')+'. The SOP asks for all 4 on every one.'+
+    (nov?' '+nov+' of them never gave you the chance to leave a voicemail (they hung up, declined, or the call didn’t go through), so voicemail counts out of '+vp+'.':'')+
+    (n-tp?' '+(n-tp)+' had a blocked or invalid number, so texts count out of '+tp+'.':'');
+  var rows=[['TRY 1','Voicemail left',m.vm_left,vp],['TRY 1','Text sent',m.text_sent,tp],['TRY 2','Called again later that day',m.try2_same_day,n],
+    ['TRY 3','Called next day ('+fmtDay(m.prev_day).split(',')[0]+' misses)',m.try3_next_day||0,m.prev_missed||0]];
+  $('furows').innerHTML=rows.map(function(r){var p=pct(r[2],r[3]);var col=p>=80?'var(--good)':(p>=40?'var(--warn)':'var(--bad)');
+    return '<div class="row"><div><span class="try">'+r[0]+'</span>'+r[1]+'</div><div class="bar"><i style="width:'+Math.max(p,r[2]?2:0)+'%;background:'+col+'"></i></div><div class="n">'+r[2]+' of '+r[3]+'</div></div>'}).join('');
+
+  // speed
+  var S=m.speed;
+  $('splead').textContent=S.le15+' of '+S.n+' new leads who signed up during your work hours (9am to 9pm ET) got a call within 15 minutes ('+pct(S.le15,S.n)+'%). Round one: '+B.within15_pct+'%. Target: '+B.target_within15_pct+'%.';
+  var bk=[['le15','15 min or less','var(--good)'],['m15_60','15 to 60 min','var(--s2)'],['h1_3','1 to 3 hrs','var(--s3)'],['h3p','3+ hrs','var(--s4)'],['none','Not called that day','var(--bad)']];
+  $('stack').innerHTML=bk.filter(function(b){return S[b[0]]}).map(function(b){var w=100*S[b[0]]/S.n;
+    return '<span title="'+b[1]+': '+S[b[0]]+'" style="width:'+w+'%;background:'+b[2]+(b[0]==='h1_3'||b[0]==='h3p'?';color:var(--ink)':'')+'">'+(w>5?S[b[0]]:'')+'</span>'}).join('');
+  $('skeys').innerHTML=bk.map(function(b){return '<span><i style="background:'+b[2]+'"></i>'+b[1]+': <b>'+S[b[0]]+'</b></span>'}).join('');
+  var Q=m.speed7,f=Q.fast,sl=Q.slow;
+  $('cmp').innerHTML='<tr><th>Last '+Q.days+' dialing days</th><th>Leads</th><th>Picked up first call</th><th>Real conversation</th></tr>'+
+    '<tr><td>Called within 15 min</td><td>'+f.n+'</td><td><b>'+pct(f.picked,f.n)+'%</b></td><td><b>'+pct(f.real,f.n)+'%</b></td></tr>'+
+    '<tr><td>Called later</td><td>'+sl.n+'</td><td><b>'+pct(sl.picked,sl.n)+'%</b></td><td><b>'+pct(sl.real,sl.n)+'%</b></td></tr>';
+  $('cmpnote').textContent='Only '+f.n+' fast calls so far, so this can still swing a lot. It gets more reliable as round two adds days.';
+
+  // hours: two small multiples on one hour axis
+  var H0=9,H1=24,bs=m.block.start_hour,hist=m.block.hist24,wd=m.block.weekdays||10;
+  function hchart(title,vals){
+    var w=640,h=70,n=H1-H0,bw=w/n,mx=Math.max.apply(null,vals)||1,o='<svg viewBox="0 0 '+w+' '+(h+16)+'" role="img" aria-label="'+title+'">';
+    o+='<rect x="'+((bs-H0)*bw)+'" y="0" width="'+(2*bw)+'" height="'+h+'" fill="var(--block)" rx="4"/>';
+    vals.forEach(function(v,i){var bh=v?Math.max(2,(v/mx)*(h-14)):0;var x=i*bw+bw*0.2;
+      o+='<rect x="'+x+'" y="'+(h-bh)+'" width="'+(bw*0.6)+'" height="'+bh+'" rx="3" fill="var(--accent)"><title>'+hr(H0+i)+': '+v+'</title></rect>';
+      if(v) o+='<text x="'+(x+bw*0.3)+'" y="'+(h-bh-3)+'" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">'+v+'</text>';
+      if(i%2===0) o+='<text x="'+(i*bw+bw*0.5)+'" y="'+(h+13)+'" text-anchor="middle" font-size="10" fill="var(--ink3)">'+hr(H0+i)+'</text>'});
+    return '<div class="t">'+title+'</div>'+o+'</svg>'}
+  var calls=[],sign=[];
+  for(var hh=H0;hh<H1;hh++){var r=m.hours.filter(function(x){return x.h===hh})[0];calls.push(r?r.calls:0);sign.push(Math.round(hist[hh]/wd))}
+  $('hrs').innerHTML=hchart('Your calls by hour, '+fmtDay(m.date)+' (ET)',calls)+hchart('New sign-ups by hour, average weekday over the last 2 weeks (ET)',sign);
+  $('batches').textContent='You called in '+m.batches.length+' batches: '+m.batches.map(function(b){return (b.start===b.end?b.start:b.start+' to '+b.end)+' ('+b.calls+')'}).join(', ')+'.';
+  var bshare=pct(hist[bs]+hist[bs+1],m.block.signups_total);
+  $('rec').innerHTML='<b>Best time to dial: '+hr(bs)+' to '+hr(bs+2)+' ET.</b> It’s the busiest 2 hours for new sign-ups ('+bshare+'% of a weekday’s sign-ups), so fresh leads are waiting. You made '+m.block.calls_in_block+' of your '+m.dials+' calls in that window.';
+
+  // trend
+  function spark(title,vals,labels,target){
+    var w=320,top=12,h=40,bw=(w-8)/Math.max(vals.length,1),base=top+h;
+    var o='<svg viewBox="0 0 '+w+' '+(base+14)+'" role="img" aria-label="'+title+'">';
+    var ty=base-(target/100)*h;
+    o+='<line x1="0" x2="'+w+'" y1="'+ty+'" y2="'+ty+'" stroke="var(--ink3)" stroke-dasharray="3 3" stroke-width="1"/>';
+    o+='<text x="'+w+'" y="'+(ty-3)+'" text-anchor="end" font-size="9" fill="var(--ink3)">target '+target+'%</text>';
+    vals.forEach(function(v,i){var bh=Math.max((v/100)*h,v>0?2:1);var x=4+i*bw+bw*0.18;var last=i===vals.length-1;
+      o+='<rect x="'+x+'" y="'+(base-bh)+'" width="'+(bw*0.64)+'" height="'+bh+'" rx="2" fill="'+(last?'var(--accent)':'var(--track)')+'" stroke="'+(last?'none':'var(--ink3)')+'" stroke-width="'+(last?0:0.6)+'"><title>'+labels[i]+': '+v+'%</title></rect>';
+      o+='<text x="'+(x+bw*0.32)+'" y="'+(base-bh-3)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="var(--ink)">'+v+'%</text>';
+      o+='<text x="'+(x+bw*0.32)+'" y="'+(base+11)+'" text-anchor="middle" font-size="9" fill="var(--ink3)">'+labels[i]+'</text>'});
+    return '<div class="spark"><div class="t">'+title+'</div>'+o+'</svg></div>'}
+  var TR=m.trend||[]; var lab=TR.map(function(x){return fmtDay(x.date).replace(/^\w+, /,'')});
+  $('trend').innerHTML=spark('Called within 15 min',TR.map(function(x){return pct(x.within15,x.new_in_hours)}),lab,B.target_within15_pct)
+    +spark('Voicemail left (when you could leave one)',TR.map(function(x){return pct(x.vm_left,x.vm_possible==null?x.missed_first:x.vm_possible)}),lab,100);
+  $('foot').textContent=D.footnote;
+})();
+</script>
