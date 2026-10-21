@@ -48,12 +48,34 @@
 .fixes li{font-size:14px;font-weight:600}
 .fixes li b{font-weight:800}
 @media (max-width:560px){.kpis{grid-template-columns:1fr 1fr}.pri .kpis{grid-template-columns:1fr}.pri .kpi.k-show{grid-column:auto;grid-row:auto}.bl{grid-template-columns:1fr}}
+.grp{margin-top:14px}
+.grp h3{margin:0 0 6px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.kpis.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.kpis.one{grid-template-columns:1fr}
+#g1{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr)}
+.bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:8px;margin-top:14px}
+.bottom .col{display:flex;flex-direction:column;gap:8px}
+.bottom .col .kpi{flex:1}
+.bottom h3{margin:0 0 6px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.bottom .kpi.k-show{height:100%;box-sizing:border-box}
+.bottom .kpi.k-show .v{font-size:36px}
+.hc{display:flex;flex-direction:column;gap:3px;margin:2px 0 2px}
+.hc .bars{display:flex;align-items:flex-end;gap:2px;height:64px}
+.hc .b{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;border-radius:3px}
+.hc .b.on{background:color-mix(in srgb,var(--accent) 22%,#fff)}
+.hc .b i{display:block;width:70%;background:var(--accent);border-radius:2px 2px 0 0}
+.hc .b em{font-style:normal;font-size:9.5px;font-weight:800;color:var(--ink2);line-height:1.2}
+.hc .ax{display:flex;gap:2px}
+.hc .ax span{flex:1;text-align:center;font-size:9px;color:var(--ink3);white-space:nowrap}
+.hc .lg{display:flex;gap:10px;font-size:10px;color:var(--ink3);align-items:center}
+.hc .lg s{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;text-decoration:none}
+@media (max-width:560px){#g1{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}}
 </style>
 
 <div class="card" id="card0">
   <header>
-    <div class="eyebrow">Welcome Series test · round two · bottom line</div>
-    <h1 id="c0title">Bali's day</h1>
+    <div class="eyebrow">Welcome Series Outbound</div>
+    <h1 id="c0title"></h1>
     <div class="meta" id="c0meta"></div>
   </header>
   <div class="bl">
@@ -68,15 +90,15 @@
       <ol class="fixes" id="c0fixes"></ol>
     </div>
   </div>
-  <section class="pri">
-    <h2>Your priorities</h2>
-    <p class="lead" id="c0prilead">Speed to lead, dials and show rate come first. Green: you hit the target. Yellow: almost there (75% of the target or more). Red: you missed it. The black line on each bar is the target.</p>
-    <div class="kpis" id="c0kpis"></div>
-  </section>
-  <section class="comp">
-    <h2>Keep it up: compliance we still track</h2>
-    <p class="lead">You've been strong on these. Same colors and targets; anything in red goes on your fix list. Pickup rate counts everyone who picked up the phone; connect rate counts only the people you had a real conversation with. Blue: a number we track, with no target.</p>
-    <div class="kpis" id="c0comp"></div>
+  <section>
+    <h2>Your numbers</h2>
+    <p class="lead">Green: hit the target. Yellow: almost (75% of the target or more). Red: missed. Blue: tracked, no target. The black line on each bar is the target.</p>
+    <div class="grp"><h3>1. Outreach</h3><div class="kpis" id="g1"></div></div>
+    <div class="grp"><h3>2. No answer</h3><div class="kpis" id="g2"></div></div>
+    <div class="bottom">
+      <div><h3>3. Activity</h3><div class="col" id="g3"></div></div>
+      <div><h3>4. Post call</h3><div id="g4" style="height:calc(100% - 25px)"></div></div>
+    </div>
   </section>
 </div>
 
@@ -85,13 +107,11 @@
   var D=JSON.parse(document.getElementById('scorecard-data').textContent), C=D.cover, m=D.metrics;
   var $=function(id){return document.getElementById(id)};
   var p=m.date.split('-'), dd=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));
-  $('c0title').textContent="Bali's day: "+dd.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'long',month:'short',day:'numeric'});
-  var pri=C.kpis.filter(function(k){return k.group!=='comp'}), comp=C.kpis.filter(function(k){return k.group==='comp'});
-  // voicemail, text and double dial share the first row (Sheila, Oct 13); pickup, connect and the blue tile below
-  var CO=['vm','text','dd','pickup','connect']; comp.sort(function(a,b){return CO.indexOf(a.key)-CO.indexOf(b.key)});
-  var scored=pri.filter(function(k){return k.status!=='none'});
-  var hit=scored.filter(function(k){return k.hit}).length, near=scored.filter(function(k){return k.status==='close'}).length;
-  $('c0meta').textContent='You hit '+hit+' of '+scored.length+' priority targets'+(near?', '+near+' almost':'')+' · '+m.dials+' dials to '+m.people_dialed+' people · '+m.first_call+' to '+m.last_call+' ET';
+  $('c0title').textContent=D.setter.name+"'s Day: "+dd.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'long',month:'short',day:'numeric'});
+  var K={}; C.kpis.forEach(function(k){K[k.key]=k}); var T={}; (C.track||[]).forEach(function(k){T[k.key]=k});
+  var scored=C.kpis.filter(function(k){return k.status!=='none'});
+  var hit=scored.filter(function(k){return k.hit}).length;
+  $('c0meta').textContent='You hit '+hit+' of '+scored.length+' targets · '+m.dials+' dials to '+m.people_dialed+' people · '+m.first_call+' to '+m.last_call+' ET';
   $('c0wink').textContent=C.wins.length===1?'Win of the day':'Wins of the day';
   $('c0wins').innerHTML=C.wins.map(function(w){return '<li><b>'+w[0]+':</b> '+w[1]+'</li>'}).join('');
   if(C.sets==null){$('c0sets').style.display='none'}else{$('c0setsn').textContent=C.sets;$('c0setst').textContent=C.sets_text;}
@@ -101,26 +121,37 @@
   $('c0fixes').innerHTML=C.fixes.map(function(f){return '<li><b>'+f[0]+':</b> '+f[1]+'</li>'}).join('');
   var PILL={hit:'Hit',close:'Almost',miss:'Missed',none:'No calls due'};
   function tile(k){
+    if(!k) return '';
     var u=k.unit==='%'?'%':'', v=k.value==null?'–':k.value+u;
-    var scale=k.unit==='%'?100:Math.max(k.target*1.25,k.value||0), w=Math.min(100,100*(k.value||0)/scale), t=100*k.target/scale;
-    var x=k.extra||{}, more='';
-    if(x.all) more+='<div class="all">'+x.all+'</div>';
+    var w=Math.min(100,k.value||0), t=k.target;
+    var x=k.extra||{}, head='<div class="nm">'+k.name+'</div><div class="v">'+v+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+'<div class="of">'+k.detail+'</div>';
+    var inner=head;
+    if(k.key==='speed' && m.hours) inner=head.replace('<div class="of">', chart()+'<div class="of">');
+    if(x.all) inner+='<div class="all">'+x.all+'</div>';
     if(x.steps){
-      more+='<div class="steps"><div class="sh">'+x.steps_head+'</div>'+x.steps.map(function(s){
+      inner+='<div class="steps"><div class="sh">'+x.steps_head+'</div>'+x.steps.map(function(s){
         var cls=s.due?(s.done===s.due?'ok':'no'):'na', val=s.due?s.done+' of '+s.due:'none due yet';
         return '<div class="r"><span>'+s.name+'</span><span class="'+cls+'">'+val+'</span></div>'}).join('')+'</div>';
     }
-    return '<div class="kpi k-'+k.key+' '+k.status+'"><div class="nm">'+k.name+'</div>'+
-      '<div class="v">'+v+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+'<div class="of">'+k.detail+'</div>'+more+
+    return '<div class="kpi k-'+k.key+' '+k.status+'">'+inner+
       '<div class="tbar"><i style="width:'+w+'%"></i><b style="left:calc('+t+'% - 1px)"></b></div>'+
       '<div class="st"><span>Target '+k.target+u+'</span><span class="pill">'+PILL[k.status]+'</span></div></div>'}
+  // new sign-ups by hour that day (solid bars) and the hours you were dialing (light blue), 9am to 9pm ET
+  function chart(){
+    var H=m.hours.filter(function(x){return x.h>=9&&x.h<21}), mx=Math.max.apply(null,H.map(function(x){return x.signups}).concat([1]));
+    var lab=function(h){return (h%12||12)+(h<12?'am':'pm')};
+    return '<div class="hc"><div class="bars">'+H.map(function(x){
+      return '<div class="b'+(x.calls?' on':'')+'">'+(x.signups?'<em>'+x.signups+'</em>':'')+'<i style="height:'+Math.round(46*x.signups/mx)+'px"></i></div>'}).join('')+
+      '</div><div class="ax">'+H.map(function(x,i){return '<span>'+(i%2===0?lab(x.h):'')+'</span>'}).join('')+'</div>'+
+      '<div class="lg"><span><s style="background:var(--accent)"></s>New sign-ups</span><span><s style="background:color-mix(in srgb,var(--accent) 22%,#fff)"></s>Hours you dialed</span></div></div>'}
   function track(k){
+    if(!k) return '';
     return '<div class="kpi track"><div class="nm">'+k.name+'</div>'+
-      '<div class="v">'+k.value+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+'<div class="of">'+k.detail+'</div>'+
+      '<div class="v">'+k.value+'</div><div class="of">'+k.detail+'</div>'+
       '<div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>'}
-  $('c0kpis').innerHTML=pri.map(tile).join('');
-  // compliance tiles, then tracked numbers (blue, no target); moved below the priorities Oct 13, 2026
-  $('c0comp').innerHTML=comp.map(tile).join('')+(C.track||[]).map(track).join('');
-  // no footnote on the cover (Sheila, Oct 14: it made the page too long); definitions live in the runbook
+  $('g1').innerHTML=['speed','pickup','connect'].map(function(x){return tile(K[x])}).join('');
+  $('g2').innerHTML=['vm','text','dd'].map(function(x){return tile(K[x])}).join('');
+  $('g3').innerHTML=track(T.dials)+track(T.closer);
+  $('g4').innerHTML=tile(K.show);
 })();
 </script>

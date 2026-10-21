@@ -1,4 +1,4 @@
-<title>Bali's Daily Scorecard</title>
+<title>__TITLE__</title>
 <style>
 @font-face{font-family:"Manrope";src:url(data:font/woff2;base64,__FONT__) format("woff2");font-weight:200 800;font-display:block}
 :root{
@@ -85,8 +85,8 @@ table.cmp td b{font-weight:800}
 
 <div class="card" id="card1">
   <header>
-    <div class="eyebrow">Welcome Series test · round two</div>
-    <h1 id="title">Bali's day</h1>
+    <div class="eyebrow">Welcome Series Outbound</div>
+    <h1 id="title"></h1>
     <div class="meta" id="meta"></div>
   </header>
   <div class="callouts">
@@ -103,7 +103,7 @@ table.cmp td b{font-weight:800}
 
 <div class="card" id="card2">
   <header>
-    <div class="eyebrow">Bali's day · the details</div>
+    <div class="eyebrow">The details</div>
     <h1 id="title2" style="font-size:22px"></h1>
   </header>
   <section>
@@ -143,7 +143,7 @@ table.cmp td b{font-weight:800}
   var hr=function(h){var a=h%12||12;return a+(h<12||h===24?'am':'pm')};
   var m=D.metrics,B=D.baseline,F=m.funnel,T=m.funnel_total;
   var day=fmtDay(m.date,true);
-  $('title').textContent="Bali's day: "+day;
+  $('title').textContent=D.setter.name+"'s Day: "+day;
   $('title2').textContent=day;
   $('meta').textContent=m.dials+' dials to '+m.people_dialed+' people · first call '+m.first_call+', last call '+m.last_call+' ET';
   $('win').textContent=D.win; $('fix').textContent=D.fix;
