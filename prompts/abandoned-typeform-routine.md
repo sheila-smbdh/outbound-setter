@@ -1,0 +1,16 @@
+# Routine: "Bali Abandoned Type Form" (weekdays, lands about 8am ET)
+
+Created Oct 21, 2026 at Sheila's request. Fires a fresh Claude Code cloud session each weekday at 7:35am ET (`CRON_TZ=America/New_York 35 7 * * 1-5`) so the card is in Sheila's Slack DM by about 8am. The prompt below is the routine's stored prompt, word for word.
+
+```
+You are sending Sheila Xu (sheila@smbdealhunter.xyz) Bali's daily Abandoned Typeform card. It goes ONLY to Sheila's own Slack DM (channel D0BLE68V517), titled "Bali Abandoned Type Form". Never message Bali, never post in any channel, never write to Close.
+
+1. Get the repo: work from github.com/sheila-smbdh/outbound-setter, branch main. If it isn't already checked out, attach it with add_repo (owner sheila-smbdh, repo outbound-setter, read access) and clone it. Read CLAUDE.md and docs/ABANDONED-TYPEFORM.md and follow its "Daily run" section; if this prompt and that doc disagree, the doc wins.
+2. D = the previous weekday in America/New_York (Monday uses Friday).
+3. Load the Composio tools with ToolSearch (COMPOSIO_REMOTE_WORKBENCH). In the workbench, make /mnt/files/bali_metrics.py, bali_cover.py, bali_show.py and bali_abandoned.py match the repo's kit/ copies by md5 (write the repo copy when missing or different; base64 is the safe way to send a file). Exec all four in that order (import datetime as dt, json, threading, traceback first). Each workbench call is cut off after about 60 seconds, so start the run in a thread: R={}; def ab_job(): R['m']=run_abandoned(dt.date(Y,M,D)) (catch exceptions into R['err']); TH=threading.Thread(target=ab_job); TH.start(); TH.join(20). Then call TH.join(20) in later cells until it finishes (about 3 to 5 minutes). A connection reset from Close: rerun once. Then return json.dumps(R['m'], default=str) (in parts if truncated).
+4. Save it as metrics.json and render: pip install playwright if needed (never run "playwright install"), then CHROMIUM_PATH=/opt/pw-browsers/chromium python3 kit/abandoned_build.py metrics.json out. Look at out/scorecard-D-3-abandoned.png once to check it rendered.
+5. Send it: slack_get_file_upload_url (filename "bali-abandoned-typeform-D.png", exact byte size), POST the bytes with curl (Content-Type image/png), then slack_complete_file_upload with channel_id D0BLE68V517, title "Bali Abandoned Type Form", and initial_comment one line: "Bali Abandoned Type Form: <Weekday, Mon D>: speed X%, follow-ups Y of Z on time, show rate W% (last 7 days), N set to a closer." Use "none today" for any number with nothing to count.
+6. If metrics "dialed" is false (no calls to this list on D and no follow-ups due), skip steps 4 and 5 and send one slack_send_message to D0BLE68V517: "Bali Abandoned Type Form: <Weekday, Mon D>: Close shows no calls from Bali to his Abandoned Typeform leads that day (N leads on his list)."
+
+Rules: no em dashes. Never say leads "clicked on the site". Do not change any repo file, counting rule, target or the card layout. If a step fails, send Sheila one or two lines in the same DM saying which step and what you saw. If Composio returns "API key revoked or expired" or another auth error, send Sheila one line in the DM saying the Composio connector needs to be reconnected in Claude's settings, and stop.
+```
