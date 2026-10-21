@@ -1,16 +1,30 @@
-<!-- MOCKUP (Oct 21, 2026): Abandoned Typeform card for Bali, a third image separate from the Welcome Series cards.
-     Static sample numbers, not from Close. Styles come from kit/template.html and kit/cover.html (see render.py). -->
+<!-- MOCKUP v2 (Oct 21, 2026): Abandoned Typeform card for Bali, a third image separate from the Welcome Series cards.
+     Static sample numbers, not from Close. Styles come from kit/template.html and kit/cover.html (see render.py).
+     v2 (Sheila, Oct 21): no wins/fixes, only the cumulative sets and closes on top; no cadence table;
+     one KPI section in three groups: first call, closers, follow-up calls on time (with the leads due listed). -->
 <style>
 .sample{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--older);border-radius:999px;padding:3px 9px}
 #card3 .eyebrow{color:var(--older)}
-.cad{width:100%;border-collapse:collapse;font-size:14px}
-.cad th{font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);text-align:right;padding:4px 6px;border-bottom:1px solid var(--line)}
-.cad th:first-child,.cad td:first-child{text-align:left}
-.cad td{padding:7px 6px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line)}
-.cad td:first-child b{font-weight:800}
-.cad td:first-child span{color:var(--ink3);font-size:12.5px;margin-left:6px}
-.cad .ok{color:var(--good);font-weight:800} .cad .no{color:var(--bad);font-weight:800} .cad .na{color:var(--ink3)}
-.cad tr.tot td{font-weight:800;border-bottom:0}
+.tot2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tot2 .callout{display:flex;align-items:baseline;gap:12px}
+.tot2 .n{font-size:40px;font-weight:800;color:var(--good);line-height:1;font-variant-numeric:tabular-nums}
+.tot2 .t{font-size:14px;font-weight:600;color:var(--ink2)}
+.pri .grp > .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp + .grp{margin-top:18px}
+.grp h3{margin:0;font-size:13px;font-weight:800;color:var(--ink);display:flex;gap:8px;align-items:baseline}
+.grp h3 span{font-size:12.5px;font-weight:600;color:var(--ink3)}
+.closers{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:8px}
+.fu{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);gap:8px;align-items:start}
+.due{width:100%;border-collapse:collapse;font-size:13px}
+.due th{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+.due td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.due td:first-child{font-weight:700;white-space:nowrap}
+.due td.st{white-space:nowrap;font-weight:800}
+.due .ok{color:var(--good)} .due .no{color:var(--bad)}
+.due tr.miss td{background:var(--bad-soft)}
+.due td.r{color:var(--ink2)}
+@media (max-width:560px){.tot2,.closers,.fu,.pri .grp > .kpis{grid-template-columns:1fr}}
 </style>
 
 <div class="card" id="card3">
@@ -18,100 +32,93 @@
     <div class="sample">Sample: made-up numbers</div>
     <div class="eyebrow" style="margin-top:10px">Abandoned Typeform test · separate from Welcome Series</div>
     <h1>Bali's Abandoned Typeform day: Tuesday, Oct 27</h1>
-    <div class="meta">You hit 1 of 3 priority targets, 2 almost · 27 dials to 19 abandoned leads · 11 new in #partial-submit</div>
+    <div class="meta">You hit 5 of 8 targets, 3 almost · 27 dials to 19 abandoned leads · 11 new in #partial-submit</div>
   </header>
 
-  <div class="bl">
-    <div class="callout win">
-      <div class="k">Wins of the day</div>
-      <ol class="fixes">
-        <li><b>Speed to lead:</b> 7 of 9 new abandoned leads called within 15 minutes of the Slack ping. You hit the target.</li>
-        <li><b>Closer calls:</b> You booked 2 closer calls (Mike R. on the first call, Dana T. on the Day 3 call).</li>
-        <li><b>Voicemail and text:</b> 91% and 92% vs a target of 85%. You hit both.</li>
-      </ol>
-      <div class="closes"><div class="n">4</div><div class="t">sets to a closer from abandoned leads since Oct 21</div></div>
-      <div class="closes"><div class="n">0</div><div class="t">closes from abandoned leads so far</div></div>
-    </div>
-    <div class="callout fix">
-      <div class="k">Fixes for tomorrow</div>
-      <ol class="fixes">
-        <li><b>Follow-up calls:</b> 3 of 12 calls due today weren't made (Ben K. Day 3, Lisa M. Day 5, Tom W. Day 7). Sweep your Close tasks before you log off.</li>
-        <li><b>Show rate:</b> 1 of 4 closer calls in the last 7 days didn't show (Rachel P.). Do all four handoff steps on every booking.</li>
-        <li><b>Double dial:</b> 8 of 12 no-answers redialed. Redial right away, on every follow-up day too.</li>
-      </ol>
-    </div>
+  <div class="tot2">
+    <div class="callout win"><div class="n">4</div><div class="t">sets to a closer from abandoned leads since Oct 21</div></div>
+    <div class="callout win"><div class="n">0</div><div class="t">closes from abandoned leads so far</div></div>
   </div>
 
   <section class="pri">
-    <h2>Your priorities on this list</h2>
-    <p class="lead">Call the moment a #partial-submit ping lands, make every Day 3, 5 and 7 call on its day, and get your sets to show. Green: you hit the target. Yellow: almost there (75% of the target or more). Red: you missed it.</p>
-    <div class="kpis">
-      <div class="kpi k-speed hit"><div class="nm">Speed to lead</div><div class="v">78%</div>
-        <div class="nt">From the #partial-submit ping, 9am to 9pm ET.</div>
-        <div class="of">7 of 9 new abandoned leads in 15 min</div>
-        <div class="tbar"><i style="width:78%"></i><b style="left:calc(60% - 1px)"></b></div>
-        <div class="st"><span>Target 60%</span><span class="pill">Hit</span></div></div>
-      <div class="kpi k-fu close"><div class="nm">Follow-up calls on time</div><div class="v">75%</div>
-        <div class="nt">Day 3, 5 and 7 calls due today, plus monthly calls.</div>
-        <div class="of">9 of 12 calls due today made</div>
-        <div class="tbar"><i style="width:75%"></i><b style="left:calc(90% - 1px)"></b></div>
-        <div class="st"><span>Target 90%</span><span class="pill">Almost</span></div></div>
-      <div class="kpi k-show close"><div class="nm">Show rate</div><div class="v">75%</div>
-        <div class="nt">Last 7 days. A rescheduled call counts on its new date.</div>
-        <div class="of">3 of 4 closer calls showed</div>
-        <div class="all"><div class="al">All abandoned leads set since Oct 21</div><div class="av">75%<span>3 of 4 showed</span></div></div>
-        <div class="steps"><div class="sh">Handoff steps, last 7 days</div>
-          <div class="r"><span>Handoff email right after booking</span><span class="ok">4 of 4</span></div>
-          <div class="r"><span>Closer note attached</span><span class="ok">4 of 4</span></div>
-          <div class="r"><span>Reminder the day before</span><span class="no">1 of 2</span></div>
-          <div class="r"><span>Morning-of reminder (no reply)</span><span class="ok">1 of 1</span></div></div>
-        <div class="tbar"><i style="width:75%"></i><b style="left:calc(90% - 1px)"></b></div>
-        <div class="st"><span>Target 90%</span><span class="pill">Almost</span></div></div>
+    <h2>Your numbers on this list</h2>
+    <p class="lead">Green: you hit the target. Yellow: almost there (75% of the target or more). Red: you missed it. Blue: a number we track, with no target. The black line on each bar is the target.</p>
+
+    <div class="grp">
+      <h3>1. First call <span>new abandoned leads, the moment the #partial-submit ping lands</span></h3>
+      <div class="kpis">
+        <div class="kpi hit"><div class="nm">Speed to lead</div><div class="v">78%</div>
+          <div class="nt">From the #partial-submit ping, 9am to 9pm ET.</div>
+          <div class="of">7 of 9 new abandoned leads in 15 min</div>
+          <div class="tbar"><i style="width:78%"></i><b style="left:calc(60% - 1px)"></b></div>
+          <div class="st"><span>Target 60%</span><span class="pill">Hit</span></div></div>
+        <div class="kpi hit"><div class="nm">Voicemail</div><div class="v">91%</div>
+          <div class="of">10 of 11 no-answers who let you leave one (1 hung up, not counted)</div>
+          <div class="tbar"><i style="width:91%"></i><b style="left:calc(85% - 1px)"></b></div>
+          <div class="st"><span>Target 85%</span><span class="pill">Hit</span></div></div>
+        <div class="kpi hit"><div class="nm">Text</div><div class="v">92%</div>
+          <div class="of">11 of 12 no-answers got one</div>
+          <div class="tbar"><i style="width:92%"></i><b style="left:calc(85% - 1px)"></b></div>
+          <div class="st"><span>Target 85%</span><span class="pill">Hit</span></div></div>
+        <div class="kpi close"><div class="nm">Double dial</div><div class="v">67%</div>
+          <div class="of">8 of 12 no-answers redialed</div>
+          <div class="tbar"><i style="width:67%"></i><b style="left:calc(85% - 1px)"></b></div>
+          <div class="st"><span>Target 85%</span><span class="pill">Almost</span></div></div>
+        <div class="kpi hit"><div class="nm">Pickup rate</div><div class="v">37%</div>
+          <div class="of">7 of 19 people picked up</div>
+          <div class="tbar"><i style="width:37%"></i><b style="left:calc(25% - 1px)"></b></div>
+          <div class="st"><span>Target 25%</span><span class="pill">Hit</span></div></div>
+        <div class="kpi hit"><div class="nm">Connect rate</div><div class="v">21%</div>
+          <div class="nt">Set to self counts only when a meeting is actually booked.</div>
+          <div class="of">4 of 19 people had a real conversation</div>
+          <div class="tbar"><i style="width:21%"></i><b style="left:calc(10% - 1px)"></b></div>
+          <div class="st"><span>Target 10%</span><span class="pill">Hit</span></div></div>
+      </div>
     </div>
-  </section>
 
-  <section>
-    <h2>Your no-answer cadence today</h2>
-    <p class="lead">Every abandoned lead you owed a call today, by step. On each step with no answer: double dial, voicemail, text.</p>
-    <table class="cad">
-      <tr><th>Step</th><th>Due today</th><th>Called</th><th>Picked up</th></tr>
-      <tr><td><b>Day 1</b><span>new today</span></td><td>11</td><td class="no">10</td><td>4</td></tr>
-      <tr><td><b>Day 3</b></td><td>5</td><td class="no">4</td><td>1</td></tr>
-      <tr><td><b>Day 5</b></td><td>4</td><td class="no">3</td><td>1</td></tr>
-      <tr><td><b>Day 7</b></td><td>3</td><td class="no">2</td><td>1</td></tr>
-      <tr><td><b>Monthly</b></td><td class="na">0</td><td class="na">0</td><td class="na">0</td></tr>
-      <tr class="tot"><td>Total</td><td>23</td><td>19</td><td>7</td></tr>
-    </table>
-  </section>
+    <div class="grp">
+      <h3>2. Closers <span>sets, and getting them to show</span></h3>
+      <div class="closers">
+        <div class="kpi track"><div class="nm">Set to a closer</div><div class="v">2</div>
+          <div class="of"><b>1 on Day 1:</b> Mike R.<br><b>1 on a follow-up day:</b> Dana T. (Day 3)</div>
+          <div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>
+        <div class="kpi k-show close"><div class="nm">Show rate</div><div class="v">75%</div>
+          <div class="nt">Last 7 days. A rescheduled call counts on its new date.</div>
+          <div class="of">3 of 4 closer calls showed (Rachel P. didn't)</div>
+          <div class="all"><div class="al">All abandoned leads set since Oct 21</div><div class="av">75%<span>3 of 4 showed</span></div></div>
+          <div class="steps"><div class="sh">Handoff steps, last 7 days</div>
+            <div class="r"><span>Handoff email right after booking</span><span class="ok">4 of 4</span></div>
+            <div class="r"><span>Closer note attached</span><span class="ok">4 of 4</span></div>
+            <div class="r"><span>Reminder the day before</span><span class="no">1 of 2</span></div>
+            <div class="r"><span>Morning-of reminder (no reply)</span><span class="ok">1 of 1</span></div></div>
+          <div class="tbar"><i style="width:75%"></i><b style="left:calc(90% - 1px)"></b></div>
+          <div class="st"><span>Target 90%</span><span class="pill">Almost</span></div></div>
+      </div>
+    </div>
 
-  <section class="comp">
-    <h2>Keep it up: compliance on this list</h2>
-    <p class="lead">Same rules and targets as Welcome Series, counted only on abandoned leads. Blue: a number we track, with no target.</p>
-    <div class="kpis">
-      <div class="kpi hit"><div class="nm">Voicemail</div><div class="v">91%</div>
-        <div class="of">10 of 11 no-answers who let you leave one (1 hung up, not counted)</div>
-        <div class="tbar"><i style="width:91%"></i><b style="left:calc(85% - 1px)"></b></div>
-        <div class="st"><span>Target 85%</span><span class="pill">Hit</span></div></div>
-      <div class="kpi hit"><div class="nm">Text</div><div class="v">92%</div>
-        <div class="of">11 of 12 no-answers got one</div>
-        <div class="tbar"><i style="width:92%"></i><b style="left:calc(85% - 1px)"></b></div>
-        <div class="st"><span>Target 85%</span><span class="pill">Hit</span></div></div>
-      <div class="kpi close"><div class="nm">Double dial</div><div class="v">67%</div>
-        <div class="of">8 of 12 no-answers redialed</div>
-        <div class="tbar"><i style="width:67%"></i><b style="left:calc(85% - 1px)"></b></div>
-        <div class="st"><span>Target 85%</span><span class="pill">Almost</span></div></div>
-      <div class="kpi hit"><div class="nm">Pickup rate</div><div class="v">37%</div>
-        <div class="of">7 of 19 people picked up</div>
-        <div class="tbar"><i style="width:37%"></i><b style="left:calc(25% - 1px)"></b></div>
-        <div class="st"><span>Target 25%</span><span class="pill">Hit</span></div></div>
-      <div class="kpi hit"><div class="nm">Connect rate</div><div class="v">21%</div>
-        <div class="nt">Set to self counts only when a meeting is actually booked.</div>
-        <div class="of">4 of 19 people had a real conversation</div>
-        <div class="tbar"><i style="width:21%"></i><b style="left:calc(10% - 1px)"></b></div>
-        <div class="st"><span>Target 10%</span><span class="pill">Hit</span></div></div>
-      <div class="kpi track"><div class="nm">Set to a closer</div><div class="v">2</div>
-        <div class="of"><b>1 on Day 1:</b> Mike R.<br><b>1 on a follow-up day:</b> Dana T. (Day 3)</div>
-        <div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>
+    <div class="grp">
+      <h3>3. Follow-up calls on time <span>Day 3, 5, 7 and monthly calls due today</span></h3>
+      <div class="fu">
+        <div class="kpi close"><div class="nm">Follow-up calls on time</div><div class="v">75%</div>
+          <div class="of">9 of 12 calls due today made</div>
+          <div class="tbar"><i style="width:75%"></i><b style="left:calc(90% - 1px)"></b></div>
+          <div class="st"><span>Target 90%</span><span class="pill">Almost</span></div></div>
+        <table class="due">
+          <tr><th>Lead</th><th>Due</th><th>Called</th><th>What happened</th></tr>
+          <tr><td>Dana T.</td><td>Day 3</td><td class="st ok">Yes</td><td class="r">Picked up, set to a closer</td></tr>
+          <tr><td>Omar H.</td><td>Day 3</td><td class="st ok">Yes</td><td class="r">Picked up, call back later</td></tr>
+          <tr><td>Chris L.</td><td>Day 3</td><td class="st ok">Yes</td><td class="r">No answer: double dial, voicemail, text</td></tr>
+          <tr><td>Priya S.</td><td>Day 3</td><td class="st ok">Yes</td><td class="r">No answer: voicemail, text</td></tr>
+          <tr class="miss"><td>Ben K.</td><td>Day 3</td><td class="st no">No</td><td class="r">Not called</td></tr>
+          <tr><td>Nina G.</td><td>Day 5</td><td class="st ok">Yes</td><td class="r">Picked up, disqualified</td></tr>
+          <tr><td>Jake F.</td><td>Day 5</td><td class="st ok">Yes</td><td class="r">No answer: double dial, voicemail, text</td></tr>
+          <tr><td>Sam B.</td><td>Day 5</td><td class="st ok">Yes</td><td class="r">Hung up, text</td></tr>
+          <tr class="miss"><td>Lisa M.</td><td>Day 5</td><td class="st no">No</td><td class="r">Not called</td></tr>
+          <tr><td>Erin D.</td><td>Day 7</td><td class="st ok">Yes</td><td class="r">No answer: double dial, voicemail, text</td></tr>
+          <tr><td>Victor A.</td><td>Day 7</td><td class="st ok">Yes</td><td class="r">No answer: voicemail, text</td></tr>
+          <tr class="miss"><td>Tom W.</td><td>Day 7</td><td class="st no">No</td><td class="r">Not called</td></tr>
+        </table>
+      </div>
     </div>
   </section>
 </div>
