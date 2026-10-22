@@ -18,7 +18,7 @@ Owner: Sheila Xu. Set up Sep 29, 2026. Round two starts Wed, Sep 30. Scorecard v
   - Jordan: 9am-5pm MT (11am-7pm ET) through Oct 31: 9am-4:30pm MT plus his extra hour, capped at 8. From Nov 1 he works Central time: 9am-5pm CT (10am-6pm ET).
   - Records before Oct 22 have no `work_hours` and were counted over 9am to 9pm ET. With no setter selected (`use_setter` not called) the old 9am to 9pm ET window still applies.
   - The sign-ups-by-hour chart on the cover still spans 9am to 9pm ET.
-- **Routine:** "Welcome Series setter scorecards", weekdays 6:59am ET, sends the three cards to Sheila's own Slack DM only. Prompt: `prompts/setter-scorecards-routine.md`.
+- **Routine:** "Welcome Series setter scorecards", weekdays 6:59am ET, posts the three cards to the Slack channel C0C9VANP6QN (Sheila, Oct 22; was her own DM). Cards only: the Slack check, duplicates and show notes are no longer sent; run problems go to Sheila's DM D0BLE68V517. Prompt: `prompts/setter-scorecards-routine.md`.
 - **Daily run per setter:** exec the four files, then for each key in bali, jose, jordan: `use_setter(key); m=run_show(D, run_cover(D))`, then `python3 build.py metrics.json out`. A setter with no calls on D gets a one-line note instead of a card. Slack cross-check: Bali only for now.
 - **Cover v5 (same counting rules and targets):**
   - Top line reads "Welcome Series Outbound", then "<Name>'s Day: <date>". No round two.
