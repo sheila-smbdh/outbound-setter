@@ -9,7 +9,7 @@ D = {
   dict(n='Alex R.', s=3, res='Set to Adam Larkins, Thu 2pm', hand=[Y, Y, NA, NA], nxt='Day-before reminder today (Wed)'),
   dict(n='Priya S.', s=6, res='Set to Nick Vaughan, Fri 11am', hand=[N, Y, NA, NA], nxt='Send the handoff email now (missed)'),
   dict(n='Marcus T.', s=22, res='Set to Owen Henderson, today 4pm', hand=[Y, Y, NA, NA], nxt='Morning-of text if no reply'),
-  dict(n='Dana W.', s=9, res='Call back later', hand=None, nxt='Call back Thu 10am (his ask)'),
+  dict(n='Dana W.', s=9, res='Call back later', hand=None, nxt='Call back Thu 10am (their ask)'),
   dict(n='Leo M.', s=41, res='Call back later', hand=None, nxt='Call back Mon, send materials'),
   dict(n='Rita K.', s=12, res='Disqualified (low liquidity)', hand=None, nxt='None, nurture'),
  ],
@@ -133,11 +133,11 @@ a{{color:var(--accent);font-weight:700;text-decoration:none}}
 </table></div></section>
 
 <section><h2>Didn't pick up <span>{len(np_)}</span></h2>
-<div class="chips">{chip('double dialed',*cnt(np_,'dd'))}{chip('voicemail (when he could)',*cnt(np_,'vm'))}{chip('texted',*cnt(np_,'tx'))}{chip('called in 15 min',sum(1 for r in np_ if r['s']<=15),len(np_),60)}</div>
+<div class="chips">{chip('double dialed',*cnt(np_,'dd'))}{chip('voicemail (when you could)',*cnt(np_,'vm'))}{chip('texted',*cnt(np_,'tx'))}{chip('called in 15 min',sum(1 for r in np_ if r['s']<=15),len(np_),60)}</div>
 <div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th class="c">Double dial</th><th class="c">Voicemail</th><th class="c">Text</th><th>Next step</th></tr>
 {''.join(f"<tr><td>{link(r)}</td><td>{speed(r['s'])}</td><td class='c'>{mark(r['dd'])}</td><td class='c'>{mark(r['vm'])}</td><td class='c'>{mark(r['tx'])}</td><td class='nx{' urg' if N in (r['dd'],r['vm'],r['tx']) else ''}'>{r['nxt']}</td></tr>" for r in np_)}
 </table></div>
-<p class="lead" style="margin-top:6px">– on voicemail = the call never reached a mailbox, so it doesn't count against him.</p></section>
+<p class="lead" style="margin-top:6px">– on voicemail = the call never reached a mailbox, so it doesn't count against you.</p></section>
 
 <section><h2>Not called yet <span>{len(nc)}</span></h2>
 <div class="wrap"><table><tr><th>Lead</th><th>Next step</th></tr>
@@ -145,7 +145,7 @@ a{{color:var(--accent);font-weight:700;text-decoration:none}}
 </table></div></section>
 
 <section><h2>Closer calls that happened {D['date']} <span class="sm">{D['show7'][0]} of {D['show7'][1]} showed, last 7 days</span></h2>
-<p class="lead">Leads he set on earlier days whose closer call was {D['date']}. Separate from the {tot} above.</p>
+<p class="lead">Leads you set on earlier days whose closer call was {D['date']}. Separate from the {tot} above.</p>
 <div class="wrap"><table><tr><th>Lead</th><th>Set on</th><th>Closer</th><th>Showed?</th><th>Handoff</th></tr>
 {''.join(f"<tr><td>{link(r)}</td><td>{r['set']}</td><td>{r['closer']}</td><td><span class='st {'showed' if r['st']=='showed' else 'no' if r['st']=='no show' else 'nl'}'>{r['st']}</span></td><td>{hand(r['hand'])}</td></tr>" for r in D['shows'])}
 </table></div></section>
