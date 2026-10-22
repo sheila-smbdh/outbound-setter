@@ -63,13 +63,13 @@ a{color:var(--accent);font-weight:700;text-decoration:none}
 .grp h3{margin:0;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);display:flex;justify-content:space-between}
 .grp h3 span{font-size:18px;color:var(--ink);letter-spacing:0}
 section.part{border-top:2px solid var(--line);padding-top:16px}
-.hchart{display:flex;align-items:flex-end;gap:2px;height:130px;border-bottom:1px solid var(--line);padding-top:4px}
+.hchart{display:flex;align-items:flex-end;gap:2px;height:52px;border-bottom:1px solid var(--line);padding-top:4px}
 .hc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;height:100%;position:relative}
-.hc.gap{margin-left:14px} .hc.gap::before{content:"";position:absolute;left:-9px;top:20px;bottom:0;border-left:1px dashed var(--line)}
-.hc b{font-size:12px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;min-height:16px}
+.hc.gap{margin-left:14px} .hc.gap::before{content:"";position:absolute;left:-9px;top:8px;bottom:0;border-left:1px dashed var(--line)}
+.hc b{font-size:11px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;min-height:14px;line-height:14px}
 .hc i{display:block;width:70%;max-width:36px;background:var(--ink3);border-radius:4px 4px 0 0}
 .hc em{position:absolute;bottom:-18px;font-style:normal;font-size:10.5px;color:var(--ink3)}
-.grp .hchart{margin-bottom:20px}
+.grp .hchart{margin-bottom:18px}
 .wrap{overflow-x:auto} .none{color:var(--ink3);font-weight:600}
 @media (max-width:560px){.tiles,.chips{grid-template-columns:1fr 1fr}}
 """
@@ -119,7 +119,7 @@ def hour_chart(rows, hours):
     for i, h in enumerate(hours):
         gap = ' gap' if i and h != hours[i - 1] + 1 else ''
         n = c[h]; lab = f"{h % 12 or 12}{'a' if h < 12 else 'p'}"
-        cols.append(f'<div class="hc{gap}"><b>{n or ""}</b><i style="height:{round(90 * n / top)}px"></i><em>{lab}</em></div>')
+        cols.append(f'<div class="hc{gap}"><b>{n or ""}</b><i style="height:{round(30 * n / top)}px"></i><em>{lab}</em></div>')
     return f'<div class="hchart">{"".join(cols)}</div>'
 
 def group_tables(L, T, speed_chip=True, hours=range(24)):
