@@ -27,10 +27,19 @@ NOTE_MIN_CHARS = 40       # step 4: a closer note needs at least this much text 
 _SETS = {}
 # Oct 21, 2026 (Sheila): one card per setter. 'since' = first day their Welcome Series dials count (sets so far, closes,
 # show rate); handoff steps count from max(Oct 13, since).
+# Work hours for speed to lead (Sheila, Oct 22, 2026): 8 hours each, in the setter's own time zone. A list of
+# (from date, time zone, start, end, label); the last entry whose date is on or before D applies.
+# Bali said 7am-5pm PT (10 hours), so his 8 come from when he actually dials (Sep 28 to Oct 21: 89% of his calls fell
+# in 9am-5pm PT). Jose gave no hours, so his come from his dialing too (91% in 10:30am-6:30pm ET).
+# Jordan: 9am-4:30pm MT plus his extra hour, counted to 5pm MT; from Nov 1 he works Central time, same hours.
 SETTERS = dict(
-    bali=dict(name='Bali', user='user_c0wPSKtEPsqkIh08OnjiGaj6XHeFBjGSp2jyVxAggDl', since=dt.date(2026, 9, 16)),
-    jose=dict(name='Jose', user='user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk', since=dt.date(2026, 10, 20)),
-    jordan=dict(name='Jordan', user='user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC', since=dt.date(2026, 10, 20)))
+    bali=dict(name='Bali', user='user_c0wPSKtEPsqkIh08OnjiGaj6XHeFBjGSp2jyVxAggDl', since=dt.date(2026, 9, 16),
+              hours=[(dt.date(2026, 9, 16), 'America/Los_Angeles', '09:00', '17:00', 'PT')]),
+    jose=dict(name='Jose', user='user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk', since=dt.date(2026, 10, 20),
+              hours=[(dt.date(2026, 10, 20), 'America/New_York', '10:30', '18:30', 'ET')]),
+    jordan=dict(name='Jordan', user='user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC', since=dt.date(2026, 10, 20),
+                hours=[(dt.date(2026, 10, 20), 'America/Denver', '09:00', '17:00', 'MT'),
+                       (dt.date(2026, 11, 1), 'America/Chicago', '09:00', '17:00', 'CT')]))
 SETTER = dict(key='bali', **SETTERS['bali'])
 
 def use_setter(key):
