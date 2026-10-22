@@ -4,6 +4,27 @@ from zoneinfo import ZoneInfo
 ET=ZoneInfo('America/New_York'); UTC=dt.timezone.utc
 BALI='user_c0wPSKtEPsqkIh08OnjiGaj6XHeFBjGSp2jyVxAggDl'
 SEQ='seq_0XX3twr6enX8SbfMZILA8x'  # Welcome Series - Bali Test
+# Oct 21, 2026 (Sheila): Welcome Series sign-ups are split between Bali, Jose and Jordan K. A setter's list = leads whose
+# "Initial Contact User" field is that setter (what the Close smart views filter on). LIST holds those lead ids while a
+# setter is selected (use_setter in bali_show.py); None counts every sign-up (the old Bali-only behavior).
+ICU_FIELD='cf_C6fOIXKxCBrG5PhlmEhcO6Rzu20G8XV6aA7wnADkH3P'
+LIST=None
+def list_leads(uid):
+    """Lead ids whose Initial Contact User is uid (Close data search, read only)."""
+    q={"query":{"type":"and","queries":[{"type":"object_type","object_type":"lead"},
+        {"type":"field_condition","field":{"type":"custom_field","custom_field_id":ICU_FIELD},
+         "condition":{"type":"reference","reference_type":"user_or_group","object_ids":[uid]}}]},
+       "_fields":{"lead":["id"]},"_limit":200}
+    ids=[];cur=None
+    while True:
+        b=dict(q)
+        if cur: b['cursor']=cur
+        r,e=_q(proxy_execute,'POST','/data/search/','close',body=b)
+        if e: raise Exception(str(e)[:300])
+        body=r.get('data') if isinstance(r.get('data'),dict) else r
+        ids+=[x['id'] for x in body.get('data') or []]; cur=body.get('cursor')
+        if not cur: break
+    return set(ids)
 REAL_SEC=180  # calls with no Close outcome: a real conversation lasts 3+ minutes (or led to a booking)
 REAL_MIN_SEC=60  # outcome-tagged calls must last 60+ seconds (Sheila, Oct 5)
 REAL_TAGS=('conversation: set to closer','conversation: call back later','disqualified')
@@ -129,6 +150,7 @@ def load(D, back=16):
     for s in subs:
         t=pt(s['date_created'])
         if s['lead_id'] not in enr or t<enr[s['lead_id']]: enr[s['lead_id']]=t
+    if LIST is not None: enr={l:x for l,x in enr.items() if l in LIST}   # only sign-ups on the setter's list (Oct 21)
     sms=get_all('/activity/sms/',{'user_id':BALI,'date_created__gte':su,'date_created__lt':eu})
     sms=[s for s in sms if s.get('direction')=='outbound' and s.get('status') in ('sent','delivered','scheduled','outbox','inbox') ]
     for s in sms: s['_t']=pt(s['date_created'])

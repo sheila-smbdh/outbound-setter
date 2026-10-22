@@ -2,8 +2,10 @@
 
 Read `README.md` first in every new session, then `docs/RUNBOOK.md` before any run. The runbook wins over any prompt when they disagree.
 
-- Owner: Sheila Xu (sheila@smbdealhunter.xyz). Subject: Bali (Jabali Dumas), setter on Welcome Series sign-ups.
-- Read-only everywhere: never write to Close, never post to Slack, never message Bali. Sheila forwards the scorecard herself.
+- Owner: Sheila Xu (sheila@smbdealhunter.xyz). Subjects: the Welcome Series setters Bali (Jabali Dumas), Jose Rodriguez and Jordan Kempster, one daily card each (runbook, "Three setters and the v5 cards").
+- Read-only everywhere: never write to Close, never post to Slack, never message Bali, Jose or Jordan. Sheila forwards the scorecard herself.
+  One exception (Sheila, Oct 21, 2026): the Abandoned Typeform card goes to Sheila's own Slack DM (D0BLE68V517) and nowhere else. See `docs/ABANDONED-TYPEFORM.md`.
+  Second exception (Sheila, Oct 21, 2026): the daily setter scorecards routine sends Bali's, Jose's and Jordan's cards to Sheila's own Slack DM (D0BLE68V517) and nowhere else. See `prompts/setter-scorecards-routine.md`.
 - Close data comes through the Composio remote workbench (`proxy_execute`, `close` toolkit), not the Close MCP connector. Before exec'ing, make the workbench copies of `kit/bali_metrics.py`, `bali_cover.py`, `bali_show.py`, `bali_slack.py` match this repo (md5), then exec them in that order.
 - Do not change counting rules, targets, the card layout or the SOP without Sheila's say-so. Propose doc copy changes as redlines (old and new).
 - Before editing any kit file, pull the latest from the repo; two sessions once edited the same files at once.

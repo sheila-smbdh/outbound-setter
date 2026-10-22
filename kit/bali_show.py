@@ -25,6 +25,22 @@ PRE_DISC_TYPE = 'actitype_7eSCr8m78jZ35sh13poUg8'      # Bali's "001) Pre-Discov
 PRE_DISC_NOTES = 'custom.cf_Pu5ktC6m2Ad9Gu0UEpe3UtfXOvg9RoZmojurmx7G5GJ'   # its "Pre-Discov Call Notes" field
 NOTE_MIN_CHARS = 40       # step 4: a closer note needs at least this much text (HTML tags stripped)
 _SETS = {}
+# Oct 21, 2026 (Sheila): one card per setter. 'since' = first day their Welcome Series dials count (sets so far, closes,
+# show rate); handoff steps count from max(Oct 13, since).
+SETTERS = dict(
+    bali=dict(name='Bali', user='user_c0wPSKtEPsqkIh08OnjiGaj6XHeFBjGSp2jyVxAggDl', since=dt.date(2026, 9, 16)),
+    jose=dict(name='Jose', user='user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk', since=dt.date(2026, 10, 20)),
+    jordan=dict(name='Jordan', user='user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC', since=dt.date(2026, 10, 20)))
+SETTER = dict(key='bali', **SETTERS['bali'])
+
+def use_setter(key):
+    """Point every helper at one setter: their Close user (BALI), their list (LIST) and their start dates.
+    Call before run_cover / run_show / week, and again before switching setters."""
+    global BALI, LIST, CLOSES_FROM, STEPS_FROM, SETTER
+    s = SETTERS[key]
+    BALI = s['user']; LIST = list_leads(s['user']); CLOSES_FROM = s['since']
+    STEPS_FROM = max(dt.date(2026, 10, 13), s['since']); SETTER = dict(key=key, **s)
+    _SETS.clear()
 
 def closer_sets(D):
     """Every closer call from Bali's pickups, Sep 16 through D, per day: [(date, lead_id, name, meeting)].
@@ -165,4 +181,5 @@ def run_show(D, m, now=None):
         pending=[r['lead'] for r in rows if r['status'] == 'pending'],
         unlogged=[r['lead'] for r in rows if r['status'] == 'unlogged'],
         steps=st, steps_from=STEPS_FROM.isoformat(), rows=rows)
+    m['setter'] = dict(key=SETTER['key'], name=SETTER['name'], since=CLOSES_FROM.isoformat())
     return m

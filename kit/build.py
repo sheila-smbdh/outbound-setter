@@ -1,7 +1,7 @@
-"""Build Bali's daily scorecard (v3: cover page + summary card + detail card) from a metrics JSON
+"""Build a setter's daily Welcome Series scorecard (Bali, Jose or Jordan K) from a metrics JSON
 (output of bali_cover.py run_cover(), which is run() from bali_metrics.py plus m['cover'], then bali_show.py run_show()).
 usage: python3 build.py metrics.json out_dir
-writes out_dir/bali-daily-scorecard.html (artifact body), out_dir/scorecard-YYYY-MM-DD-0-cover.png,
+writes out_dir/<setter>-daily-scorecard.html (artifact body), out_dir/scorecard-[<setter>-]YYYY-MM-DD-0-cover.png,
 out_dir/scorecard-YYYY-MM-DD-1-summary.png, out_dir/scorecard-YYYY-MM-DD-2-detail.png
 and out_dir/daily-YYYY-MM-DD.json (the record saved to the project)
 The summary and detail cards come from template.html; the cover comes from cover.html.
@@ -23,6 +23,12 @@ with the blue Set to a closer tile. "You hit X of 3 priority targets" counts onl
 steps missed that day, then priority misses (worst first), then any compliance number in red.
 Oct 14, 2026 (Sheila): two images only (cover and summary/funnel card); the detail card is hidden (#card2 in
 cover.html) and the cover has no footnote.
+v5 (Oct 21, 2026, Sheila): one scorecard per setter (metrics 'setter' from bali_show.py use_setter(): name and start date;
+Bali's files keep their old names). "Welcome Series Outbound" label, no round two. Dials is a blue tracked tile (no target).
+Cover numbers in one section, four groups: 1 Outreach (speed to lead with a sign-ups-by-hour chart for the day and the
+hours dialed shaded, pickup, connect), 2 No answer (voicemail, text, double dial), 3 Activity (dials, set to a closer,
+stacked) and 4 Post call (show rate with all calls set and the handoff steps). Wins and fixes: two short lines each at
+most (short_wins / short_fixes).
 Oct 15, 2026 (Sheila): a fourth handoff step under show rate, "Closer note attached" (metrics show.steps.note from
 bali_show.py): Bali writes the lead's background in Close for the closer by the end of the booking day.
 """
@@ -73,6 +79,12 @@ COVER_FOOT = ("From Close, times in ET. Speed to lead: new sign-ups during 9am-9
               "Set to a closer: leads booked on a closer's calendar that day, within 24 hours of a call where you reached them (tracked, no target), split into leads you first called that day and leads you first called on an earlier day. "
               "Sets to a closer so far: every closer call booked off your pickups since Sep 16, under the same rule. "
               "Closes: Won deals from closer calls booked off your pickups, since Sep 16.")
+
+def setter(m):
+    """(key, name, start date label) of the setter this card is for; Bali when the metrics don't say (older records)."""
+    s = m.get("setter") or {}
+    since = datetime.date.fromisoformat(s.get("since", "2026-09-16"))
+    return s.get("key", "bali"), s.get("name", "Bali"), since.strftime("%b ") + str(since.day)
 
 def pct(a, b): return round(100 * a / b) if b else 0
 
@@ -154,7 +166,8 @@ def track_tiles(m):
         det = "<br>".join(parts)
     else:
         det = (f"{'lead' if cc == 1 else 'leads'} booked with a closer" + (": " + ", ".join(nms) if nms else "")) if cc else "No closer calls booked"
-    return [dict(key="closer", name="Set to a closer", value=cc, detail=det, note="")]
+    return [dict(key="dials", name="Dials", value=m.get("dials", 0), detail=f"{m.get('dials', 0)} calls to {m.get('people_dialed', 0)} people", note=""),
+            dict(key="closer", name="Set to a closer", value=cc, detail=det, note="")]
 
 def closer_split(m):
     """cover.closer_split from bali_cover.py (Oct 8, 2026), names ordered as in closer_names. None on older metrics."""
@@ -173,7 +186,7 @@ def show_row(m):
     det = (f"{s7} of {n7} closer calls showed" if n7 else "No closer calls were due in the last 7 days")
     nall, sall = sh["n_all"], sh["showed_all"]
     # all-time show rate as its own stat under the 7-day number (made bigger, Sheila Oct 14)
-    extra = dict(all=(f'<div class="al">All calls you\'ve set since Sep 16</div>'
+    extra = dict(all=(f'<div class="al">All calls you\'ve set since {setter(m)[2]}</div>'
                       f'<div class="av">{pct(sall, nall)}%<span>{sall} of {nall} showed</span></div>') if nall else "",
                  steps_head="Handoff steps, last 7 days",
                  steps=[dict(name=nm, done=sh["steps"][k]["done"], due=sh["steps"][k]["due"]) for k, nm in STEP_NAMES
@@ -195,8 +208,6 @@ def cover(m, win):
     rows = [  # key, name, value, unit, detail, fix text when missed, extra
         ("speed", "Speed to lead", pct(m.get("within15", 0), ih), "%", f"{m.get('within15',0)} of {ih} new leads in 15 min",
          f"{ih - m.get('within15',0)} of {ih} new sign-ups waited 15+ minutes" + (f" ({(m.get('speed') or {}).get('none',0)} never got a call that day)" if (m.get('speed') or {}).get('none') else "") + ". Call new sign-ups first, the moment they come in.", None),
-        ("dials", "Dials", m.get("dials", 0), "", f"{m.get('dials',0)} calls",
-         f"{T['dials'] - m.get('dials',0)} short of {T['dials']}. Add a dialing block.", None),
         show_row(m),
         ("pickup", "Pickup rate", pct(m.get("pickups", 0), pd), "%", f"{m.get('pickups',0)} of {pd} people picked up",
          f"{m.get('pickups',0)} of {pd} people picked up. Faster first calls and double dials lift this.", None),
@@ -280,23 +291,59 @@ def cover(m, win):
     sd = c.get("sets_to_date")
     sets = sd["count"] if sd else None
     r2 = sum(1 for x in sd["list"] if x["date"] >= ROUND_TWO) if sd else 0
-    sets_text = ("set to a closer" if sets == 1 else "sets to a closer") + f" from your dials so far ({r2} in round two)" if sd else ""
+    sets_text = ("set to a closer" if sets == 1 else "sets to a closer") + f" from your dials so far" if sd else ""
+    wins, fixes = short_wins(m, kpis, cl), short_fixes(m, kpis)
     return dict(win=win, wins=wins, fixes=fixes, kpis=kpis, track=track_tiles(m), closes=len(cl), closes_text=closes_text,
                 sets=sets, sets_text=sets_text, footnote=COVER_FOOT)
+
+SHORT_FIX = dict(speed="Call new sign-ups the moment they come in.", show="Do all four handoff steps on every booking.",
+                 pickup="Call faster and double dial.", connect="Keep pickups on the line with the opener.",
+                 vm="Leave one at every beep.", text="Text right after every voicemail.", dd="Redial right away after a no-answer.")
+STEP_SHORT = dict(email="email", note="closer note", day_before="day-before", morning_of="morning-of")
+
+def short_wins(m, kpis, cl):
+    """Two short wins at most (Sheila, Oct 21): closes, closer calls, shows, then targets hit."""
+    out = []
+    for r in [r for r in cl if r["date_won"] == m["date"]]:
+        out.append(["Close", f"{r['lead']} closed with {r['closer']}."])
+    cc = m.get("closer_calls") or 0
+    if cc: out.append(["Closer calls", f"{cc} booked."])
+    showed = [r["lead"] for r in (m.get("show") or {}).get("rows", []) if r["status"] == "showed" and r["date"] == m["date"]]
+    if showed: out.append(["Showed up", f"{len(showed)} {'lead' if len(showed) == 1 else 'leads'} showed for their closer call."])
+    hits = [k["name"].replace(" rate", "").lower() for k in kpis if k["hit"]]
+    if hits:
+        out.append(["Targets hit", (lambda s: s[0].upper() + s[1:])(", ".join(hits[:-1]) + " and " + hits[-1] if len(hits) > 1 else hits[0]) + "."])
+    return out[:2] or [["Volume", f"{m.get('dials', 0)} dials to {m.get('people_dialed', 0)} people."]]
+
+def short_fixes(m, kpis):
+    """Two short fixes at most (Sheila, Oct 21): handoff steps missed that day, then the worst misses."""
+    out = []
+    st = (m.get("show") or {}).get("steps") or {}
+    miss = [(k, len((st.get(k) or {}).get("missed_on_day") or [])) for k, _ in STEP_NAMES]
+    miss = [(k, n) for k, n in miss if n]
+    if miss:
+        tot = sum(n for _, n in miss)
+        out.append(["Handoff", f"{tot} {'step' if tot == 1 else 'steps'} missed (" +
+                    ", ".join(f"{n} {STEP_SHORT[k]}" for k, n in miss) + "). Do all four on every booking."])
+    bad = sorted([k for k in kpis if k["status"] in ("miss", "close")], key=lambda k: (k["value"] or 0) / k["target"])
+    for k in bad:
+        out.append([k["name"], f"{k['value']}% vs {k['target']}%. {SHORT_FIX[k['key']]}"])
+    return out[:2] or [["Keep it up", "Every target hit. Same plan tomorrow."]]
 
 def build(metrics, out_dir):
     tpl = (HERE / "template.html").read_text()
     cov = (HERE / "cover.html").read_text()
     font = (HERE / "manrope.b64").read_text().strip()
     win = pick_win(metrics)
-    data = dict(metrics=metrics, baseline=BASE, win=win, fix=pick_fix(metrics), footnote=FOOT, cover=cover(metrics, win))
+    key, name, since = setter(metrics)
+    data = dict(setter=dict(key=key, name=name, since=since), metrics=metrics, baseline=BASE, win=win, fix=pick_fix(metrics), footnote=FOOT, cover=cover(metrics, win))
     # cover markup goes before the summary card; its script goes after the data block
     i = cov.index("<script>"); cov_html, cov_js = cov[:i], cov[i:]
     tpl = tpl.replace('<div class="card" id="card1">', cov_html + '\n<div class="card" id="card1">', 1)
     tpl = tpl.rstrip() + "\n" + cov_js
-    body = tpl.replace("__FONT__", font).replace("__DATA__", json.dumps(data).replace("</", "<\\/"))
+    body = tpl.replace("__TITLE__", f"{name}'s Daily Scorecard").replace("__FONT__", font).replace("__DATA__", json.dumps(data).replace("</", "<\\/"))
     os.makedirs(out_dir, exist_ok=True)
-    art = pathlib.Path(out_dir) / "bali-daily-scorecard.html"; art.write_text(body)
+    art = pathlib.Path(out_dir) / f"{key}-daily-scorecard.html"; art.write_text(body)
     full = (pathlib.Path(out_dir) / "_render.html").resolve()
     full.write_text('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
                     '<style>html,body{margin:0}</style></head><body>' + body + "</body></html>")
@@ -304,10 +351,11 @@ def build(metrics, out_dir):
     rec = dict(date=metrics['date'], saved_at=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
                win=data['win'], wins=data['cover']['wins'], fix=data['fix'], fixes=data['cover']['fixes'], kpis=data['cover']['kpis'],
                track=data['cover']['track'], closes=data['cover']['closes'], baseline=BASE, targets=TARGETS, metrics=metrics)
-    (od / f"daily-{metrics['date']}.json").write_text(json.dumps(rec, indent=1, default=str))
+    pre = "" if key == "bali" else key + "-"
+    (od / f"daily-{pre}{metrics['date']}.json").write_text(json.dumps(rec, indent=1, default=str))
     d = metrics['date']
     # two images since Oct 14 (Sheila): the cover and the summary (funnel) card; the detail card is hidden
-    pngs = [str(od / f"scorecard-{d}-0-cover.png"), str(od / f"scorecard-{d}-1-summary.png")]
+    pngs = [str(od / f"scorecard-{pre}{d}-0-cover.png"), str(od / f"scorecard-{pre}{d}-1-summary.png")]
     asyncio.run(_shot(str(full), pngs))
     return data, str(art), pngs
 
@@ -325,4 +373,4 @@ if __name__ == "__main__":
     m = json.load(open(sys.argv[1]))
     d, a, p = build(m, sys.argv[2])
     print(json.dumps({"win": d["win"], "fix": d["fix"], "fixes": d["cover"]["fixes"], "artifact_file": a, "pngs": p,
-                      "daily_file": str(pathlib.Path(sys.argv[2]).resolve() / f"daily-{m['date']}.json")}))
+                      "daily_file": str(pathlib.Path(sys.argv[2]).resolve() / f"daily-{'' if setter(m)[0] == 'bali' else setter(m)[0] + '-'}{m['date']}.json")}))
