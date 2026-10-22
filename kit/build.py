@@ -31,6 +31,8 @@ stacked) and 4 Post call (show rate with all calls set and the handoff steps). W
 most (short_wins / short_fixes).
 Oct 15, 2026 (Sheila): a fourth handoff step under show rate, "Closer note attached" (metrics show.steps.note from
 bali_show.py): Bali writes the lead's background in Close for the closer by the end of the booking day.
+Oct 22, 2026 (Sheila): speed to lead counts each setter's own 8 work hours (SETTERS in bali_show.py), and the speed tile
+says which hours in its small print (metrics 'work_hours', e.g. "Your hours: 9am-5pm PT (12pm-8pm ET).").
 """
 import json, sys, os, asyncio, pathlib, datetime
 
@@ -59,8 +61,8 @@ FOOT = ("From Close, times in ET. Picked up: talked to a real person (TALK code 
         "Real conversation: a call of 60+ sec tagged set to closer, call back later or disqualified, or set to self when a meeting was actually booked (untagged calls: 3+ min or led to a booking). "
         "Voicemail: voicemail drop, the left-voicemail outcome or a note starting with VM; "
         "it counts only people who gave you a chance to leave one (not those who hung up, declined, or whose call didn't go through). "
-        "Within 15 min: new sign-ups during your work hours (9am to 9pm ET), called within 15 minutes.")
-COVER_FOOT = ("From Close, times in ET. Speed to lead: new sign-ups during 9am-9pm ET, called within 15 minutes. "
+        "Within 15 min: new sign-ups during your work hours ({hours}), called within 15 minutes.")
+COVER_FOOT = ("From Close, times in ET. Speed to lead: new sign-ups during your work hours ({hours}), called within 15 minutes. "
               "Dials: every call. "
               "Show rate: leads you set to a closer whose call was in the last 7 days, and how many showed (from the closer's Discovery Call outcome). "
               "No-shows, cancels and reschedule requests with no new time booked count as not showed; a rescheduled call counts on its new date. "
@@ -85,6 +87,11 @@ def setter(m):
     s = m.get("setter") or {}
     since = datetime.date.fromisoformat(s.get("since", "2026-09-16"))
     return s.get("key", "bali"), s.get("name", "Bali"), since.strftime("%b ") + str(since.day)
+
+def work_hours(m):
+    """The setter's speed-to-lead hours as shown on the card (bali_cover.py work_window, Sheila, Oct 22, 2026).
+    Records from before Oct 22 have none: they counted 9am to 9pm ET."""
+    return m.get("work_hours") or "9am-9pm ET"
 
 def pct(a, b): return round(100 * a / b) if b else 0
 
@@ -230,7 +237,7 @@ def cover(m, win):
             hit = val >= T[key]
             status = "hit" if hit else ("close" if val >= T[key] * CLOSE_PCT / 100 else "miss")
         k = dict(key=key, name=name, value=val, unit=unit, detail=det, target=T[key], hit=hit, status=status,
-                 note=NOTES.get(key, ""), group="comp" if key in COMPLIANCE else "priority")
+                 note=f"Your hours: {work_hours(m)}." if key == "speed" else NOTES.get(key, ""), group="comp" if key in COMPLIANCE else "priority")
         if extra: k["extra"] = extra
         kpis.append(k)
         if status in ("close", "miss") and key in PRIORITY: pmiss.append(((T[key] - val) / T[key], name, fx))
@@ -294,7 +301,7 @@ def cover(m, win):
     sets_text = ("set to a closer" if sets == 1 else "sets to a closer") + f" from your dials so far" if sd else ""
     wins, fixes = short_wins(m, kpis, cl), short_fixes(m, kpis)
     return dict(win=win, wins=wins, fixes=fixes, kpis=kpis, track=track_tiles(m), closes=len(cl), closes_text=closes_text,
-                sets=sets, sets_text=sets_text, footnote=COVER_FOOT)
+                sets=sets, sets_text=sets_text, footnote=COVER_FOOT.format(hours=work_hours(m)))
 
 SHORT_FIX = dict(speed="Call new sign-ups the moment they come in.", show="Do all four handoff steps on every booking.",
                  pickup="Call faster and double dial.", connect="Keep pickups on the line with the opener.",
@@ -336,7 +343,7 @@ def build(metrics, out_dir):
     font = (HERE / "manrope.b64").read_text().strip()
     win = pick_win(metrics)
     key, name, since = setter(metrics)
-    data = dict(setter=dict(key=key, name=name, since=since), metrics=metrics, baseline=BASE, win=win, fix=pick_fix(metrics), footnote=FOOT, cover=cover(metrics, win))
+    data = dict(setter=dict(key=key, name=name, since=since), metrics=metrics, baseline=BASE, win=win, fix=pick_fix(metrics), footnote=FOOT.format(hours=work_hours(metrics)), cover=cover(metrics, win))
     # cover markup goes before the summary card; its script goes after the data block
     i = cov.index("<script>"); cov_html, cov_js = cov[:i], cov[i:]
     tpl = tpl.replace('<div class="card" id="card1">', cov_html + '\n<div class="card" id="card1">', 1)

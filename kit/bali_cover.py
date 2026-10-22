@@ -72,14 +72,30 @@ def closes_to_date(D):
         if r['lead'] not in best or r['value'] > best[r['lead']]['value']: best[r['lead']] = r
     return sorted(best.values(), key=lambda r: r['date_won'])
 
-WORK = (9, 21)   # Bali's work hours, ET (9am to 9pm). Speed to lead counts sign-ups in these hours.
+WORK = (9, 21)   # 9am to 9pm ET: the speed window when no setter is selected (use_setter in bali_show.py), the old rule
+
+def _clock(t):
+    h, mi = t.hour, t.minute
+    return f"{h % 12 or 12}{':%02d' % mi if mi else ''}{'am' if h < 12 else 'pm'}"
+
+def work_window(D):
+    """The setter's speed-to-lead hours on day D as (start, end) aware datetimes and a label for the card,
+    e.g. '9am-5pm PT (12pm-8pm ET)'. Hours live in SETTERS (bali_show.py, Sheila, Oct 22, 2026)."""
+    hrs = (globals().get('SETTER') or {}).get('hours')
+    if not hrs: hrs = [(dt.date(2000, 1, 1), 'America/New_York', f'{WORK[0]:02d}:00', f'{WORK[1]:02d}:00', 'ET')]
+    _, tz, s, e, ab = [h for h in hrs if h[0] <= D][-1] if any(h[0] <= D for h in hrs) else hrs[0]
+    z = ZoneInfo(tz); mk = lambda x: dt.datetime.combine(D, dt.time.fromisoformat(x), tzinfo=z)
+    a, b = mk(s), mk(e)
+    lab = f"{_clock(a)}-{_clock(b)} {ab}"
+    if ab != 'ET': lab += f" ({_clock(a.astimezone(ET))}-{_clock(b.astimezone(ET))} ET)"
+    return a, b, lab
 
 def speed_work(D, data):
-    """Speed to lead for day D: new sign-ups (enrolled on D between 9am and 9pm ET), first Bali call
-    after sign-up that same day. A lead never called that day counts as a miss."""
-    a, b = day_bounds(D); byl = _byl(data['calls']); out = []
+    """Speed to lead for day D: new sign-ups (enrolled on D during the setter's work hours, work_window), first
+    call after sign-up that same day. A lead never called that day counts as a miss."""
+    a, b = day_bounds(D); wa, wb, _ = work_window(D); byl = _byl(data['calls']); out = []
     for l, e in data['enr'].items():
-        if not (a <= e < b and WORK[0] <= e.astimezone(ET).hour < WORK[1]): continue
+        if not (a <= e < b and wa <= e < wb): continue
         cs = [c for c in byl.get(l, []) if c['_t'] >= e - dt.timedelta(minutes=1) and c['_t'] < b]
         if not cs: out.append(dict(w=None, pick=False, real=False)); continue
         out.append(dict(w=max((cs[0]['_t'] - e).total_seconds() / 60, 0), pick=cs[0]['_k'] == 'talk',
@@ -93,7 +109,7 @@ def apply_work_speed(D, data, m):
     m['median_wait_min'] = round(statistics.median(w)) if w else None
     bk = collections.Counter(_bucket(x['w']) for x in sp)
     m['speed'] = dict(n=len(sp), **{k: bk.get(k, 0) for k in ['le15', 'm15_60', 'h1_3', 'h3p', 'none']})
-    m['speed_window'] = '9am-5pm ET'
+    m['speed_window'] = m['work_hours'] = work_window(D)[2]
     agg = {'fast': [0, 0, 0], 'slow': [0, 0, 0]}
     for t in m.get('trend', []):
         d = dt.date.fromisoformat(t['date']); sd = speed_work(d, data)
