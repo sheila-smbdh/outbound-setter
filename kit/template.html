@@ -185,7 +185,7 @@ table.cmp td b{font-weight:800}
 
   // speed
   var S=m.speed;
-  $('splead').textContent=S.le15+' of '+S.n+' new leads who signed up during your work hours (9am to 9pm ET) got a call within 15 minutes ('+pct(S.le15,S.n)+'%). Round one: '+B.within15_pct+'%. Target: '+B.target_within15_pct+'%.';
+  $('splead').textContent=S.le15+' of '+S.n+' new leads who signed up during your work hours ('+(m.work_hours||'9am-9pm ET')+') got a call within 15 minutes ('+pct(S.le15,S.n)+'%). Round one: '+B.within15_pct+'%. Target: '+B.target_within15_pct+'%.';
   var bk=[['le15','15 min or less','var(--good)'],['m15_60','15 to 60 min','var(--s2)'],['h1_3','1 to 3 hrs','var(--s3)'],['h3p','3+ hrs','var(--s4)'],['none','Not called that day','var(--bad)']];
   $('stack').innerHTML=bk.filter(function(b){return S[b[0]]}).map(function(b){var w=100*S[b[0]]/S.n;
     return '<span title="'+b[1]+': '+S[b[0]]+'" style="width:'+w+'%;background:'+b[2]+(b[0]==='h1_3'||b[0]==='h3p'?';color:var(--ink)':'')+'">'+(w>5?S[b[0]]:'')+'</span>'}).join('');
