@@ -46,7 +46,7 @@ Talks to Bali as "you". Top to bottom:
    - **Real conversations** (same rule as Welcome Series): the result (set to which closer and when, booked on his calendar, call back later, disqualified) and, for closer sets, the four handoff steps (done, missed, still ahead, or not owed). Next step: the first missed step, else the next one due, else the closer call. Call back later uses his open Close task date, or asks him to set one.
    - **Picked up, no real conversation:** what happened and his next Close task, or "Set a next step in Close".
    - **Didn't pick up:** four equal tiles above the table (double dialed, voicemail, texted, called in 15 min; the last one only in the in-hours block), then double dial, voicemail and text marks (a dash when the call never reached a mailbox or the number can't take a text). Next step: "Text now" when he missed the text, then the Day 3 call date (2 business days after Day 1).
-   - **Not called yet:** when the lead entered, and "Day 1 call now".
+   - **Not called yet (Sheila, Oct 22):** no name list. A bar chart of how many came in each hour (ET) of that block, with the count on each bar and the total in the heading. The names and Close links are in the links message under the card.
    - A Do Not Contact lead's next step is "None, Do Not Contact".
 5. **Follow-up calls due D:** earlier leads on their Day 3, 5, 7 or monthly call (rules below), shown only when any were due.
 6. **Closer calls that happened D:** leads he set on earlier days whose closer call was on D, with the closer, whether they showed and the handoff steps; the 7-day show rate in the heading.

@@ -63,6 +63,13 @@ a{color:var(--accent);font-weight:700;text-decoration:none}
 .grp h3{margin:0;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);display:flex;justify-content:space-between}
 .grp h3 span{font-size:18px;color:var(--ink);letter-spacing:0}
 section.part{border-top:2px solid var(--line);padding-top:16px}
+.hchart{display:flex;align-items:flex-end;gap:2px;height:130px;border-bottom:1px solid var(--line);padding-top:4px}
+.hc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0;height:100%;position:relative}
+.hc.gap{margin-left:14px} .hc.gap::before{content:"";position:absolute;left:-9px;top:20px;bottom:0;border-left:1px dashed var(--line)}
+.hc b{font-size:12px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;min-height:16px}
+.hc i{display:block;width:70%;max-width:36px;background:var(--ink3);border-radius:4px 4px 0 0}
+.hc em{position:absolute;bottom:-18px;font-style:normal;font-size:10.5px;color:var(--ink3)}
+.grp .hchart{margin-bottom:20px}
 .wrap{overflow-x:auto} .none{color:var(--ink3);font-weight:600}
 @media (max-width:560px){.tiles,.chips{grid-template-columns:1fr 1fr}}
 """
@@ -101,7 +108,21 @@ def hand(st):
 
 def nxt(r): return f'<td class="nx{" urg" if r.get("urgent") else ""}">{e(r["next"])}</td>'
 
-def group_tables(L, T, speed_chip=True):
+def hour_of(r):
+    return datetime.datetime.strptime(r["entered"], "%I:%M%p").hour
+
+def hour_chart(rows, hours):
+    """Vertical bars: how many not-called leads came in each hour of the block, with the count on each bar."""
+    c = {h: 0 for h in hours}
+    for r in rows: c[hour_of(r)] = c.get(hour_of(r), 0) + 1
+    top = max(c.values()) or 1; cols = []
+    for i, h in enumerate(hours):
+        gap = ' gap' if i and h != hours[i - 1] + 1 else ''
+        n = c[h]; lab = f"{h % 12 or 12}{'a' if h < 12 else 'p'}"
+        cols.append(f'<div class="hc{gap}"><b>{n or ""}</b><i style="height:{round(90 * n / top)}px"></i><em>{lab}</em></div>')
+    return f'<div class="hchart">{"".join(cols)}</div>'
+
+def group_tables(L, T, speed_chip=True, hours=range(24)):
     """The where-they-landed bar and one table per group, for one set of leads."""
     G = {k: [r for r in L if r["group"] == k] for k, _ in GROUPS}
     sets = [r for r in G["real"] if r.get("steps") is not None]
@@ -134,9 +155,9 @@ def group_tables(L, T, speed_chip=True):
                    f'<p class="lead" style="margin-top:6px">– on voicemail or text = the call never reached a mailbox or the number '
                    f"can't take a text, so it doesn't count against you. SOP: Day 1, 3, 5 and 7 (business days), then once a month.</p></div>")
     if G["notcalled"]:
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{e(r["entered"])}</td>{nxt(r)}</tr>' for r in G["notcalled"])
         out.append(f'<div class="grp"><h3>Not called yet <span>{len(G["notcalled"])}</span></h3>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Entered</th><th>Next step</th></tr>{rows}</table></div></div>')
+                   f'<p class="lead">When they came in, by hour (ET). Their names and Close links are in the message under this card.</p>'
+                   + hour_chart(G["notcalled"], hours) + "</div>")
     return "".join(out)
 
 def build_html(m):
@@ -163,7 +184,7 @@ def build_html(m):
                               (False, "Outside your hours", "Came in before or after your hours. Call them first thing in your next block.")):
         P = [r for r in L if bool(r.get("in_hours", True)) == part]
         sec.append(f'<section class="part"><h2>{title} <span>{len(P)}</span></h2><p class="lead">{e(note)}</p>'
-                   + (group_tables(P, T, speed_chip=part) if P else '<p class="none">No leads.</p>') + "</section>")
+                   + (group_tables(P, T, speed_chip=part, hours=[h for h in range(24) if (H[0] <= h < H[1]) == part]) if P else '<p class="none">No leads.</p>') + "</section>")
     # follow-up calls due today on earlier leads (Day 3, 5, 7, monthly)
     fu = m["followups"]
     if fu["due"]:
