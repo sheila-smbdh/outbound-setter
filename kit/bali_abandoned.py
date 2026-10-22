@@ -19,7 +19,7 @@ MONTHLY_DAYS = 30                   # then one call a month after Day 7
 # Bali's work hours for this list (Sheila, Oct 22): his 8 busiest dialing hours inside the 7am to 5pm PT he gave her,
 # as ET hours [start, end). Speed to lead counts only leads that enter the bucket in these hours, and the card splits
 # the day's leads into in hours and outside them. The Welcome Series WORK window in bali_cover.py is not changed.
-AB_HOURS = (11, 19)   # 11am to 7pm ET = 8am to 4pm PT (provisional, from his Oct 16 and Oct 21 dialing)
+AB_HOURS = (12, 20)   # 12pm to 8pm ET = 9am to 5pm PT, the same hours as his Welcome Series card (SETTERS in bali_show.py)
 _AB = {}
 
 def bday_add(d, n):

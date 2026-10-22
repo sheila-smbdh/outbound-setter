@@ -2,7 +2,7 @@
 
 Owner: Sheila Xu. Test started Wed, Oct 21, 2026. Card layout: per-lead version approved by Sheila on Oct 22 (`mockups/abandoned-typeform-mockup.png`; first live render `mockups/abandoned-typeform-2026-10-21-live.png`). It replaced the Oct 21 tile layout (`mockups/abandoned-typeform/`). SOP: "Setter Abandoned Typeform Outbound SOP" (Google Doc `1pXszNKbcUglNTqoP74GBn2zarT9USTc-CbH9Ma3kva0`).
 
-This is a third image, separate from the two Welcome Series cards. It goes to Sheila only, as a DM in Slack every weekday at 8am ET, titled "Bali Abandoned Type Form". It never goes to Bali or to a channel.
+This is a third image, separate from the two Welcome Series cards. It goes to the Slack group DM `C0C11LAF4DB` (Sheila, Bali, Zain, Helen, Jay) every weekday at about 8am ET, titled "Bali Abandoned Type Form" (Sheila, Oct 22, 2026; until then it went to her own DM). Nowhere else.
 
 ## Files
 
@@ -17,15 +17,15 @@ This is a third image, separate from the two Welcome Series cards. It goes to Sh
 1. D = the previous weekday in America/New_York (Monday uses Friday).
 2. Workbench (shared with other sessions: keep results in uniquely named variables and save them to a file in the same cell): the copies of `bali_metrics.py`, `bali_cover.py`, `bali_show.py` and `bali_abandoned.py` in `/mnt/files/` must match this repo by md5 (write the repo copy when one is missing or different). Exec them in that order, then run `run_abandoned(D)` in a thread (each workbench call is cut off at about 60 seconds, so start the thread, `join(40)`, and poll in later calls). Dump the dict as JSON.
 3. Render: `CHROMIUM_PATH=<chromium> python3 kit/abandoned_build.py metrics.json out`. Look at the PNG once.
-4. Slack: upload the PNG to Sheila's self-DM `D0BLE68V517` (`slack_get_file_upload_url`, POST the bytes, `slack_complete_file_upload` with `channel_id` D0BLE68V517 and title "Bali Abandoned Type Form"). The comment is one line: "Bali Abandoned Type Form: <Weekday, Mon D>: speed X%, follow-ups Y of Z on time, show rate W%, N set to a closer."
-5. Right after the card, send the contents of `out/abandoned-links-D.txt` as one `slack_send_message` to the same DM, so the lead names can be clicked (the PNG can't hold links).
-6. If Bali made no calls to this list on D and no follow-up was due, send one text line to the same DM instead of the card.
+4. Slack: upload the PNG to the group DM `C0C11LAF4DB` (`slack_get_file_upload_url`, POST the bytes, `slack_complete_file_upload` with `channel_id` C0C11LAF4DB and title "Bali Abandoned Type Form"). The comment is one line: "Bali Abandoned Type Form: <Weekday, Mon D>: speed X%, follow-ups Y of Z on time, show rate W%, N set to a closer."
+5. Right after the card, send the contents of `out/abandoned-links-D.txt` as one `slack_send_message` to the same channel, so the lead names can be clicked (the PNG can't hold links).
+6. If Bali made no calls to this list on D and no follow-up was due, send one text line to the same channel instead of the card.
 
 ## Definitions
 
 - **Bali's list:** leads enrolled in the Close workflow "001- Incomplete Typeform Lead Distribution" (`seq_0i6NE63SCuSdwb4E7kXQc3`, the #partial-submit bucket) whose lead field "Incomplete Typeform User" (`cf_qiVzsFQUYHM2vmDeUg0mbfIrWgvU3ZJmhujqNtWiAhJ`) is Bali. Enrollments from Oct 1 on are checked, so older bucket leads assigned to him count too. The Smart View "Bali - Incomplete Typeform List" uses the same field.
 - **Every number counts only this list.** Call rules are the Welcome Series ones (runbook "Definitions"): pickup, real conversation, voicemail, text, double dial, closer call, show rate, handoff steps.
-- **Work hours (Sheila, Oct 22):** Bali gave his active hours as 7am to 5pm PT; Sheila asked for the 8 hours inside that he actually dials. `AB_HOURS` in `bali_abandoned.py` = 11am to 7pm ET (8am to 4pm PT), provisional: picked from his Oct 16 and Oct 21 dials (the best 8-hour block inside 10am to 8pm ET). Recheck against more days. The Welcome Series window (`WORK` in `bali_cover.py`, 9am to 9pm ET) is not changed.
+- **Work hours (Sheila, Oct 22):** Bali gave his active hours as 7am to 5pm PT; Sheila asked for the 8 hours inside that he actually dials. `AB_HOURS` in `bali_abandoned.py` = 12pm to 8pm ET (9am to 5pm PT), the same 8 hours as his Welcome Series card (`SETTERS` in `bali_show.py`: 89% of his calls Sep 28 to Oct 21 fell in them). Change both together.
 - **Speed to lead:** leads that entered the bucket on D during the work hours (the #partial-submit ping), first Bali call within 15 minutes. Never called that day = miss.
 - **Voicemail, text, double dial:** every lead on the list he dialed on D and didn't reach (the SOP asks for double dial, voicemail and text on every no-answer day, not just Day 1). Do Not Contact leads are left out; voicemail counts only people who gave him a chance to leave one; text leaves out blocked or invalid numbers; double dial counts no-answer calls redialed within 2 minutes.
 - **Pickup and connect rate:** out of people on the list he dialed on D.
