@@ -16,6 +16,10 @@ AB_SCAN_FROM = dt.date(2026, 10, 1)  # enrollments checked for Bali's field (old
 AB_TARGETS = dict(speed=60, vm=85, text=85, dd=85, pickup=25, connect=10, show=90, followup=90)  # Sheila, Oct 21
 FU_STEPS = (('Day 3', 2), ('Day 5', 4), ('Day 7', 6))   # business days after Day 1 (Sheila, Oct 21: business days)
 MONTHLY_DAYS = 30                   # then one call a month after Day 7
+# Bali's work hours for this list (Sheila, Oct 22): his 8 busiest dialing hours inside the 7am to 5pm PT he gave her,
+# as ET hours [start, end). Speed to lead counts only leads that enter the bucket in these hours, and the card splits
+# the day's leads into in hours and outside them. The Welcome Series WORK window in bali_cover.py is not changed.
+AB_HOURS = (11, 19)   # 11am to 7pm ET = 8am to 4pm PT (provisional, from his Oct 16 and Oct 21 dialing)
 _AB = {}
 
 def bday_add(d, n):
@@ -35,6 +39,17 @@ def bdays_between(a, b):
         d += dt.timedelta(days=1)
         if d.weekday() < 5: n += 1
     return n
+
+def in_hours(t): return AB_HOURS[0] <= t.astimezone(ET).hour < AB_HOURS[1]
+
+def ab_speed(D, data):
+    """Minutes to Bali's first call that day for each lead that entered the bucket on D during AB_HOURS (None = not called)."""
+    a, b = day_bounds(D); byl = _byl(data['calls']); out = []
+    for l, e in data['enr'].items():
+        if not (a <= e < b and in_hours(e)): continue
+        cs = [c for c in byl.get(l, []) if c['_t'] >= e - dt.timedelta(minutes=1) and c['_t'] < b]
+        out.append(max((cs[0]['_t'] - e).total_seconds() / 60, 0) if cs else None)
+    return out
 
 def ab_leads(D):
     """{lead_id: (enrolled_at, name)} for Bali's Abandoned Typeform leads enrolled up to the end of D."""
@@ -89,8 +104,8 @@ def run_abandoned(D):
         m['first_call'] = min(c['_t'] for c in dc).astimezone(ET).strftime('%-I:%M%p').lower()
         m['last_call'] = max(c['_t'] for c in dc).astimezone(ET).strftime('%-I:%M%p').lower()
     # 1. first call: speed to lead from the bucket entry (9am to 9pm ET), then the no-answer touches that day
-    sp = speed_work(D, data); w = [x['w'] for x in sp if x['w'] is not None]
-    m['new_in_hours'] = len(sp); m['within15'] = sum(1 for x in w if x <= 15)
+    sp = ab_speed(D, data); w = [x for x in sp if x is not None]
+    m['new_in_hours'] = len(sp); m['within15'] = sum(1 for x in w if x <= 15); m['hours'] = list(AB_HOURS)
     closer, selfs, _ = _bookings(D, data, byl); booked = closer | selfs
     pick = {c['lead_id'] for c in dc if c['_k'] == 'talk'}
     m['pickups'] = len(pick)
@@ -220,7 +235,7 @@ def lead_rows(D, AB, data, byl, closer, selfs, smsl, day1):
         cs = [c for c in byl.get(l, []) if e - dt.timedelta(minutes=1) <= c['_t'] < b]
         talk = [c for c in cs + [c for c in inb.get(l, []) if e <= c['_t'] < b] if c['_k'] == 'talk']
         sms_d = any(a <= t < b for t in smsl.get(l, []))
-        row = dict(lead=nm, lead_id=l, entered=e.astimezone(ET).strftime('%-I:%M%p').lower(),
+        row = dict(lead=nm, lead_id=l, entered=e.astimezone(ET).strftime('%-I:%M%p').lower(), in_hours=in_hours(e),
                    speed=round(max((cs[0]['_t'] - e).total_seconds() / 60, 0)) if cs else None)
         is_dnc = l in dnc and dnc[l] < b
         tk = None

@@ -25,7 +25,8 @@ This is a third image, separate from the two Welcome Series cards. It goes to Sh
 
 - **Bali's list:** leads enrolled in the Close workflow "001- Incomplete Typeform Lead Distribution" (`seq_0i6NE63SCuSdwb4E7kXQc3`, the #partial-submit bucket) whose lead field "Incomplete Typeform User" (`cf_qiVzsFQUYHM2vmDeUg0mbfIrWgvU3ZJmhujqNtWiAhJ`) is Bali. Enrollments from Oct 1 on are checked, so older bucket leads assigned to him count too. The Smart View "Bali - Incomplete Typeform List" uses the same field.
 - **Every number counts only this list.** Call rules are the Welcome Series ones (runbook "Definitions"): pickup, real conversation, voicemail, text, double dial, closer call, show rate, handoff steps.
-- **Speed to lead:** leads that entered the bucket on D between 9am and 9pm ET (the #partial-submit ping), first Bali call within 15 minutes. Never called that day = miss.
+- **Work hours (Sheila, Oct 22):** Bali gave his active hours as 7am to 5pm PT; Sheila asked for the 8 hours inside that he actually dials. `AB_HOURS` in `bali_abandoned.py` = 11am to 7pm ET (8am to 4pm PT), provisional: picked from his Oct 16 and Oct 21 dials (the best 8-hour block inside 10am to 8pm ET). Recheck against more days. The Welcome Series window (`WORK` in `bali_cover.py`, 9am to 9pm ET) is not changed.
+- **Speed to lead:** leads that entered the bucket on D during the work hours (the #partial-submit ping), first Bali call within 15 minutes. Never called that day = miss.
 - **Voicemail, text, double dial:** every lead on the list he dialed on D and didn't reach (the SOP asks for double dial, voicemail and text on every no-answer day, not just Day 1). Do Not Contact leads are left out; voicemail counts only people who gave him a chance to leave one; text leaves out blocked or invalid numbers; double dial counts no-answer calls redialed within 2 minutes.
 - **Pickup and connect rate:** out of people on the list he dialed on D.
 - **Set to a closer:** closer calls booked on D off his pickups on this list, split into Day 1 (booked on his first-call day) and follow-up days. **Sets so far:** unique leads set to a closer since Oct 21. **Closes so far:** Won deals on those leads, since Oct 21.
@@ -39,12 +40,12 @@ This is a third image, separate from the two Welcome Series cards. It goes to Sh
 Talks to Bali as "you". Top to bottom:
 
 1. **Header:** the day's leads (every lead that entered the bucket on D, any hour), how many he called, picked up and set, and sets and closes since Oct 21.
-2. **Four tiles:** speed to lead (bucket entries 9am to 9pm ET, as before), pickup rate and connect rate (out of the day's leads he called), set to a closer (from the day's leads; the tile adds the day's total when an older lead was also set).
-3. **Where they landed:** one bar splitting the day's leads into four groups, which always add up to the total.
+2. **Four tiles:** speed to lead (bucket entries during his work hours, below), pickup rate and connect rate (out of the day's leads he called), set to a closer (from the day's leads; the tile adds the day's total when an older lead was also set).
+3. **Two blocks: during your hours and outside your hours** (Sheila, Oct 22). Each has a bar splitting its leads into four groups, then the tables below.
 4. **One table per group,** every lead name linked to its Close page, with how fast he called (green at 15 min or less), what happened and the next step (red when something is overdue):
    - **Real conversations** (same rule as Welcome Series): the result (set to which closer and when, booked on his calendar, call back later, disqualified) and, for closer sets, the four handoff steps (done, missed, still ahead, or not owed). Next step: the first missed step, else the next one due, else the closer call. Call back later uses his open Close task date, or asks him to set one.
    - **Picked up, no real conversation:** what happened and his next Close task, or "Set a next step in Close".
-   - **Didn't pick up:** double dial, voicemail and text marks with counts above (a dash when the call never reached a mailbox or the number can't take a text). Next step: "Text now" when he missed the text, then the Day 3 call date (2 business days after Day 1).
+   - **Didn't pick up:** four equal tiles above the table (double dialed, voicemail, texted, called in 15 min; the last one only in the in-hours block), then double dial, voicemail and text marks (a dash when the call never reached a mailbox or the number can't take a text). Next step: "Text now" when he missed the text, then the Day 3 call date (2 business days after Day 1).
    - **Not called yet:** when the lead entered, and "Day 1 call now".
    - A Do Not Contact lead's next step is "None, Do Not Contact".
 5. **Follow-up calls due D:** earlier leads on their Day 3, 5, 7 or monthly call (rules below), shown only when any were due.

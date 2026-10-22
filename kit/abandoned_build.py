@@ -53,13 +53,18 @@ a{color:var(--accent);font-weight:700;text-decoration:none}
 .mk.later{border:1.5px dashed var(--ink3);width:17px;height:17px}
 .hd{display:flex;gap:6px} .hs{display:flex;flex-direction:column;align-items:center;gap:1px} .hs em{font-style:normal;font-size:9.5px;color:var(--ink3);white-space:nowrap}
 .muted{color:var(--ink3)} .nx{font-weight:600} .nx.urg{color:var(--bad)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.chip{min-height:52px}
 .chip{border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;font-size:12px;color:var(--ink2);border-left:4px solid var(--ink3)}
 .chip b{font-size:16px;color:var(--ink)} .chip.hit{background:var(--good-soft);border-color:var(--good)} .chip.miss{background:var(--bad-soft);border-color:var(--bad)} .chip.close{background:var(--yel-soft);border-color:var(--yel)}
 .st{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:999px;white-space:nowrap}
 .st.showed{background:var(--good-soft);color:var(--good)} .st.missed{background:var(--bad-soft);color:var(--bad)} .st.other{background:var(--track);color:var(--ink2)}
+.grp{display:flex;flex-direction:column;gap:6px;margin-top:18px}
+.grp h3{margin:0;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);display:flex;justify-content:space-between}
+.grp h3 span{font-size:18px;color:var(--ink);letter-spacing:0}
+section.part{border-top:2px solid var(--line);padding-top:16px}
 .wrap{overflow-x:auto} .none{color:var(--ink3);font-weight:600}
-@media (max-width:560px){.tiles{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.tiles,.chips{grid-template-columns:1fr 1fr}}
 """
 
 def e(s): return html.escape(str(s))
@@ -96,6 +101,44 @@ def hand(st):
 
 def nxt(r): return f'<td class="nx{" urg" if r.get("urgent") else ""}">{e(r["next"])}</td>'
 
+def group_tables(L, T, speed_chip=True):
+    """The where-they-landed bar and one table per group, for one set of leads."""
+    G = {k: [r for r in L if r["group"] == k] for k, _ in GROUPS}
+    sets = [r for r in G["real"] if r.get("steps") is not None]
+    bar = "".join(f'<i class="{k}" style="flex:{len(G[k])}">{len(G[k])}</i>' for k, _ in GROUPS if G[k])
+    legend = "".join(f'<span><i style="background:var(--{c})"></i>{n} {len(G[k])}</span>'
+                     for (k, n), c in zip(GROUPS, ("good", "short", "accent", "ink3")))
+    out = [f'<div class="segbar">{bar}</div><div class="legend">{legend}</div>']
+    if G["real"]:
+        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td><td>{hand(r.get("steps"))}</td>{nxt(r)}</tr>'
+                       for r in G["real"])
+        out.append(f'<div class="grp"><h3>Real conversations <span>{len(G["real"])}</span></h3>'
+                   f'<p class="lead">{len(sets)} of {len(G["real"])} set to a closer. Handoff: email right after booking, closer note, '
+                   f'reminder the day before, morning-of reminder. A dashed circle is a step still ahead.</p>'
+                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th>Result</th><th>Handoff</th><th>Next step</th></tr>{rows}</table></div></div>')
+    if G["short"]:
+        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td>{nxt(r)}</tr>' for r in G["short"])
+        out.append(f'<div class="grp"><h3>Picked up, no real conversation <span>{len(G["short"])}</span></h3>'
+                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th>What happened</th><th>Next step</th></tr>{rows}</table></div></div>')
+    if G["nopick"]:
+        np_ = G["nopick"]
+        cnt = lambda k: (sum(r[k] == "y" for r in np_), sum(r[k] != "na" for r in np_))
+        chips = (chip("double dialed", *cnt("dd"), T["dd"]) + chip("voicemail (when you could)", *cnt("vm"), T["vm"])
+                 + chip("texted", *cnt("tx"), T["text"])
+                 + (chip("called in 15 min", sum(r["speed"] <= 15 for r in np_), len(np_), T["speed"]) if speed_chip else ""))
+        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td class="c">{mark(r["dd"])}</td><td class="c">{mark(r["vm"])}</td>'
+                       f'<td class="c">{mark(r["tx"])}</td>{nxt(r)}</tr>' for r in np_)
+        out.append(f'<div class="grp"><h3>Didn\'t pick up <span>{len(np_)}</span></h3><div class="chips">{chips}</div>'
+                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th class="c">Double dial</th><th class="c">Voicemail</th>'
+                   f'<th class="c">Text</th><th>Next step</th></tr>{rows}</table></div>'
+                   f'<p class="lead" style="margin-top:6px">– on voicemail or text = the call never reached a mailbox or the number '
+                   f"can't take a text, so it doesn't count against you. SOP: Day 1, 3, 5 and 7 (business days), then once a month.</p></div>")
+    if G["notcalled"]:
+        rows = "".join(f'<tr><td>{link(r)}</td><td>{e(r["entered"])}</td>{nxt(r)}</tr>' for r in G["notcalled"])
+        out.append(f'<div class="grp"><h3>Not called yet <span>{len(G["notcalled"])}</span></h3>'
+                   f'<div class="wrap"><table><tr><th>Lead</th><th>Entered</th><th>Next step</th></tr>{rows}</table></div></div>')
+    return "".join(out)
+
 def build_html(m):
     T = m["targets"]; d = datetime.date.fromisoformat(m["date"]); day = f"{d.strftime('%a, %b')} {d.day}"
     L = m.get("leads") or []; G = {k: [r for r in L if r["group"] == k] for k, _ in GROUPS}
@@ -104,45 +147,23 @@ def build_html(m):
     on_track = sum(1 for r in sets if "n" not in r["steps"].values())
     tiles = [
         tile("Speed to lead", m["within15"], m["new_in_hours"], T["speed"],
-             f'{m["within15"]} of {m["new_in_hours"]} called in 15 min (9am to 9pm ET)'),
+             f'{m["within15"]} of {m["new_in_hours"]} in your hours called in 15 min'),
         tile("Pickup rate", picked, len(called), T["pickup"], f"{picked} of {len(called)} you called picked up"),
         tile("Connect rate", len(G["real"]), len(called), T["connect"], f'{len(G["real"])} of {len(called)} real conversations'),
     ]
     settile = (f'<div class="tile track"><div class="k">Set to a closer</div><div class="v">{len(sets)}</div>'
                f'<div class="d">' + (f"handoff on track for {on_track} of {len(sets)}" if sets else "none from today's leads")
                + (f' · {m["closer_calls"]} in all today' if m["closer_calls"] != len(sets) else "") + "</div></div>")
-    bar = "".join(f'<i class="{k}" style="flex:{len(G[k])}">{len(G[k])}</i>' for k, _ in GROUPS if G[k])
-    legend = "".join(f'<span><i style="background:var(--{c})"></i>{n} {len(G[k])}</span>'
-                     for (k, n), c in zip(GROUPS, ("good", "short", "accent", "ink3")))
+    H = m.get("hours") or [10, 18]
+    def hr(h, off=0):
+        h = (h - off) % 24; return f"{h % 12 or 12}{'am' if h < 12 else 'pm'}"
+    hours_et = f"{hr(H[0])} to {hr(H[1])} ET"; hours_pt = f"{hr(H[0], 3)} to {hr(H[1], 3)} PT"
     sec = []
-    # 1. real conversations
-    if G["real"]:
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td><td>{hand(r.get("steps"))}</td>{nxt(r)}</tr>'
-                       for r in G["real"])
-        sec.append(f'<section><h2>Real conversations <span>{len(G["real"])}</span></h2>'
-                   f'<p class="lead">{len(sets)} of {len(G["real"])} set to a closer. Handoff: email right after booking, closer note, '
-                   f'reminder the day before, morning-of reminder. A dashed circle is a step still ahead.</p>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th>Result</th><th>Handoff</th><th>Next step</th></tr>{rows}</table></div></section>')
-    if G["short"]:
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td>{nxt(r)}</tr>' for r in G["short"])
-        sec.append(f'<section><h2>Picked up, no real conversation <span>{len(G["short"])}</span></h2>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th>What happened</th><th>Next step</th></tr>{rows}</table></div></section>')
-    if G["nopick"]:
-        np_ = G["nopick"]
-        cnt = lambda k: (sum(r[k] == "y" for r in np_), sum(r[k] != "na" for r in np_))
-        chips = (chip("double dialed", *cnt("dd"), T["dd"]) + chip("voicemail (when you could)", *cnt("vm"), T["vm"])
-                 + chip("texted", *cnt("tx"), T["text"]) + chip("called in 15 min", sum(r["speed"] <= 15 for r in np_), len(np_), T["speed"]))
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td class="c">{mark(r["dd"])}</td><td class="c">{mark(r["vm"])}</td>'
-                       f'<td class="c">{mark(r["tx"])}</td>{nxt(r)}</tr>' for r in np_)
-        sec.append(f'<section><h2>Didn\'t pick up <span>{len(np_)}</span></h2><div class="chips">{chips}</div>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th class="c">Double dial</th><th class="c">Voicemail</th>'
-                   f'<th class="c">Text</th><th>Next step</th></tr>{rows}</table></div>'
-                   f'<p class="lead" style="margin-top:6px">– on voicemail or text = the call never reached a mailbox or the number '
-                   f"can't take a text, so it doesn't count against you. SOP: Day 1, 3, 5 and 7 (business days), then once a month.</p></section>")
-    if G["notcalled"]:
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{e(r["entered"])}</td>{nxt(r)}</tr>' for r in G["notcalled"])
-        sec.append(f'<section><h2>Not called yet <span>{len(G["notcalled"])}</span></h2>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Entered</th><th>Next step</th></tr>{rows}</table></div></section>')
+    for part, title, note in ((True, "During your hours", f"{hours_et} ({hours_pt}). Speed to lead counts these leads."),
+                              (False, "Outside your hours", "Came in before or after your hours. Call them first thing in your next block.")):
+        P = [r for r in L if bool(r.get("in_hours", True)) == part]
+        sec.append(f'<section class="part"><h2>{title} <span>{len(P)}</span></h2><p class="lead">{e(note)}</p>'
+                   + (group_tables(P, T, speed_chip=part) if P else '<p class="none">No leads.</p>') + "</section>")
     # follow-up calls due today on earlier leads (Day 3, 5, 7, monthly)
     fu = m["followups"]
     if fu["due"]:
@@ -171,7 +192,6 @@ def build_html(m):
 <header><div class="eyebrow">Abandoned Typeform test · separate from Welcome Series</div>
 <h1>Bali's leads: {e(day)}</h1><div class="meta">{e(meta)}</div></header>
 <div class="tiles">{"".join(t for t, _ in tiles)}{settile}</div>
-<section><h2>Where all {tot} landed</h2><div class="segbar">{bar}</div><div class="legend">{legend}</div></section>
 {"".join(sec)}
 </div>"""
 
