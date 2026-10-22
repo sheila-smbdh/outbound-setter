@@ -1,6 +1,6 @@
 # Bali Abandoned Typeform card (runbook)
 
-Owner: Sheila Xu. Test started Wed, Oct 21, 2026. Card layout approved by Sheila on Oct 21 (`mockups/abandoned-typeform/`). SOP: "Setter Abandoned Typeform Outbound SOP" (Google Doc `1pXszNKbcUglNTqoP74GBn2zarT9USTc-CbH9Ma3kva0`).
+Owner: Sheila Xu. Test started Wed, Oct 21, 2026. Card layout: per-lead version approved by Sheila on Oct 22 (`mockups/abandoned-typeform-mockup.png`; first live render `mockups/abandoned-typeform-2026-10-21-live.png`). It replaced the Oct 21 tile layout (`mockups/abandoned-typeform/`). SOP: "Setter Abandoned Typeform Outbound SOP" (Google Doc `1pXszNKbcUglNTqoP74GBn2zarT9USTc-CbH9Ma3kva0`).
 
 This is a third image, separate from the two Welcome Series cards. It goes to Sheila only, as a DM in Slack every weekday at 8am ET, titled "Bali Abandoned Type Form". It never goes to Bali or to a channel.
 
@@ -9,16 +9,17 @@ This is a third image, separate from the two Welcome Series cards. It goes to Sh
 | File | What it does |
 |---|---|
 | `kit/bali_abandoned.py` | Close collector. Runs in the Composio workbench after `bali_metrics.py`, `bali_cover.py` and `bali_show.py`. `run_abandoned(D)` returns the metrics dict |
-| `kit/abandoned_build.py` | Renderer. `python3 abandoned_build.py metrics.json out` writes the HTML and `scorecard-D-3-abandoned.png` |
+| `kit/abandoned_build.py` | Renderer. `python3 abandoned_build.py metrics.json out` writes the HTML, `scorecard-D-3-abandoned.png` and `abandoned-links-D.txt` (the lead names as Slack links) |
 | `prompts/abandoned-typeform-routine.md` | The exact prompt of the daily routine |
 
 ## Daily run (weekdays 8am ET)
 
 1. D = the previous weekday in America/New_York (Monday uses Friday).
-2. Workbench: the copies of `bali_metrics.py`, `bali_cover.py`, `bali_show.py` and `bali_abandoned.py` in `/mnt/files/` must match this repo by md5 (write the repo copy when one is missing or different). Exec them in that order, then run `run_abandoned(D)` in a thread (each workbench call is cut off at about 60 seconds, so start the thread, `join(40)`, and poll in later calls). Dump the dict as JSON.
+2. Workbench (shared with other sessions: keep results in uniquely named variables and save them to a file in the same cell): the copies of `bali_metrics.py`, `bali_cover.py`, `bali_show.py` and `bali_abandoned.py` in `/mnt/files/` must match this repo by md5 (write the repo copy when one is missing or different). Exec them in that order, then run `run_abandoned(D)` in a thread (each workbench call is cut off at about 60 seconds, so start the thread, `join(40)`, and poll in later calls). Dump the dict as JSON.
 3. Render: `CHROMIUM_PATH=<chromium> python3 kit/abandoned_build.py metrics.json out`. Look at the PNG once.
 4. Slack: upload the PNG to Sheila's self-DM `D0BLE68V517` (`slack_get_file_upload_url`, POST the bytes, `slack_complete_file_upload` with `channel_id` D0BLE68V517 and title "Bali Abandoned Type Form"). The comment is one line: "Bali Abandoned Type Form: <Weekday, Mon D>: speed X%, follow-ups Y of Z on time, show rate W%, N set to a closer."
-5. If Bali made no calls to this list on D and no follow-up was due, send one text line to the same DM instead of the card.
+5. Right after the card, send the contents of `out/abandoned-links-D.txt` as one `slack_send_message` to the same DM, so the lead names can be clicked (the PNG can't hold links).
+6. If Bali made no calls to this list on D and no follow-up was due, send one text line to the same DM instead of the card.
 
 ## Definitions
 
@@ -32,6 +33,22 @@ This is a third image, separate from the two Welcome Series cards. It goes to Sh
 - **Follow-up calls on time (Sheila, Oct 21: business days):** Day 1 = his first call to the lead on or after Oct 21. Day 3, 5 and 7 = 2, 4 and 6 business days later (Mon to Fri; no holidays). Then monthly: 30 days after Day 7, then every 30 days, moved to the next business day if it falls on a weekend. A lead stops owing follow-ups once he has talked to them, they have a meeting booked, or they are Do Not Contact. On time = called on the day it was due. The table lists every lead due on D.
 - **Targets (Sheila, Oct 21):** speed 60%, voicemail 85%, text 85%, double dial 85%, pickup 25%, connect 10%, show rate 90%, follow-ups on time 90%. Green at target, yellow at 75% of target or more, red below. "Set to a closer" has no target.
 - **Dials stay separate from Welcome Series (Sheila, Oct 21).** Pending: the Welcome Series card still counts every Bali dial toward 200, because the live Welcome Series run reads the claude.ai Project copy of the kit. Excluding this list there is a change to `bali_metrics.py` to make at cutover, with Sheila's OK on the exact rule.
+
+## The card (Sheila, Oct 22, 2026)
+
+Talks to Bali as "you". Top to bottom:
+
+1. **Header:** the day's leads (every lead that entered the bucket on D, any hour), how many he called, picked up and set, and sets and closes since Oct 21.
+2. **Four tiles:** speed to lead (bucket entries 9am to 9pm ET, as before), pickup rate and connect rate (out of the day's leads he called), set to a closer (from the day's leads; the tile adds the day's total when an older lead was also set).
+3. **Where they landed:** one bar splitting the day's leads into four groups, which always add up to the total.
+4. **One table per group,** every lead name linked to its Close page, with how fast he called (green at 15 min or less), what happened and the next step (red when something is overdue):
+   - **Real conversations** (same rule as Welcome Series): the result (set to which closer and when, booked on his calendar, call back later, disqualified) and, for closer sets, the four handoff steps (done, missed, still ahead, or not owed). Next step: the first missed step, else the next one due, else the closer call. Call back later uses his open Close task date, or asks him to set one.
+   - **Picked up, no real conversation:** what happened and his next Close task, or "Set a next step in Close".
+   - **Didn't pick up:** double dial, voicemail and text marks with counts above (a dash when the call never reached a mailbox or the number can't take a text). Next step: "Text now" when he missed the text, then the Day 3 call date (2 business days after Day 1).
+   - **Not called yet:** when the lead entered, and "Day 1 call now".
+   - A Do Not Contact lead's next step is "None, Do Not Contact".
+5. **Follow-up calls due D:** earlier leads on their Day 3, 5, 7 or monthly call (rules below), shown only when any were due.
+6. **Closer calls that happened D:** leads he set on earlier days whose closer call was on D, with the closer, whether they showed and the handoff steps; the 7-day show rate in the heading.
 
 ## Known limits
 
