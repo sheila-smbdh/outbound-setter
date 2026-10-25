@@ -24,7 +24,7 @@ A daily report for Sheila only: how well each setter handled objections on their
 | `kit/oc_tx.py` | Transcribes one recording (PyAV decode, 2-minute chunks, VAD, a vocabulary prompt for our words) |
 | `PROMPT.md` | The scheduled task's prompt |
 
-**Why it's split this way (Oct 25).** The workbench (1 CPU, about 1 GB RAM, of which ~400 MB is free) can't transcribe long calls: the first full batch lost 39 of 42 calls to the out-of-memory killer and the workbench crashed twice. The Claude container has 4 CPUs and 15 GB but can't reach Close, huggingface.co or Composio's short links. It *can* fetch the direct storage links (`*.r2.cloudflarestorage.com`) that the workbench hands over, so the workbench collects and signs, and the container transcribes. Friday Oct 23 (42 calls, 176 min of audio) took about <PILOT_MIN> minutes here with `small.en`.
+**Why it's split this way (Oct 25).** The workbench (1 CPU, about 1 GB RAM, of which ~400 MB is free) can't transcribe long calls: the first full batch lost 39 of 42 calls to the out-of-memory killer and the workbench crashed twice. The Claude container has 4 CPUs and 15 GB but can't reach Close, huggingface.co or Composio's short links. It *can* fetch the direct storage links (`*.r2.cloudflarestorage.com`) that the workbench hands over, so the workbench collects and signs, and the container transcribes. Friday Oct 23 (42 calls, 176 min of audio) took 16 minutes here with `small.en` (2 calls at a time, 2 threads each), all 42 transcribed.
 
 Workbench notes:
 - Cells must finish in under 60 seconds (the MCP client gives up at 60, before the workbench's own 180). That's why `prepare` and `model_links` run in a background thread. Exec `oc_collect.py` once per workbench; re-exec'ing resets the job table.
