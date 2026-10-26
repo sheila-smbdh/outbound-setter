@@ -32,6 +32,7 @@ Everything a cold session needs is in this folder. The claude.ai Project stays t
 | `sample/metrics-2026-10-16.json` + `sample/reference-render/` | The exact metrics behind the Oct 16 card, and the two PNGs this kit renders from it | Use for the render check |
 | `prompts/current-scheduled-task-prompts.md` | The exact prompts of the two live scheduled tasks, with their IDs and schedules | Yes |
 | `docs/ABANDONED-TYPEFORM.md`, `kit/bali_abandoned.py`, `kit/abandoned_build.py`, `prompts/abandoned-typeform-routine.md` | Bali's separate Abandoned Typeform card (test started Oct 21): rules, collector, renderer and the weekday routine that DMs it to Sheila | When working on that card |
+| `docs/SETTER-TRACKER.md`, `kit/setter_tracker.py`, `prompts/setter-tracker-routine.md` | The daily Setter Follow-up Tracker (Google Sheet, one tab per setter, leads grouped by SOP next step): rules, collector and sheet writer, and its routine | When working on the tracker |
 
 Live resources outside the repo (reachable through connectors, not files):
 
