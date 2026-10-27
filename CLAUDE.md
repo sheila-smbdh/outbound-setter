@@ -13,4 +13,4 @@ Read `README.md` first in every new session, then `docs/RUNBOOK.md` before any r
 
 ## Setter objection check (separate daily report, Oct 25)
 
-- `objections/` holds a second, separate routine: a daily objection-handling check for Bali, Jordan Kempster and Jose Rodriguez, graded from call recordings against the "Setter Inbound Call Script_Oct 2026". Read `objections/RUNBOOK.md` before any objection run; it does not touch the scorecard kit.
+- `objections/` holds a second, separate routine: a daily objection-handling check for Bali, Jordan Kempster and Jose Rodriguez, graded from call recordings against the "Setter Inbound Call Script_Oct 2026". It publishes to two claude.ai dashboards (a daily scorecard for leadership and a growing objection library). Read `objections/RUNBOOK.md` before any objection run; it does not touch the Bali scorecard kit.
