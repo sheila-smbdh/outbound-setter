@@ -22,7 +22,9 @@ def main(mp3, outp, model, threads='1'):
     S, off = [], 0.0
     for x in chunks(mp3):
         segs, _ = m.transcribe(x, language='en', beam_size=1, vad_filter=True, vad_parameters={'min_silence_duration_ms': 500}, condition_on_previous_text=False, initial_prompt=PROMPT)
-        S += [{'s': round(off + s.start, 1), 'e': round(off + s.end, 1), 't': s.text.strip()} for s in segs]
+        # Whisper sometimes echoes the vocabulary prompt on silence (Oct 27 backfill): drop those segments
+        S += [{'s': round(off + s.start, 1), 'e': round(off + s.end, 1), 't': s.text.strip()} for s in segs
+              if not ('enrollment advisor, SBA loan' in s.text or s.text.strip().startswith('SMB Deal Hunter sales call'))]
         off += len(x) / SR; del x; gc.collect()
     json.dump({'audio_sec': round(off, 1), 'proc_sec': round(time.time() - t, 1), 'model': os.path.basename(model.rstrip('/')), 'segments': S}, open(outp, 'w'))
 if __name__ == '__main__': main(*sys.argv[1:])
