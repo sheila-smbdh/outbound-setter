@@ -105,17 +105,25 @@ def lead_show(l, set_t, D, now):
     # 'declined-by-org' alone (the closer's calendar declined) is not proof the lead didn't show: it stays unlogged
     return dict(status='missed' if ev_no else 'unlogged', date=etd(_start(last)), meetings=ms)
 
+def _sent_at(x):
+    """When an email or text actually went out. A scheduled one is created in Close when the setter schedules it
+    (often the evening before) and sent later, so its send time, not date_created, decides which day it counts on
+    (Sheila, Oct 28, 2026: a morning-of text scheduled the night before counts as the morning-of reminder)."""
+    for k in ('date_sent', 'date_scheduled'):
+        if x.get(k): return pt(x[k])
+    return pt(x['date_created'])
+
 def _touch(l):
     """Bali's outbound emails, texts and calls on a lead, and the lead's inbound emails and texts."""
-    em = _q(get_all, '/activity/email/', {'lead_id': l, '_fields': 'id,date_created,direction,user_id,subject,template_id,status'})
-    sm = _q(get_all, '/activity/sms/', {'lead_id': l, '_fields': 'id,date_created,direction,user_id,status'})
+    em = _q(get_all, '/activity/email/', {'lead_id': l, '_fields': 'id,date_created,date_sent,date_scheduled,direction,user_id,subject,template_id,status'})
+    sm = _q(get_all, '/activity/sms/', {'lead_id': l, '_fields': 'id,date_created,date_sent,date_scheduled,direction,user_id,status'})
     ca = _q(get_all, '/activity/call/', {'lead_id': l, '_fields': 'id,date_created,direction,user_id,call_method'})
-    sent = lambda s: s.get('status') not in ('draft', 'error', 'failed', 'scheduled', 'outbox')
-    mine = [pt(x['date_created']) for x in em if x.get('user_id') == BALI and x.get('direction') == 'outgoing' and sent(x)]
-    mine += [pt(x['date_created']) for x in sm if x.get('user_id') == BALI and x.get('direction') == 'outbound' and sent(x)]
+    sent = lambda s: s.get('status') not in ('draft', 'error', 'failed', 'scheduled', 'outbox')   # not sent yet: left out
+    mine = [_sent_at(x) for x in em if x.get('user_id') == BALI and x.get('direction') == 'outgoing' and sent(x)]
+    mine += [_sent_at(x) for x in sm if x.get('user_id') == BALI and x.get('direction') == 'outbound' and sent(x)]
     mine += [pt(x['date_created']) for x in ca if x.get('user_id') == BALI and x.get('direction') == 'outbound'
              and x.get('call_method') != 'external']
-    handoff = [pt(x['date_created']) for x in em if x.get('user_id') == BALI and x.get('direction') == 'outgoing' and sent(x)
+    handoff = [_sent_at(x) for x in em if x.get('user_id') == BALI and x.get('direction') == 'outgoing' and sent(x)
                and (x.get('template_id') == HANDOFF_TMPL or HANDOFF_SUBJ in (x.get('subject') or '').lower())]
     inbound = [pt(x['date_created']) for x in em if x.get('direction') == 'incoming'
                and not re.match(r'(new event|accepted|declined|updated|canceled|invitation)', (x.get('subject') or '').lower())]
