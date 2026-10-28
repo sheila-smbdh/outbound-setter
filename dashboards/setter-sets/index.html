@@ -1,0 +1,453 @@
+<meta name="dash-one-writer">
+<style>
+  .ss { font-family: var(--font-anthropic-sans); display: flex; flex-direction: column; gap: var(--cds-gap-xl); }
+  .ss-head { display: flex; flex-direction: column; gap: var(--cds-gap-xs); max-width: 62rem; }
+  .ss-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .ss-lede { margin: 0; color: var(--color-fg); max-width: 62rem; line-height: 1.5; }
+  .ss .ss-lede b, .ss .ss-note b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .ss-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+  .ss-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); }
+  .ss-tile-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .ss-tile-num { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
+  .ss-tile-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .ss-section { display: flex; flex-direction: column; gap: var(--cds-gap-md); }
+  .ss-h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .ss-note { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 62rem; line-height: 1.5; }
+  .ss-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+  .ss-card-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .ss-chart { position: relative; min-height: 300px; }
+  .ss-chart svg { display: block; }
+  .ss-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .ss-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+  .ss-sw { width: 0.625rem; height: 0.625rem; border-radius: 2px; display: inline-block; }
+  .ss-tablewrap { overflow-x: auto; max-height: 34rem; overflow-y: auto; }
+  .ss table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; }
+  .ss th { position: sticky; top: 0; background: var(--color-panel); text-align: right; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: bottom; }
+  .ss th:first-child, .ss td:first-child, .ss th.ss-l, .ss td.ss-l { text-align: left; }
+  .ss td { text-align: right; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .ss tr.ss-total td { font-weight: 600; }
+  .ss tr.ss-first td { border-top: 2px solid var(--color-border-line); }
+  .ss td.ss-zero { color: var(--color-fg-muted); }
+  .ss td.ss-gap { color: var(--color-warn); }
+  .ss .ss-grp { text-align: center; border-bottom: none; }
+  .ss-controls { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .ss-controls select { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); }
+  .ss-dot { width: 0.625rem; height: 0.625rem; border-radius: 50%; display: inline-block; border: 2px solid var(--color-fg); box-sizing: border-box; }
+  .ss-details summary { cursor: pointer; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding-block: var(--cds-pad-xs); }
+  .ss-details summary:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .ss-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 2; }
+  .ss-tip .k { color: var(--cds-text-secondary); }
+  .ss-defs { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; max-width: 62rem; }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="ss">
+  <header class="ss-head">
+    <h1 class="ss-title" id="top">Setter sets, Aug 1 to Oct 28, 2026</h1>
+    <p class="ss-lede">From Close, the six setters booked <b data-draw="t-all" data-source="totals" data-field="close_all">—</b> leads onto a closer's calendar: <b data-draw="t-in" data-source="totals" data-field="close_inbound">—</b> inbound and <b data-draw="t-out" data-source="totals" data-field="close_outbound">—</b> outbound. Outbound picked up in October, almost all of it from Bali, Jordan Kempster and Jose. Most sets land in the closers' long-term buckets; only <b data-draw="t-st" data-source="bucket_all" data-field="st_share">—</b> of sets that have a closer bucket are short-term.</p>
+  </header>
+
+  <div class="ss-tiles">
+    <div class="ss-tile"><span class="ss-tile-label">Inbound sets (Close)</span><span class="ss-tile-num" data-draw="k-in" data-source="totals" data-field="close_inbound">—</span><span class="ss-tile-sub">Tracker says <b data-draw="k-tin" data-source="totals" data-field="tracker_inbound">—</b></span></div>
+    <div class="ss-tile"><span class="ss-tile-label">Outbound sets (Close)</span><span class="ss-tile-num" data-draw="k-out" data-source="totals" data-field="close_outbound">—</span><span class="ss-tile-sub">Tracker says <b data-draw="k-tout" data-source="totals" data-field="tracker_outbound">—</b></span></div>
+    <div class="ss-tile"><span class="ss-tile-label">Won so far</span><span class="ss-tile-num" data-draw="k-won" data-source="bucket_all" data-field="won">—</span><span class="ss-tile-sub">of all sets in the period</span></div>
+    <div class="ss-tile"><span class="ss-tile-label">Really bad sets</span><span class="ss-tile-num" data-draw="k-bad" data-source="bucket_all" data-field="bad">—</span><span class="ss-tile-sub">Bad fit or offer not presented</span></div>
+  </div>
+
+  <section class="ss-section" id="by-month">
+    <h2 class="ss-h2">Sets by month</h2>
+    <p class="ss-note">Close count first, then what each setter wrote in the self-reported tracker for the same days. Amber cells are months where the tracker and Close differ by 3 or more. October runs through Oct 28.</p>
+    <div class="ss-card">
+      <h3 class="ss-card-title">Inbound and outbound sets per setter, Aug, Sep, Oct (Close)</h3>
+      <div class="ss-legend"><span><i class="ss-sw" data-draw="sw0"></i>Inbound</span><span><i class="ss-sw" data-draw="sw1"></i>Outbound</span></div>
+      <div class="ss-chart" id="month-chart" data-draw="month-chart" data-source="monthly"></div>
+    </div>
+    <div class="ss-card">
+      <div class="ss-tablewrap">
+        <table data-source="monthly" data-row-key="setter,month" id="month-table">
+          <thead>
+            <tr><th></th><th></th><th class="ss-grp" colspan="3">Close</th><th class="ss-grp" colspan="3">Tracker (self-reported)</th></tr>
+            <tr><th data-field="setter">Setter</th><th data-field="month" class="ss-l">Month</th><th data-field="close_inbound">Inbound</th><th data-field="close_outbound">Outbound</th><th>Total</th><th data-field="tracker_inbound">Inbound</th><th data-field="tracker_outbound">Outbound</th><th>Total</th></tr>
+          </thead>
+          <tbody data-draw="month-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="ss-section" id="by-week">
+    <h2 class="ss-h2">Sets by week</h2>
+    <p class="ss-note">Weeks run Monday to Sunday and are cut at month ends, so each month adds up on its own.</p>
+    <div class="ss-card">
+      <div class="ss-controls"><label for="week-setter">Setter</label>
+        <select id="week-setter" class="ss-week-setter">
+          <option value="Bali">Bali</option>
+          <option value="Yobani">Yobani</option>
+          <option value="Dave (David Martin)">Dave (David Martin)</option>
+          <option value="Quinn">Quinn</option>
+          <option value="Jordan Kempster">Jordan Kempster</option>
+          <option value="Jose">Jose</option>
+        </select>
+      </div>
+      <h3 class="ss-card-title">Sets per week (Close), with the tracker's weekly total</h3>
+      <div class="ss-legend"><span><i class="ss-sw" data-draw="wsw0"></i>Inbound</span><span><i class="ss-sw" data-draw="wsw1"></i>Outbound</span><span><i class="ss-dot" data-draw="wsw2"></i>Tracker total</span></div>
+      <div class="ss-chart" id="week-chart" data-draw="week-chart" data-source="weekly"></div>
+      <details class="ss-details"><summary>Show the weekly numbers</summary>
+      <div class="ss-tablewrap">
+        <table data-source="weekly" data-row-key="setter,week" id="week-table">
+          <thead>
+            <tr><th></th><th class="ss-grp" colspan="3">Close</th><th class="ss-grp" colspan="3">Tracker (self-reported)</th></tr>
+            <tr><th data-field="week">Week</th><th data-field="close_inbound">Inbound</th><th data-field="close_outbound">Outbound</th><th>Total</th><th data-field="tracker_inbound">Inbound</th><th data-field="tracker_outbound">Outbound</th><th>Total</th></tr>
+          </thead>
+          <tbody data-draw="week-body"></tbody>
+        </table>
+      </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="ss-section" id="buckets">
+    <h2 class="ss-h2">Where the closers put each set</h2>
+    <p class="ss-note">Each set lead's current status in the closers' Sales pipeline. When a lead is marked Lost, or the pipeline was never moved, the closer's Discovery Call outcome is used instead. The gray part of each bar is sets with no closer bucket yet: no-shows, cancels, reschedules, calls still ahead, and calls that already happened where the closer has not updated Close.</p>
+    <div class="ss-card">
+      <div class="ss-controls"><label for="bucket-month">Month set</label>
+        <select id="bucket-month" class="ss-bucket-month">
+          <option value="All">Aug to Oct</option>
+          <option value="2026-08">August</option>
+          <option value="2026-09">September</option>
+          <option value="2026-10">October</option>
+        </select>
+        <label for="bucket-setter">Setter</label>
+        <select id="bucket-setter" class="ss-bucket-setter">
+          <option value="All">All setters</option>
+          <option value="Bali">Bali</option>
+          <option value="Yobani">Yobani</option>
+          <option value="Dave (David Martin)">Dave (David Martin)</option>
+          <option value="Quinn">Quinn</option>
+          <option value="Jordan Kempster">Jordan Kempster</option>
+          <option value="Jose">Jose</option>
+        </select>
+      </div>
+      <h3 class="ss-card-title">Share of each setter's sets by closer bucket</h3>
+      <div class="ss-legend">
+        <span><i class="ss-sw" data-draw="lg-won"></i>Won</span>
+        <span><i class="ss-sw" data-draw="lg-st"></i>Short term (7 days or in month)</span>
+        <span><i class="ss-sw" data-draw="lg-lti"></i>Long term, with intention</span>
+        <span><i class="ss-sw" data-draw="lg-ltnf"></i>Long term, no timeline or farming</span>
+        <span><i class="ss-sw" data-draw="lg-bad"></i>Bad fit or offer not presented</span>
+        <span><i class="ss-sw" data-draw="lg-open"></i>No bucket yet</span>
+      </div>
+      <div class="ss-chart" id="bucket-chart" data-draw="bucket-chart" data-source="bucket_pivot"></div>
+    </div>
+    <div class="ss-card">
+      <h3 class="ss-card-title">Sets by closer bucket</h3>
+      <div class="ss-tablewrap">
+        <table data-source="bucket_pivot" data-row-key="setter,set_type,month" id="bucket-table">
+          <thead>
+            <tr><th></th><th></th><th></th><th class="ss-grp" colspan="2">Short term</th><th class="ss-grp" colspan="2">Long term</th><th class="ss-grp" colspan="2">Really bad</th><th></th><th class="ss-grp" colspan="5">No bucket yet</th></tr>
+            <tr><th data-field="setter">Setter</th><th data-field="set_type" class="ss-l">Type</th><th data-field="total">Sets</th><th data-field="n7">7 days</th><th data-field="im">In month</th><th data-field="lti">Intention</th><th data-field="ltnf">No timeline or farming</th><th data-field="badfit">Bad fit</th><th data-field="onp">Offer not presented</th><th data-field="won">Won</th><th data-field="ns">No show or cancel</th><th data-field="rs">Reschedule</th><th data-field="ahead">Call ahead</th><th data-field="noupd">Not updated</th><th data-field="lost">Lost, other</th></tr>
+          </thead>
+          <tbody data-draw="bucket-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="ss-section" id="method">
+    <h2 class="ss-h2">How the sets were counted</h2>
+    <ul class="ss-defs">
+      <li>A set is a lead a setter got onto a closer's calendar, counted once per setter per lead, on the day it was booked (ET). Duplicate lead records in Close with the same name are counted once.</li>
+      <li>Close finds a set two ways: the setter's Pre-Discovery Call form logged as "Discovery Call Scheduled", or a closer meeting created within 24 hours of the setter's call or intro call with that lead. A lead found either way counts. About 85% of sets show up both ways; the rest are mostly forms with no matching meeting (Quinn, Dave, Jordan) or meetings with no form (Bali, Jose, Yobani).</li>
+      <li>Inbound means the lead booked an intro call with the setter (the form's "Inbound / Scheduled Intro" type, or an intro meeting on the setter's calendar). Outbound means the setter reached the lead by dialing.</li>
+      <li>Dave is David Martin in Close; he logs the forms and meetings. Bali's Oct 5 sets for Matt Weiss and Dan Housley are left out, per Sheila's Oct 6 ruling.</li>
+      <li>Short term is the Sales pipeline's Next 7 Days and In Month Closing. Long Term No Timeline and Long Term Farm are shown together. Bad fit almost never shows up because closers rarely mark it; most weak calls are logged as long term instead.</li>
+      <li>Close data is as of Oct 28, 2026, 3pm ET. The tracker is the "Inputs" tab of Sales Tracker 2026, Setting team.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+  const fmt = d3.format(',');
+  const pct = d3.format('.0%');
+  const SETTERS = ['Bali', 'Yobani', 'Dave (David Martin)', 'Quinn', 'Jordan Kempster', 'Jose'];
+  const MON = {'2026-08': 'Aug', '2026-09': 'Sep', '2026-10': 'Oct'};
+  const num = (x) => Number(x) || 0;
+  const key2 = (a, b) => encodeURIComponent(a) + ',' + encodeURIComponent(b);
+  const key3 = (a, b, c) => [a, b, c].map(encodeURIComponent).join(',');
+
+  dash.calc('totals', {
+    inputs: ['monthly'],
+    title: 'Sets, all setters',
+    description: 'Monthly sets summed over all six setters and all three months.',
+    fn: (monthly) => {
+      const s = (f) => monthly.reduce((a, r) => a + (Number(r[f]) || 0), 0);
+      const ci = s('close_inbound'), co = s('close_outbound');
+      return {close_inbound: ci, close_outbound: co, close_all: ci + co, tracker_inbound: s('tracker_inbound'), tracker_outbound: s('tracker_outbound')};
+    }
+  });
+
+  dash.calc('bucket_pivot', {
+    inputs: ['buckets'],
+    title: 'Sets by closer bucket',
+    description: 'Bucket counts turned into one row per setter, set type and month, plus All rows for all months and both set types.',
+    fn: (buckets) => {
+      const KEY = {'Short term: next 7 days': 'n7', 'Short term: in month closing': 'im', 'Short term: split pay or deposit': 'im', 'Long term: with intention': 'lti', 'Long term: no timeline': 'ltn', 'Long term: farming': 'ltf', 'Bad: bad fit': 'badfit', 'Bad: offer not presented': 'onp', 'Won': 'won', 'Lost, other reason': 'lost', 'No show or canceled': 'ns', 'Reschedule pending': 'rs', 'Call still ahead': 'ahead', 'Call passed, closer has not updated': 'noupd'};
+      const F = ['n7', 'im', 'lti', 'ltn', 'ltf', 'badfit', 'onp', 'won', 'lost', 'ns', 'rs', 'ahead', 'noupd'];
+      const out = new Map();
+      const add = (setter, type, month, f, n) => {
+        const k = setter + '|' + type + '|' + month;
+        if (!out.has(k)) { const r = {setter, set_type: type, month}; F.forEach((x) => { r[x] = 0; }); out.set(k, r); }
+        out.get(k)[f] += n;
+      };
+      buckets.forEach((b) => {
+        const f = KEY[b.bucket]; const n = Number(b.sets) || 0;
+        if (!f) return;
+        for (const s of [b.setter, 'All setters']) for (const t of [b.set_type, 'All']) for (const m of [b.month, 'All']) add(s, t, m, f, n);
+      });
+      return [...out.values()].map((r) => {
+        r.st = r.n7 + r.im; r.ltnf = r.ltn + r.ltf; r.bad = r.badfit + r.onp; r.open = r.lost + r.ns + r.rs + r.ahead + r.noupd;
+        r.total = F.reduce((a, x) => a + r[x], 0); r.bucketed = r.total - r.open;
+        return r;
+      });
+    }
+  });
+
+  dash.calc('bucket_all', {
+    inputs: ['bucket_pivot'],
+    title: 'All sets by closer bucket',
+    description: 'The All setters row for both set types and all months, with short term as a share of sets that have a closer bucket.',
+    fn: (bucket_pivot) => {
+      const r = bucket_pivot.find((x) => x.setter === 'All setters' && x.set_type === 'All' && x.month === 'All');
+      return r ? {won: r.won, bad: r.bad, st: r.st, bucketed: r.bucketed, st_share: r.bucketed ? r.st / r.bucketed : 0} : {};
+    }
+  });
+
+  const state = {weekSetter: 'Bali', bucketMonth: 'All', bucketSetter: 'All'};
+  document.querySelectorAll('.ss-week-setter').forEach((el) => { el.addEventListener('change', () => { state.weekSetter = el.value; dash.draw('week-body'); dash.draw('week-chart'); }); });
+  document.querySelectorAll('.ss-bucket-setter').forEach((el) => { el.addEventListener('change', () => { state.bucketSetter = el.value; dash.draw('bucket-body'); dash.draw('bucket-chart'); }); });
+  document.querySelectorAll('.ss-bucket-month').forEach((el) => { el.addEventListener('change', () => { state.bucketMonth = el.value; dash.draw('bucket-body'); dash.draw('bucket-chart'); }); });
+
+  const one = (src, field, f) => (el) => {
+    const d = dash.data(src);
+    el.textContent = d.status === 'ok' && d.data && d.data[field] != null ? f(d.data[field]) : '—';
+  };
+  [['t-all', 'totals', 'close_all', fmt], ['t-in', 'totals', 'close_inbound', fmt], ['t-out', 'totals', 'close_outbound', fmt],
+   ['k-in', 'totals', 'close_inbound', fmt], ['k-out', 'totals', 'close_outbound', fmt], ['k-tin', 'totals', 'tracker_inbound', fmt], ['k-tout', 'totals', 'tracker_outbound', fmt],
+   ['t-st', 'bucket_all', 'st_share', pct], ['k-won', 'bucket_all', 'won', fmt], ['k-bad', 'bucket_all', 'bad', fmt]]
+    .forEach(([n, s, f, g]) => dash.draw(n, one(s, f, g)));
+
+  const SEG = () => [
+    {k: 'won', c: dash.colors[2]}, {k: 'st', c: dash.colors[0]}, {k: 'lti', c: dash.colors[1]},
+    {k: 'ltnf', c: dash.colors[3]}, {k: 'bad', c: 'var(--cds-chart-status-critical)'},
+    {k: 'open', c: 'var(--cds-chart-muted)'}
+  ];
+  const LGMAP = {'lg-won': 'won', 'lg-st': 'st', 'lg-lti': 'lti', 'lg-ltnf': 'ltnf', 'lg-bad': 'bad', 'lg-open': 'open'};
+  Object.keys(LGMAP).forEach((n) => dash.draw(n, (el) => { const s = SEG().find((x) => x.k === LGMAP[n]); el.style.background = s.c; }));
+  dash.draw('sw0', (el) => { el.style.background = dash.colors[0]; });
+  dash.draw('sw1', (el) => { el.style.background = dash.colors[1]; });
+  dash.draw('wsw0', (el) => { el.style.background = dash.colors[0]; });
+  dash.draw('wsw1', (el) => { el.style.background = dash.colors[1]; });
+  dash.draw('wsw2', () => {});
+
+  const td = (tr, v, cls) => { const c = tr.insertCell(); c.textContent = v; if (cls) c.className = cls; return c; };
+
+  dash.draw('month-body', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('monthly');
+    if (d.status !== 'ok') return;
+    let prev = null;
+    d.data.forEach((r) => {
+      const tr = tb.insertRow();
+      tr.dataset.key = key2(r.setter, r.month);
+      if (prev !== r.setter) tr.className = 'ss-first';
+      const ci = num(r.close_inbound), co = num(r.close_outbound), ti = num(r.tracker_inbound), to = num(r.tracker_outbound);
+      td(tr, prev === r.setter ? '' : r.setter);
+      td(tr, MON[r.month] || r.month, 'ss-l');
+      td(tr, fmt(ci), ci ? '' : 'ss-zero'); td(tr, fmt(co), co ? '' : 'ss-zero'); td(tr, fmt(ci + co));
+      td(tr, fmt(ti), Math.abs(ti - ci) >= 3 ? 'ss-gap' : (ti ? '' : 'ss-zero'));
+      td(tr, fmt(to), Math.abs(to - co) >= 3 ? 'ss-gap' : (to ? '' : 'ss-zero'));
+      td(tr, fmt(ti + to));
+      prev = r.setter;
+    });
+  });
+
+  dash.draw('week-body', (tb) => {
+    tb.replaceChildren();
+    const d = dash.data('weekly');
+    if (d.status !== 'ok') return;
+    let prevM = null;
+    d.data.filter((r) => r.setter === state.weekSetter).forEach((r) => {
+      const tr = tb.insertRow();
+      tr.dataset.key = key2(r.setter, r.week);
+      if (prevM !== r.month) tr.className = 'ss-first';
+      const ci = num(r.close_inbound), co = num(r.close_outbound), ti = num(r.tracker_inbound), to = num(r.tracker_outbound);
+      td(tr, r.week);
+      td(tr, fmt(ci), ci ? '' : 'ss-zero'); td(tr, fmt(co), co ? '' : 'ss-zero'); td(tr, fmt(ci + co));
+      td(tr, fmt(ti), Math.abs(ti - ci) >= 3 ? 'ss-gap' : (ti ? '' : 'ss-zero'));
+      td(tr, fmt(to), Math.abs(to - co) >= 3 ? 'ss-gap' : (to ? '' : 'ss-zero'));
+      td(tr, fmt(ti + to));
+      prevM = r.month;
+    });
+  });
+
+  const bucketRows = () => {
+    const d = dash.data('bucket_pivot');
+    if (d.status !== 'ok' || !Array.isArray(d.data)) return null;
+    const order = [...SETTERS, 'All setters'];
+    const tOrder = ['Inbound', 'Outbound', 'All'];
+    return d.data.filter((r) => r.month === state.bucketMonth && r.total > 0 && (state.bucketSetter === 'All' || r.setter === state.bucketSetter))
+      .sort((a, b) => order.indexOf(a.setter) - order.indexOf(b.setter) || tOrder.indexOf(a.set_type) - tOrder.indexOf(b.set_type));
+  };
+
+  dash.draw('bucket-body', (tb) => {
+    tb.replaceChildren();
+    const rows = bucketRows();
+    if (!rows) return;
+    let prev = null;
+    rows.forEach((r) => {
+      const tr = tb.insertRow();
+      tr.dataset.key = key3(r.setter, r.set_type, r.month);
+      const cls = [];
+      if (prev !== r.setter) cls.push('ss-first');
+      if (r.set_type === 'All' || r.setter === 'All setters') cls.push('ss-total');
+      tr.className = cls.join(' ');
+      td(tr, prev === r.setter ? '' : r.setter);
+      td(tr, r.set_type === 'All' ? 'Both' : r.set_type, 'ss-l');
+      ['total', 'n7', 'im', 'lti', 'ltnf', 'badfit', 'onp', 'won', 'ns', 'rs', 'ahead', 'noupd', 'lost']
+        .forEach((f) => td(tr, fmt(r[f]), r[f] ? '' : 'ss-zero'));
+      prev = r.setter;
+    });
+  });
+
+  const tipFor = (box) => {
+    let tip = box.querySelector('.ss-tip');
+    if (!tip) { tip = document.createElement('div'); tip.className = 'ss-tip'; tip.hidden = true; box.appendChild(tip); }
+    return tip;
+  };
+  const showTip = (box, tip, ev, head, lines) => {
+    tip.replaceChildren();
+    const h = document.createElement('div'); h.className = 'k'; h.textContent = head; tip.appendChild(h);
+    lines.forEach(([c, t]) => { const l = document.createElement('div'); if (c) { const s = document.createElement('i'); s.className = 'ss-sw'; s.style.background = c; s.style.marginRight = '6px'; l.appendChild(s); } l.appendChild(document.createTextNode(t)); tip.appendChild(l); });
+    tip.hidden = false;
+    const b = box.getBoundingClientRect(); const tw = tip.offsetWidth, th = tip.offsetHeight;
+    let x = ev.clientX - b.left + 12, y = ev.clientY - b.top + 12;
+    if (x + tw > b.width) x = Math.max(0, ev.clientX - b.left - tw - 12);
+    if (y + th > b.height) y = Math.max(0, ev.clientY - b.top - th - 12);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  };
+
+  dash.draw('month-chart', (el) => {
+    el.replaceChildren();
+    const d = dash.data('monthly');
+    if (d.status !== 'ok') return;
+    const rows = d.data;
+    const W = Math.max(320, el.clientWidth), H = 300;
+    const m = {t: 12, r: 8, b: 46, l: 34};
+    const months = ['2026-08', '2026-09', '2026-10'];
+    const x0 = d3.scaleBand(SETTERS, [m.l, W - m.r]).paddingInner(0.18).paddingOuter(0.04);
+    const x1 = d3.scaleBand(months, [0, x0.bandwidth()]).padding(0.12);
+    const max = d3.max(rows, (r) => num(r.close_inbound) + num(r.close_outbound)) || 1;
+    const y = d3.scaleLinear([0, max], [H - m.b, m.t]).nice();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Inbound and outbound sets per setter by month');
+    const ticks = y.ticks(5);
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', (t) => y(t)).attr('y2', (t) => y(t)).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 6).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').attr('font-size', 11).text((t) => fmt(t));
+    const tip = tipFor(el);
+    const g = svg.append('g');
+    rows.forEach((r) => {
+      if (!x0(r.setter) && x0(r.setter) !== 0) return;
+      const bx = x0(r.setter) + x1(r.month), bw = Math.min(32, x1.bandwidth()), off = (x1.bandwidth() - bw) / 2;
+      const ci = num(r.close_inbound), co = num(r.close_outbound);
+      const grp = g.append('g');
+      grp.append('rect').attr('x', bx + off).attr('width', bw).attr('y', y(ci)).attr('height', y(0) - y(ci)).attr('fill', dash.colors[0]);
+      grp.append('rect').attr('x', bx + off).attr('width', bw).attr('y', y(ci + co)).attr('height', y(ci) - y(ci + co)).attr('fill', dash.colors[1]);
+      if (ci + co > 0 && x1.bandwidth() >= 26) grp.append('text').attr('x', bx + x1.bandwidth() / 2).attr('y', y(ci + co) - 4).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(fmt(ci + co));
+      if (x1.bandwidth() >= 26) grp.append('text').attr('x', bx + x1.bandwidth() / 2).attr('y', H - m.b + 13).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(MON[r.month]);
+      grp.append('rect').attr('x', bx).attr('width', x1.bandwidth()).attr('y', m.t).attr('height', H - m.b - m.t).attr('fill', 'transparent')
+        .on('mousemove', (ev) => showTip(el, tip, ev, `${r.setter}, ${MON[r.month]}`, [[dash.colors[0], `Inbound ${fmt(ci)}`], [dash.colors[1], `Outbound ${fmt(co)}`], [null, `Tracker: ${fmt(num(r.tracker_inbound))} in, ${fmt(num(r.tracker_outbound))} out`]]))
+        .on('mouseleave', () => { tip.hidden = true; });
+    });
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('g').selectAll('text').data(SETTERS).join('text').attr('x', (s) => x0(s) + x0.bandwidth() / 2).attr('y', H - m.b + 32).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg)')
+      .text((s) => { const short = {'Dave (David Martin)': 'Dave', 'Jordan Kempster': 'Jordan K'}; const tiny = {'Dave (David Martin)': 'Dav', 'Jordan Kempster': 'JK', 'Yobani': 'Yob', 'Quinn': 'Qui', 'Jose': 'Jose', 'Bali': 'Bali'}; return x0.bandwidth() < 50 ? tiny[s] : (x0.bandwidth() < 130 ? (short[s] || s) : s); });
+  });
+
+  dash.draw('week-chart', (el) => {
+    el.replaceChildren();
+    const d = dash.data('weekly');
+    if (d.status !== 'ok') return;
+    const rows = d.data.filter((r) => r.setter === state.weekSetter);
+    if (!rows.length) return;
+    const W = Math.max(320, el.clientWidth), H = 300;
+    const m = {t: 16, r: 8, b: 44, l: 34};
+    const x = d3.scaleBand(rows.map((r) => r.week), [m.l, W - m.r]).paddingInner(0.25).paddingOuter(0.1);
+    const max = d3.max(rows, (r) => Math.max(num(r.close_inbound) + num(r.close_outbound), num(r.tracker_inbound) + num(r.tracker_outbound))) || 1;
+    const y = d3.scaleLinear([0, max], [H - m.b, m.t]).nice();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', `Sets per week for ${state.weekSetter}`);
+    const ticks = y.ticks(5).filter((t) => Number.isInteger(t));
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', (t) => y(t)).attr('y2', (t) => y(t)).attr('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 6).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').attr('font-size', 11).text((t) => fmt(t));
+    const tip = tipFor(el);
+    const bw = Math.min(32, x.bandwidth());
+    const step = Math.max(1, Math.ceil(56 / x.step()));
+    let prevM = null;
+    rows.forEach((r, i) => {
+      const cx = x(r.week) + x.bandwidth() / 2, bx = cx - bw / 2;
+      const ci = num(r.close_inbound), co = num(r.close_outbound), tt = num(r.tracker_inbound) + num(r.tracker_outbound);
+      if (prevM !== null && prevM !== r.month) svg.append('line').attr('x1', x(r.week) - x.step() * x.paddingInner() / 2).attr('x2', x(r.week) - x.step() * x.paddingInner() / 2).attr('y1', m.t).attr('y2', H - m.b + 30).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '3 3');
+      if (prevM !== r.month) svg.append('text').attr('x', x(r.week)).attr('y', H - m.b + 32).attr('font-size', 11).attr('fill', 'var(--color-fg)').text(MON[r.month] || r.month);
+      prevM = r.month;
+      svg.append('rect').attr('x', bx).attr('width', bw).attr('y', y(ci)).attr('height', y(0) - y(ci)).attr('fill', dash.colors[0]);
+      svg.append('rect').attr('x', bx).attr('width', bw).attr('y', y(ci + co)).attr('height', y(ci) - y(ci + co)).attr('fill', dash.colors[1]);
+      svg.append('circle').attr('cx', cx).attr('cy', y(tt)).attr('r', 4).attr('fill', 'var(--color-bg)').attr('stroke', 'var(--color-fg)').attr('stroke-width', 2);
+      if (i % step === 0) svg.append('text').attr('x', cx).attr('y', H - m.b + 14).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(r.week.replace(/^[A-Za-z]+ /, ''));
+      svg.append('rect').attr('x', x(r.week) - x.step() * x.paddingInner() / 2).attr('width', x.step()).attr('y', m.t).attr('height', H - m.b - m.t).attr('fill', 'transparent')
+        .on('mousemove', (ev) => showTip(el, tip, ev, `${state.weekSetter}, ${r.week}`, [[dash.colors[0], `Inbound ${fmt(ci)}`], [dash.colors[1], `Outbound ${fmt(co)}`], [null, `Tracker: ${fmt(num(r.tracker_inbound))} in, ${fmt(num(r.tracker_outbound))} out`]]))
+        .on('mouseleave', () => { tip.hidden = true; });
+    });
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+  });
+
+  dash.draw('bucket-chart', (el) => {
+    el.replaceChildren();
+    const rows = bucketRows();
+    if (!rows) return;
+    const shown = state.bucketSetter === 'All' ? rows.filter((r) => r.set_type !== 'All' || r.setter === 'All setters') : rows;
+    const W = Math.max(320, el.clientWidth);
+    const rowH = 26, m = {t: 4, r: 44, b: 22, l: 0};
+    const label = (r) => `${r.setter.replace(' (David Martin)', '')}${r.set_type === 'All' ? '' : ' · ' + r.set_type}`;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('role', 'img').attr('aria-label', 'Share of sets by closer bucket');
+    const probe = svg.append('text').attr('font-size', 11);
+    let lw = 0; shown.forEach((r) => { probe.text(label(r)); lw = Math.max(lw, probe.node().getComputedTextLength()); });
+    probe.remove();
+    m.l = lw + 10;
+    const H = m.t + m.b + shown.length * rowH;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    el.style.minHeight = H + 'px';
+    const x = d3.scaleLinear([0, 1], [m.l, W - m.r]);
+    [0, .25, .5, .75, 1].forEach((t) => {
+      svg.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', x(t)).attr('y', H - 6).attr('text-anchor', t === 0 ? 'start' : (t === 1 ? 'end' : 'middle')).attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(pct(t));
+    });
+    const tip = tipFor(el);
+    const NAMES = {won: 'Won', st: 'Short term', lti: 'Long term, intention', ltnf: 'Long term, no timeline or farming', bad: 'Bad fit or no offer', open: 'No bucket yet'};
+    shown.forEach((r, i) => {
+      const yy = m.t + i * rowH;
+      svg.append('text').attr('x', m.l - 8).attr('y', yy + rowH / 2).attr('dy', '0.32em').attr('text-anchor', 'end').attr('font-size', 11)
+        .attr('fill', 'var(--color-fg)').attr('font-weight', r.setter === 'All setters' ? 600 : 400).text(label(r));
+      let acc = 0;
+      SEG().forEach((s) => {
+        const v = r[s.k] / r.total; if (!v) return;
+        svg.append('rect').attr('x', x(acc)).attr('width', Math.max(0, x(acc + v) - x(acc) - 1)).attr('y', yy + 4).attr('height', rowH - 8).attr('rx', 2).attr('fill', s.c);
+        acc += v;
+      });
+      svg.append('text').attr('x', W - m.r + 6).attr('y', yy + rowH / 2).attr('dy', '0.32em').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(fmt(r.total));
+      svg.append('rect').attr('x', 0).attr('width', W).attr('y', yy).attr('height', rowH).attr('fill', 'transparent')
+        .on('mousemove', (ev) => showTip(el, tip, ev, `${label(r)} (${fmt(r.total)} sets)`, SEG().filter((s) => r[s.k]).map((s) => [s.c, `${NAMES[s.k]} ${fmt(r[s.k])} (${pct(r[s.k] / r.total)})`])))
+        .on('mouseleave', () => { tip.hidden = true; });
+    });
+  });
+})();
+</script>
