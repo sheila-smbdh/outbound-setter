@@ -1,8 +1,9 @@
 """Build Bali's Abandoned Typeform card (a third image, separate from the Welcome Series cards) from the metrics JSON
 written by run_abandoned(D) in bali_abandoned.py. Per-lead layout approved by Sheila on Oct 22, 2026
 (mockups/abandoned-typeform-mockup.png): four rate tiles, a bar of where the day's leads landed, one table per group
-(real conversation, picked up without one, didn't pick up, not called) with each lead's next step, the follow-up
-calls due that day, and the closer calls that happened that day. Talks to Bali as "you".
+(real conversation, picked up without one, didn't pick up, not called) for all leads with each lead's next step (only the
+where-they-landed bars are split by work hours, Oct 28, 2026), and the closer
+calls that happened that day (the follow-up calls section was dropped Oct 28, 2026). Talks to Bali as "you".
 usage: python3 abandoned_build.py metrics.json out_dir
 writes out_dir/abandoned-YYYY-MM-DD.html, out_dir/scorecard-YYYY-MM-DD-3-abandoned.png and
 out_dir/abandoned-links-YYYY-MM-DD.txt (the lead names as Slack links, since the PNG can't hold links).
@@ -69,7 +70,12 @@ section.part{border-top:2px solid var(--line);padding-top:16px}
 .hc b{font-size:11px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;min-height:14px;line-height:14px}
 .hc i{display:block;width:70%;max-width:36px;background:var(--ink3);border-radius:4px 4px 0 0}
 .hc em{position:absolute;bottom:-18px;font-style:normal;font-size:10.5px;color:var(--ink3)}
-.grp .hchart{margin-bottom:18px}
+.grp .hchart{margin-bottom:0}
+.hc.wk i{background:var(--accent)}
+.half{display:flex;flex-direction:column;gap:2px;margin-bottom:12px}
+.half h3{margin:0;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);display:flex;justify-content:space-between}
+.half h3 span{font-size:18px;color:var(--ink);letter-spacing:0}
+.wh{font-size:11px;font-weight:800;white-space:nowrap;padding:2px 7px;border-radius:999px} .wh.in{background:var(--accent);color:#fff} .wh.out{background:var(--track);color:var(--ink2)}
 .wrap{overflow-x:auto} .none{color:var(--ink3);font-weight:600}
 @media (max-width:560px){.tiles,.chips{grid-template-columns:1fr 1fr}}
 """
@@ -111,53 +117,65 @@ def nxt(r): return f'<td class="nx{" urg" if r.get("urgent") else ""}">{e(r["nex
 def hour_of(r):
     return datetime.datetime.strptime(r["entered"], "%I:%M%p").hour
 
-def hour_chart(rows, hours):
-    """Vertical bars: how many not-called leads came in each hour of the block, with the count on each bar."""
-    c = {h: 0 for h in hours}
-    for r in rows: c[hour_of(r)] = c.get(hour_of(r), 0) + 1
-    top = max(c.values()) or 1; cols = []
-    for i, h in enumerate(hours):
-        gap = ' gap' if i and h != hours[i - 1] + 1 else ''
-        n = c[h]; lab = f"{h % 12 or 12}{'a' if h < 12 else 'p'}"
-        cols.append(f'<div class="hc{gap}"><b>{n or ""}</b><i style="height:{round(30 * n / top)}px"></i><em>{lab}</em></div>')
-    return f'<div class="hchart">{"".join(cols)}</div>'
+def when(r): return '<span class="wh in">Your hours</span>' if r.get("in_hours", True) else '<span class="wh out">Outside</span>'
 
-def group_tables(L, T, speed_chip=True, hours=range(24)):
-    """The where-they-landed bar and one table per group, for one set of leads."""
+def hour_chart(rows, work):
+    """Vertical bars for all 24 hours (ET): how many not-called leads came in each hour, with the count on each bar.
+    Bars in your work hours are blue, the rest gray (Sheila, Oct 28, 2026)."""
+    c = {h: 0 for h in range(24)}
+    for r in rows: c[hour_of(r)] += 1
+    top = max(c.values()) or 1; cols = []
+    for h in range(24):
+        n = c[h]; lab = f"{h % 12 or 12}{'a' if h < 12 else 'p'}" if h % 3 == 0 else ""
+        cols.append(f'<div class="hc{" wk" if work[0] <= h < work[1] else ""}"><b>{n or ""}</b>'
+                    f'<i style="height:{round(30 * n / top)}px"></i><em>{lab}</em></div>')
+    return (f'<div class="hchart">{"".join(cols)}</div>'
+            f'<div class="legend" style="margin-top:22px"><span><i style="background:var(--accent)"></i>Your hours</span>'
+            f'<span><i style="background:var(--ink3)"></i>Outside your hours</span></div>')
+
+def seg_bar(L):
+    """Where a set of leads landed: one bar split into the four groups, with a legend."""
     G = {k: [r for r in L if r["group"] == k] for k, _ in GROUPS}
-    sets = [r for r in G["real"] if r.get("steps") is not None]
     bar = "".join(f'<i class="{k}" style="flex:{len(G[k])}">{len(G[k])}</i>' for k, _ in GROUPS if G[k])
     legend = "".join(f'<span><i style="background:var(--{c})"></i>{n} {len(G[k])}</span>'
                      for (k, n), c in zip(GROUPS, ("good", "short", "accent", "ink3")))
-    out = [f'<div class="segbar">{bar}</div><div class="legend">{legend}</div>']
+    return f'<div class="segbar">{bar}</div><div class="legend">{legend}</div>'
+
+def group_tables(L, T, work):
+    """One table per group for all of the day's leads, in your hours and outside them together, with a When column
+    (Sheila, Oct 28, 2026: only the where-they-landed bars stay split)."""
+    order = lambda rows: sorted(rows, key=lambda r: not r.get("in_hours", True))
+    G = {k: order([r for r in L if r["group"] == k]) for k, _ in GROUPS}
+    sets = [r for r in G["real"] if r.get("steps") is not None]
+    out = []
     if G["real"]:
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td><td>{hand(r.get("steps"))}</td>{nxt(r)}</tr>'
+        rows = "".join(f'<tr><td>{link(r)}</td><td>{when(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td><td>{hand(r.get("steps"))}</td>{nxt(r)}</tr>'
                        for r in G["real"])
         out.append(f'<div class="grp"><h3>Real conversations <span>{len(G["real"])}</span></h3>'
                    f'<p class="lead">{len(sets)} of {len(G["real"])} set to a closer. Handoff: email right after booking, closer note, '
                    f'reminder the day before, morning-of reminder. A dashed circle is a step still ahead.</p>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th>Result</th><th>Handoff</th><th>Next step</th></tr>{rows}</table></div></div>')
+                   f'<div class="wrap"><table><tr><th>Lead</th><th>Came in</th><th>Speed</th><th>Result</th><th>Handoff</th><th>Next step</th></tr>{rows}</table></div></div>')
     if G["short"]:
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td>{nxt(r)}</tr>' for r in G["short"])
+        rows = "".join(f'<tr><td>{link(r)}</td><td>{when(r)}</td><td>{speed(r["speed"])}</td><td>{e(r["result"])}</td>{nxt(r)}</tr>' for r in G["short"])
         out.append(f'<div class="grp"><h3>Picked up, no real conversation <span>{len(G["short"])}</span></h3>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th>What happened</th><th>Next step</th></tr>{rows}</table></div></div>')
+                   f'<div class="wrap"><table><tr><th>Lead</th><th>Came in</th><th>Speed</th><th>What happened</th><th>Next step</th></tr>{rows}</table></div></div>')
     if G["nopick"]:
-        np_ = G["nopick"]
+        np_ = G["nopick"]; inh = [r for r in np_ if r.get("in_hours", True)]
         cnt = lambda k: (sum(r[k] == "y" for r in np_), sum(r[k] != "na" for r in np_))
         chips = (chip("double dialed", *cnt("dd"), T["dd"]) + chip("voicemail (when you could)", *cnt("vm"), T["vm"])
                  + chip("texted", *cnt("tx"), T["text"])
-                 + (chip("called in 15 min", sum(r["speed"] <= 15 for r in np_), len(np_), T["speed"]) if speed_chip else ""))
-        rows = "".join(f'<tr><td>{link(r)}</td><td>{speed(r["speed"])}</td><td class="c">{mark(r["dd"])}</td><td class="c">{mark(r["vm"])}</td>'
+                 + (chip("in your hours called in 15 min", sum(r["speed"] <= 15 for r in inh), len(inh), T["speed"]) if inh else ""))
+        rows = "".join(f'<tr><td>{link(r)}</td><td>{when(r)}</td><td>{speed(r["speed"])}</td><td class="c">{mark(r["dd"])}</td><td class="c">{mark(r["vm"])}</td>'
                        f'<td class="c">{mark(r["tx"])}</td>{nxt(r)}</tr>' for r in np_)
         out.append(f'<div class="grp"><h3>Didn\'t pick up <span>{len(np_)}</span></h3><div class="chips">{chips}</div>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Speed</th><th class="c">Double dial</th><th class="c">Voicemail</th>'
+                   f'<div class="wrap"><table><tr><th>Lead</th><th>Came in</th><th>Speed</th><th class="c">Double dial</th><th class="c">Voicemail</th>'
                    f'<th class="c">Text</th><th>Next step</th></tr>{rows}</table></div>'
                    f'<p class="lead" style="margin-top:6px">– on voicemail or text = the call never reached a mailbox or the number '
                    f"can't take a text, so it doesn't count against you. SOP: Day 1, 3, 5 and 7 (business days), then once a month.</p></div>")
     if G["notcalled"]:
         out.append(f'<div class="grp"><h3>Not called yet <span>{len(G["notcalled"])}</span></h3>'
                    f'<p class="lead">When they came in, by hour (ET). Their names and Close links are in the message under this card.</p>'
-                   + hour_chart(G["notcalled"], hours) + "</div>")
+                   + hour_chart(G["notcalled"], work) + "</div>")
     return "".join(out)
 
 def build_html(m):
@@ -172,27 +190,30 @@ def build_html(m):
         tile("Pickup rate", picked, len(called), T["pickup"], f"{picked} of {len(called)} you called picked up"),
         tile("Connect rate", len(G["real"]), len(called), T["connect"], f'{len(G["real"])} of {len(called)} real conversations'),
     ]
-    settile = (f'<div class="tile track"><div class="k">Set to a closer</div><div class="v">{len(sets)}</div>'
-               f'<div class="d">' + (f"handoff on track for {on_track} of {len(sets)}" if sets else "none from today's leads")
-               + (f' · {m["closer_calls"]} in all today' if m["closer_calls"] != len(sets) else "") + "</div></div>")
+    # Set to a closer counts every abandoned lead set that day (Sheila, Oct 28, 2026); the small print says how many
+    # came from earlier days' leads, which the tables below don't list
+    n_set = m["closer_calls"]; n_old = n_set - len(sets)
+    if not n_set: sub = "none today"
+    elif not n_old: sub = f"all from today's leads · handoff on track for {on_track} of {len(sets)}"
+    elif not sets: sub = "all from earlier days' leads" if n_set > 1 else "from an earlier day's leads"
+    else: sub = f"{len(sets)} from today's leads, {n_old} from earlier days' leads"
+    settile = (f'<div class="tile track"><div class="k">Set to a closer</div><div class="v">{n_set}</div>'
+               f'<div class="d">{e(sub)}</div></div>')
     H = m.get("hours") or [10, 18]
     def hr(h, off=0):
         h = (h - off) % 24; return f"{h % 12 or 12}{'am' if h < 12 else 'pm'}"
     hours_et = f"{hr(H[0])} to {hr(H[1])} ET"; hours_pt = f"{hr(H[0], 3)} to {hr(H[1], 3)} PT"
     sec = []
+    # Sheila, Oct 28, 2026: only the where-they-landed bars are split by your hours; the tables below hold every lead
+    split = ""
     for part, title, note in ((True, "During your hours", f"{hours_et} ({hours_pt}). Speed to lead counts these leads."),
                               (False, "Outside your hours", "Came in before or after your hours. Call them first thing in your next block.")):
         P = [r for r in L if bool(r.get("in_hours", True)) == part]
-        sec.append(f'<section class="part"><h2>{title} <span>{len(P)}</span></h2><p class="lead">{e(note)}</p>'
-                   + (group_tables(P, T, speed_chip=part, hours=[h for h in range(24) if (H[0] <= h < H[1]) == part]) if P else '<p class="none">No leads.</p>') + "</section>")
-    # follow-up calls due today on earlier leads (Day 3, 5, 7, monthly)
-    fu = m["followups"]
-    if fu["due"]:
-        rows = "".join(f'<tr><td>{link(r) if r.get("lead_id") else e(r["lead"])}</td><td>{e(r["step"])}</td><td class="c">{mark("y" if r["called"] else "n")}</td>'
-                       f'<td>{e(r["result"])}</td></tr>' for r in fu["rows"])
-        sec.append(f'<section><h2>Follow-up calls due {e(day)} <span class="sm">{fu["done"]} of {fu["due"]} made · target {T["followup"]}%</span></h2>'
-                   f'<p class="lead">Earlier abandoned leads you haven\'t reached yet, on their Day 3, 5, 7 or monthly call.</p>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Due</th><th class="c">Called</th><th>What happened</th></tr>{rows}</table></div></section>')
+        split += (f'<div class="half"><h3>{title} <span>{len(P)}</span></h3><p class="lead">{e(note)}</p>'
+                  + (seg_bar(P) if P else '<p class="none">No leads.</p>') + "</div>")
+    sec.append(f'<section class="part"><h2>Where today\'s leads landed <span>{tot}</span></h2>{split}'
+               + (group_tables(L, T, H) if L else "") + "</section>")
+    # the "Follow-up calls due" section was taken off the card (Sheila, Oct 28, 2026: too long); m["followups"] is still computed
     # closer calls that happened on D (sets from earlier days)
     sh = m["show"]; ct = m.get("closer_today") or []
     s7 = f'{sh["showed7"]} of {sh["n7"]} showed, last 7 days' if sh["n7"] else "no closer calls due in the last 7 days"
@@ -207,7 +228,7 @@ def build_html(m):
     sec.append(f'<section><h2>Closer calls that happened {e(day)} <span class="sm">{e(s7)}</span></h2>'
                f'<p class="lead">Leads you set on earlier days. Separate from the {tot} above.</p>{body}</section>')
     cl = m.get("closes") or []
-    meta = (f'{tot} abandoned Typeform {"lead" if tot == 1 else "leads"} · {len(called)} called · {picked} picked up · {len(sets)} set to a closer'
+    meta = (f'{tot} abandoned Typeform {"lead" if tot == 1 else "leads"} · {len(called)} called · {picked} picked up · {n_set} set to a closer'
             f' · {m["sets_to_date"]} {"set" if m["sets_to_date"] == 1 else "sets"} and {len(cl)} {"close" if len(cl) == 1 else "closes"} since Oct 21')
     return f"""<div class="card" id="card3">
 <header><div class="eyebrow">Abandoned Typeform test · separate from Welcome Series</div>

@@ -33,22 +33,22 @@ This is a third image, separate from the two Welcome Series cards. It goes to th
 - **Show rate:** `run_show` from `bali_show.py`, limited to sets from this list: last 7 days, plus all sets since Oct 21, with the four handoff steps.
 - **Follow-up calls on time (Sheila, Oct 21: business days):** Day 1 = his first call to the lead on or after Oct 21. Day 3, 5 and 7 = 2, 4 and 6 business days later (Mon to Fri; no holidays). Then monthly: 30 days after Day 7, then every 30 days, moved to the next business day if it falls on a weekend. A lead stops owing follow-ups once he has talked to them, they have a meeting booked, or they are Do Not Contact. On time = called on the day it was due. The table lists every lead due on D.
 - **Targets (Sheila, Oct 21):** speed 60%, voicemail 85%, text 85%, double dial 85%, pickup 25%, connect 10%, show rate 90%, follow-ups on time 90%. Green at target, yellow at 75% of target or more, red below. "Set to a closer" has no target.
-- **Dials stay separate from Welcome Series (Sheila, Oct 21).** Pending: the Welcome Series card still counts every Bali dial toward 200, because the live Welcome Series run reads the claude.ai Project copy of the kit. Excluding this list there is a change to `bali_metrics.py` to make at cutover, with Sheila's OK on the exact rule.
+- **Dials stay separate from Welcome Series (Sheila, Oct 21).** Done Oct 28: the Welcome Series card leaves this list out of every number (runbook, "Welcome Series only").
 
 ## The card (Sheila, Oct 22, 2026)
 
 Talks to Bali as "you". Top to bottom:
 
 1. **Header:** the day's leads (every lead that entered the bucket on D, any hour), how many he called, picked up and set, and sets and closes since Oct 21.
-2. **Four tiles:** speed to lead (bucket entries during his work hours, below), pickup rate and connect rate (out of the day's leads he called), set to a closer (from the day's leads; the tile adds the day's total when an older lead was also set).
-3. **Two blocks: during your hours and outside your hours** (Sheila, Oct 22). Each has a bar splitting its leads into four groups, then the tables below.
+2. **Four tiles:** speed to lead (bucket entries during his work hours, below), pickup rate and connect rate (out of the day's leads he called), set to a closer (Sheila, Oct 28, 2026: every abandoned lead set that day; the small print says how many came from earlier days' leads, e.g. "all from earlier days' leads").
+3. **Where today's leads landed** (Sheila, Oct 28, 2026; was two full blocks from Oct 22): two bars, one for leads that came in during your hours and one for outside them, each split into the four groups. Below them one set of tables holds every lead, with a "Came in" column (Your hours or Outside), your-hours leads first.
 4. **One table per group,** every lead name linked to its Close page, with how fast he called (green at 15 min or less), what happened and the next step (red when something is overdue):
    - **Real conversations** (same rule as Welcome Series): the result (set to which closer and when, booked on his calendar, call back later, disqualified) and, for closer sets, the four handoff steps (done, missed, still ahead, or not owed). Next step: the first missed step, else the next one due, else the closer call. Call back later uses his open Close task date, or asks him to set one.
    - **Picked up, no real conversation:** what happened and his next Close task, or "Set a next step in Close".
-   - **Didn't pick up:** four equal tiles above the table (double dialed, voicemail, texted, called in 15 min; the last one only in the in-hours block), then double dial, voicemail and text marks (a dash when the call never reached a mailbox or the number can't take a text). Next step: "Text now" when he missed the text, then the Day 3 call date (2 business days after Day 1).
-   - **Not called yet (Sheila, Oct 22):** no name list. A bar chart of how many came in each hour (ET) of that block, with the count on each bar and the total in the heading. The names and Close links are in the links message under the card.
+   - **Didn't pick up:** four equal tiles above the table (double dialed, voicemail, texted, called in 15 min; the last one only in the in-hours block), then double dial, voicemail and text marks (a dash when the call never reached a mailbox or the number can't take a text). Next step: "Text now" when he missed the text, then the Day 3 call date (2 business days after Day 1). The "called in 15 min" tile counts only leads that came in during his hours.
+   - **Not called yet (Sheila, Oct 22; one chart Oct 28):** no name list. One bar chart of how many came in each hour (ET), all 24 hours, blue bars in your hours and gray outside them, with the count on each bar and the total in the heading. The names and Close links are in the links message under the card.
    - A Do Not Contact lead's next step is "None, Do Not Contact".
-5. **Follow-up calls due D:** earlier leads on their Day 3, 5, 7 or monthly call (rules below), shown only when any were due.
+5. **Follow-up calls due D:** taken off the card (Sheila, Oct 28, 2026: too long). `m['followups']` is still computed and the links message still names them.
 6. **Closer calls that happened D:** leads he set on earlier days whose closer call was on D, with the closer, whether they showed and the handoff steps; the 7-day show rate in the heading.
 
 ## Known limits

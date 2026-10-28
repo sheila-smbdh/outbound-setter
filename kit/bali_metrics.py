@@ -9,10 +9,16 @@ SEQ='seq_0XX3twr6enX8SbfMZILA8x'  # Welcome Series - Bali Test
 # setter is selected (use_setter in bali_show.py); None counts every sign-up (the old Bali-only behavior).
 ICU_FIELD='cf_C6fOIXKxCBrG5PhlmEhcO6Rzu20G8XV6aA7wnADkH3P'
 LIST=None
-def list_leads(uid):
-    """Lead ids whose Initial Contact User is uid (Close data search, read only)."""
+# Oct 28, 2026 (Sheila): the Welcome Series card counts no Abandoned Typeform leads (they have their own card). EXCLUDE
+# holds the setter's Abandoned Typeform leads ("Incomplete Typeform User" is the setter) while a setter is selected;
+# load() drops them from every call, text, meeting and sign-up, so every number on the card leaves them out. None
+# keeps every lead (bali_abandoned.py runs that way). Not LIST: Initial Contact User only reaches back to mid October.
+AB_USER_FIELD='cf_qiVzsFQUYHM2vmDeUg0mbfIrWgvU3ZJmhujqNtWiAhJ'
+EXCLUDE=None
+def list_leads(uid, field=ICU_FIELD):
+    """Lead ids whose user field `field` (default Initial Contact User) is uid (Close data search, read only)."""
     q={"query":{"type":"and","queries":[{"type":"object_type","object_type":"lead"},
-        {"type":"field_condition","field":{"type":"custom_field","custom_field_id":ICU_FIELD},
+        {"type":"field_condition","field":{"type":"custom_field","custom_field_id":field},
          "condition":{"type":"reference","reference_type":"user_or_group","object_ids":[uid]}}]},
        "_fields":{"lead":["id"]},"_limit":200}
     ids=[];cur=None
@@ -162,6 +168,10 @@ def load(D, back=16):
         if 'do not contact' in (x.get('new_status_label') or '').lower() and x.get('lead_id'):
             t=pt(x['date_created'])
             if x['lead_id'] not in dnc or t<dnc[x['lead_id']]: dnc[x['lead_id']]=t
+    if EXCLUDE:   # Oct 28 (Sheila): Abandoned Typeform leads count only on their own card
+        keep=lambda x: x.get('lead_id') not in EXCLUDE
+        calls=[c for c in calls if keep(c)]; inbound=[c for c in inbound if keep(c)]
+        sms=[s for s in sms if keep(s)]; ms=[m for m in ms if keep(m)]; enr={l:x for l,x in enr.items() if l not in EXCLUDE}
     return dict(calls=calls,enr=enr,sms=sms,meetings=ms,dnc=dnc,inbound=inbound)
 def first_calls(calls):
     f={}

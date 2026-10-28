@@ -88,7 +88,9 @@ def _result(cs, sms_today, booked):
 
 def run_abandoned(D):
     """Metrics for the Abandoned Typeform card for dialing day D."""
+    global EXCLUDE
     AB = ab_leads(D); ids = set(AB)
+    EXCLUDE = None   # the Welcome Series card's filter (use_setter) would drop this whole list
     data = load(D, back=max(16, (D - AB_START).days + 1))
     data = dict(calls=[c for c in data['calls'] if c['lead_id'] in ids],
                 inbound=[c for c in data['inbound'] if c['lead_id'] in ids],
