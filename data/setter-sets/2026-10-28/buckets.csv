@@ -1,0 +1,178 @@
+setter,month,set_type,bucket,sets
+Bali,2026-08,Inbound,Long term: farming,1
+Bali,2026-08,Inbound,Long term: with intention,3
+Bali,2026-08,Inbound,"Call passed, closer has not updated",6
+Bali,2026-08,Inbound,Bad: offer not presented,2
+Bali,2026-08,Inbound,Won,2
+Bali,2026-08,Outbound,Long term: farming,1
+Bali,2026-08,Outbound,Long term: with intention,1
+Bali,2026-08,Outbound,Long term: no timeline,2
+Bali,2026-09,Inbound,Short term: in month closing,4
+Bali,2026-09,Inbound,"Lost, other reason",2
+Bali,2026-09,Inbound,Long term: farming,1
+Bali,2026-09,Inbound,Long term: with intention,4
+Bali,2026-09,Inbound,Long term: no timeline,1
+Bali,2026-09,Inbound,"Call passed, closer has not updated",3
+Bali,2026-09,Inbound,No show or canceled,6
+Bali,2026-09,Inbound,Bad: offer not presented,1
+Bali,2026-09,Inbound,Reschedule pending,1
+Bali,2026-09,Inbound,Won,3
+Bali,2026-09,Outbound,Short term: in month closing,1
+Bali,2026-09,Outbound,Long term: farming,1
+Bali,2026-09,Outbound,Long term: with intention,1
+Bali,2026-09,Outbound,No show or canceled,5
+Bali,2026-09,Outbound,Reschedule pending,1
+Bali,2026-09,Outbound,Won,1
+Bali,2026-10,Inbound,Short term: in month closing,1
+Bali,2026-10,Inbound,Long term: no timeline,1
+Bali,2026-10,Inbound,No show or canceled,1
+Bali,2026-10,Inbound,Bad: offer not presented,2
+Bali,2026-10,Inbound,Reschedule pending,2
+Bali,2026-10,Outbound,Call still ahead,7
+Bali,2026-10,Outbound,Short term: in month closing,6
+Bali,2026-10,Outbound,"Lost, other reason",1
+Bali,2026-10,Outbound,Long term: with intention,16
+Bali,2026-10,Outbound,Long term: no timeline,5
+Bali,2026-10,Outbound,Short term: next 7 days,3
+Bali,2026-10,Outbound,"Call passed, closer has not updated",7
+Bali,2026-10,Outbound,No show or canceled,8
+Bali,2026-10,Outbound,Bad: offer not presented,2
+Bali,2026-10,Outbound,Reschedule pending,2
+Yobani,2026-08,Inbound,Long term: with intention,14
+Yobani,2026-08,Inbound,Long term: no timeline,8
+Yobani,2026-08,Inbound,"Call passed, closer has not updated",1
+Yobani,2026-08,Inbound,No show or canceled,2
+Yobani,2026-08,Inbound,Reschedule pending,1
+Yobani,2026-08,Inbound,Won,7
+Yobani,2026-09,Inbound,Short term: in month closing,2
+Yobani,2026-09,Inbound,Long term: with intention,2
+Yobani,2026-09,Inbound,Long term: no timeline,3
+Yobani,2026-09,Inbound,"Call passed, closer has not updated",2
+Yobani,2026-09,Outbound,Long term: farming,1
+Yobani,2026-09,Outbound,Bad: offer not presented,1
+Yobani,2026-10,Inbound,Short term: next 7 days,1
+Yobani,2026-10,Outbound,Short term: in month closing,1
+Yobani,2026-10,Outbound,Long term: with intention,1
+Dave (David Martin),2026-08,Inbound,Long term: farming,3
+Dave (David Martin),2026-08,Inbound,Long term: with intention,13
+Dave (David Martin),2026-08,Inbound,"Call passed, closer has not updated",4
+Dave (David Martin),2026-08,Inbound,No show or canceled,6
+Dave (David Martin),2026-08,Inbound,Reschedule pending,3
+Dave (David Martin),2026-08,Inbound,Won,7
+Dave (David Martin),2026-09,Inbound,Short term: in month closing,4
+Dave (David Martin),2026-09,Inbound,Long term: farming,2
+Dave (David Martin),2026-09,Inbound,Long term: with intention,9
+Dave (David Martin),2026-09,Inbound,Long term: no timeline,3
+Dave (David Martin),2026-09,Inbound,"Call passed, closer has not updated",5
+Dave (David Martin),2026-09,Inbound,No show or canceled,4
+Dave (David Martin),2026-09,Inbound,Bad: offer not presented,1
+Dave (David Martin),2026-09,Inbound,Reschedule pending,1
+Dave (David Martin),2026-09,Inbound,Won,4
+Dave (David Martin),2026-10,Inbound,Call still ahead,5
+Dave (David Martin),2026-10,Inbound,Bad: bad fit,1
+Dave (David Martin),2026-10,Inbound,Short term: in month closing,4
+Dave (David Martin),2026-10,Inbound,Long term: farming,1
+Dave (David Martin),2026-10,Inbound,Long term: with intention,3
+Dave (David Martin),2026-10,Inbound,Long term: no timeline,1
+Dave (David Martin),2026-10,Inbound,Short term: next 7 days,3
+Dave (David Martin),2026-10,Inbound,"Call passed, closer has not updated",1
+Dave (David Martin),2026-10,Inbound,No show or canceled,1
+Quinn,2026-08,Inbound,Short term: in month closing,2
+Quinn,2026-08,Inbound,"Lost, other reason",2
+Quinn,2026-08,Inbound,Long term: farming,2
+Quinn,2026-08,Inbound,Long term: with intention,11
+Quinn,2026-08,Inbound,Long term: no timeline,10
+Quinn,2026-08,Inbound,"Call passed, closer has not updated",8
+Quinn,2026-08,Inbound,No show or canceled,5
+Quinn,2026-08,Inbound,Won,5
+Quinn,2026-08,Outbound,Won,1
+Quinn,2026-09,Inbound,Bad: bad fit,1
+Quinn,2026-09,Inbound,Short term: in month closing,8
+Quinn,2026-09,Inbound,"Lost, other reason",2
+Quinn,2026-09,Inbound,Long term: farming,5
+Quinn,2026-09,Inbound,Long term: with intention,12
+Quinn,2026-09,Inbound,Long term: no timeline,5
+Quinn,2026-09,Inbound,Short term: next 7 days,1
+Quinn,2026-09,Inbound,"Call passed, closer has not updated",2
+Quinn,2026-09,Inbound,No show or canceled,4
+Quinn,2026-09,Inbound,Reschedule pending,3
+Quinn,2026-09,Inbound,Won,2
+Quinn,2026-10,Inbound,Call still ahead,1
+Quinn,2026-10,Inbound,Short term: in month closing,1
+Quinn,2026-10,Inbound,Long term: farming,1
+Quinn,2026-10,Inbound,Long term: with intention,1
+Quinn,2026-10,Inbound,Short term: next 7 days,1
+Quinn,2026-10,Inbound,"Call passed, closer has not updated",3
+Quinn,2026-10,Inbound,No show or canceled,4
+Quinn,2026-10,Inbound,Won,1
+Jordan Kempster,2026-08,Inbound,"Lost, other reason",1
+Jordan Kempster,2026-08,Inbound,Long term: farming,3
+Jordan Kempster,2026-08,Inbound,Long term: with intention,13
+Jordan Kempster,2026-08,Inbound,Long term: no timeline,9
+Jordan Kempster,2026-08,Inbound,Short term: next 7 days,1
+Jordan Kempster,2026-08,Inbound,"Call passed, closer has not updated",7
+Jordan Kempster,2026-08,Inbound,No show or canceled,8
+Jordan Kempster,2026-08,Inbound,Bad: offer not presented,2
+Jordan Kempster,2026-08,Inbound,Reschedule pending,1
+Jordan Kempster,2026-08,Inbound,Won,6
+Jordan Kempster,2026-09,Inbound,Short term: in month closing,8
+Jordan Kempster,2026-09,Inbound,Long term: with intention,8
+Jordan Kempster,2026-09,Inbound,Short term: next 7 days,1
+Jordan Kempster,2026-09,Inbound,"Call passed, closer has not updated",10
+Jordan Kempster,2026-09,Inbound,No show or canceled,3
+Jordan Kempster,2026-09,Inbound,Bad: offer not presented,1
+Jordan Kempster,2026-09,Inbound,Reschedule pending,2
+Jordan Kempster,2026-09,Inbound,Won,2
+Jordan Kempster,2026-09,Outbound,Won,1
+Jordan Kempster,2026-10,Inbound,Call still ahead,2
+Jordan Kempster,2026-10,Inbound,Short term: in month closing,4
+Jordan Kempster,2026-10,Inbound,Long term: with intention,4
+Jordan Kempster,2026-10,Inbound,Long term: no timeline,1
+Jordan Kempster,2026-10,Inbound,"Call passed, closer has not updated",2
+Jordan Kempster,2026-10,Inbound,No show or canceled,1
+Jordan Kempster,2026-10,Inbound,Reschedule pending,3
+Jordan Kempster,2026-10,Inbound,Won,1
+Jordan Kempster,2026-10,Outbound,Call still ahead,7
+Jordan Kempster,2026-10,Outbound,Long term: farming,1
+Jordan Kempster,2026-10,Outbound,Long term: with intention,1
+Jordan Kempster,2026-10,Outbound,Short term: next 7 days,1
+Jordan Kempster,2026-10,Outbound,"Call passed, closer has not updated",4
+Jordan Kempster,2026-10,Outbound,No show or canceled,2
+Jordan Kempster,2026-10,Outbound,Reschedule pending,1
+Jose,2026-08,Inbound,Long term: farming,4
+Jose,2026-08,Inbound,Long term: with intention,16
+Jose,2026-08,Inbound,Long term: no timeline,8
+Jose,2026-08,Inbound,Short term: next 7 days,1
+Jose,2026-08,Inbound,"Call passed, closer has not updated",5
+Jose,2026-08,Inbound,No show or canceled,2
+Jose,2026-08,Inbound,Reschedule pending,2
+Jose,2026-08,Inbound,Won,1
+Jose,2026-09,Inbound,Short term: in month closing,8
+Jose,2026-09,Inbound,"Lost, other reason",1
+Jose,2026-09,Inbound,Long term: farming,3
+Jose,2026-09,Inbound,Long term: with intention,13
+Jose,2026-09,Inbound,Long term: no timeline,2
+Jose,2026-09,Inbound,Short term: next 7 days,1
+Jose,2026-09,Inbound,"Call passed, closer has not updated",1
+Jose,2026-09,Inbound,No show or canceled,4
+Jose,2026-09,Inbound,Bad: offer not presented,1
+Jose,2026-09,Inbound,Won,2
+Jose,2026-09,Outbound,Short term: in month closing,1
+Jose,2026-09,Outbound,Long term: no timeline,1
+Jose,2026-10,Inbound,Call still ahead,2
+Jose,2026-10,Inbound,Short term: in month closing,7
+Jose,2026-10,Inbound,Long term: farming,2
+Jose,2026-10,Inbound,Long term: with intention,3
+Jose,2026-10,Inbound,Long term: no timeline,1
+Jose,2026-10,Inbound,Short term: next 7 days,1
+Jose,2026-10,Inbound,"Call passed, closer has not updated",1
+Jose,2026-10,Inbound,No show or canceled,8
+Jose,2026-10,Inbound,Reschedule pending,2
+Jose,2026-10,Inbound,Won,1
+Jose,2026-10,Outbound,Call still ahead,4
+Jose,2026-10,Outbound,Short term: in month closing,2
+Jose,2026-10,Outbound,Long term: with intention,3
+Jose,2026-10,Outbound,Short term: next 7 days,1
+Jose,2026-10,Outbound,"Call passed, closer has not updated",1
+Jose,2026-10,Outbound,Bad: offer not presented,1
+Jose,2026-10,Outbound,Reschedule pending,1
