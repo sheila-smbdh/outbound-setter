@@ -33,6 +33,7 @@ Everything a cold session needs is in this folder. The claude.ai Project stays t
 | `prompts/current-scheduled-task-prompts.md` | The exact prompts of the two live scheduled tasks, with their IDs and schedules | Yes |
 | `docs/ABANDONED-TYPEFORM.md`, `kit/bali_abandoned.py`, `kit/abandoned_build.py`, `prompts/abandoned-typeform-routine.md` | Bali's separate Abandoned Typeform card (test started Oct 21): rules, collector, renderer and the weekday routine that DMs it to Sheila | When working on that card |
 | `docs/SETTER-TRACKER.md`, `kit/setter_tracker.py`, `prompts/setter-tracker-routine.md` | The daily Setter Follow-up Tracker (Google Sheet, one tab per setter, leads grouped by SOP next step): rules, collector and sheet writer, and its routine | When working on the tracker |
+| `docs/SETTER-SETS.md`, `kit/setter_sets.py`, `data/setter-sets/`, `dashboards/setter-sets/` | The Setter Sets report (all six setters' inbound and outbound sets by month and week, Close next to the self-reported tracker, and the closers' bucket for each set): rules, collector, dated data snapshots and the dashboard page source | When updating the setter sets report |
 
 Live resources outside the repo (reachable through connectors, not files):
 
