@@ -43,7 +43,7 @@ def closes_to_date(D):
     out = []
     for o in opps:
         L = o.get('lead_id')
-        if L not in dialed: continue
+        if L not in dialed or (EXCLUDE and L in EXCLUDE): continue   # Oct 28: Abandoned Typeform closes are on their own card
         lc = get_all('/activity/call/', {'lead_id': L})
         for c in lc: c['_t'] = pt(c['date_created']); c['_k'] = classify(c)
         mine = sorted([c for c in lc if c.get('user_id') == BALI and c.get('call_method') != 'external'

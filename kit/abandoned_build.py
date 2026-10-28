@@ -1,8 +1,8 @@
 """Build Bali's Abandoned Typeform card (a third image, separate from the Welcome Series cards) from the metrics JSON
 written by run_abandoned(D) in bali_abandoned.py. Per-lead layout approved by Sheila on Oct 22, 2026
 (mockups/abandoned-typeform-mockup.png): four rate tiles, a bar of where the day's leads landed, one table per group
-(real conversation, picked up without one, didn't pick up, not called) with each lead's next step, the follow-up
-calls due that day, and the closer calls that happened that day. Talks to Bali as "you".
+(real conversation, picked up without one, didn't pick up, not called) with each lead's next step, and the closer
+calls that happened that day (the follow-up calls section was dropped Oct 28, 2026). Talks to Bali as "you".
 usage: python3 abandoned_build.py metrics.json out_dir
 writes out_dir/abandoned-YYYY-MM-DD.html, out_dir/scorecard-YYYY-MM-DD-3-abandoned.png and
 out_dir/abandoned-links-YYYY-MM-DD.txt (the lead names as Slack links, since the PNG can't hold links).
@@ -172,9 +172,15 @@ def build_html(m):
         tile("Pickup rate", picked, len(called), T["pickup"], f"{picked} of {len(called)} you called picked up"),
         tile("Connect rate", len(G["real"]), len(called), T["connect"], f'{len(G["real"])} of {len(called)} real conversations'),
     ]
-    settile = (f'<div class="tile track"><div class="k">Set to a closer</div><div class="v">{len(sets)}</div>'
-               f'<div class="d">' + (f"handoff on track for {on_track} of {len(sets)}" if sets else "none from today's leads")
-               + (f' · {m["closer_calls"]} in all today' if m["closer_calls"] != len(sets) else "") + "</div></div>")
+    # Set to a closer counts every abandoned lead set that day (Sheila, Oct 28, 2026); the small print says how many
+    # came from earlier days' leads, which the tables below don't list
+    n_set = m["closer_calls"]; n_old = n_set - len(sets)
+    if not n_set: sub = "none today"
+    elif not n_old: sub = f"all from today's leads · handoff on track for {on_track} of {len(sets)}"
+    elif not sets: sub = "all from earlier days' leads" if n_set > 1 else "from an earlier day's leads"
+    else: sub = f"{len(sets)} from today's leads, {n_old} from earlier days' leads"
+    settile = (f'<div class="tile track"><div class="k">Set to a closer</div><div class="v">{n_set}</div>'
+               f'<div class="d">{e(sub)}</div></div>')
     H = m.get("hours") or [10, 18]
     def hr(h, off=0):
         h = (h - off) % 24; return f"{h % 12 or 12}{'am' if h < 12 else 'pm'}"
@@ -185,14 +191,7 @@ def build_html(m):
         P = [r for r in L if bool(r.get("in_hours", True)) == part]
         sec.append(f'<section class="part"><h2>{title} <span>{len(P)}</span></h2><p class="lead">{e(note)}</p>'
                    + (group_tables(P, T, speed_chip=part, hours=[h for h in range(24) if (H[0] <= h < H[1]) == part]) if P else '<p class="none">No leads.</p>') + "</section>")
-    # follow-up calls due today on earlier leads (Day 3, 5, 7, monthly)
-    fu = m["followups"]
-    if fu["due"]:
-        rows = "".join(f'<tr><td>{link(r) if r.get("lead_id") else e(r["lead"])}</td><td>{e(r["step"])}</td><td class="c">{mark("y" if r["called"] else "n")}</td>'
-                       f'<td>{e(r["result"])}</td></tr>' for r in fu["rows"])
-        sec.append(f'<section><h2>Follow-up calls due {e(day)} <span class="sm">{fu["done"]} of {fu["due"]} made · target {T["followup"]}%</span></h2>'
-                   f'<p class="lead">Earlier abandoned leads you haven\'t reached yet, on their Day 3, 5, 7 or monthly call.</p>'
-                   f'<div class="wrap"><table><tr><th>Lead</th><th>Due</th><th class="c">Called</th><th>What happened</th></tr>{rows}</table></div></section>')
+    # the "Follow-up calls due" section was taken off the card (Sheila, Oct 28, 2026: too long); m["followups"] is still computed
     # closer calls that happened on D (sets from earlier days)
     sh = m["show"]; ct = m.get("closer_today") or []
     s7 = f'{sh["showed7"]} of {sh["n7"]} showed, last 7 days' if sh["n7"] else "no closer calls due in the last 7 days"
@@ -207,7 +206,7 @@ def build_html(m):
     sec.append(f'<section><h2>Closer calls that happened {e(day)} <span class="sm">{e(s7)}</span></h2>'
                f'<p class="lead">Leads you set on earlier days. Separate from the {tot} above.</p>{body}</section>')
     cl = m.get("closes") or []
-    meta = (f'{tot} abandoned Typeform {"lead" if tot == 1 else "leads"} · {len(called)} called · {picked} picked up · {len(sets)} set to a closer'
+    meta = (f'{tot} abandoned Typeform {"lead" if tot == 1 else "leads"} · {len(called)} called · {picked} picked up · {n_set} set to a closer'
             f' · {m["sets_to_date"]} {"set" if m["sets_to_date"] == 1 else "sets"} and {len(cl)} {"close" if len(cl) == 1 else "closes"} since Oct 21')
     return f"""<div class="card" id="card3">
 <header><div class="eyebrow">Abandoned Typeform test · separate from Welcome Series</div>

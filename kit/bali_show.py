@@ -45,9 +45,10 @@ SETTER = dict(key='bali', **SETTERS['bali'])
 def use_setter(key):
     """Point every helper at one setter: their Close user (BALI), their list (LIST) and their start dates.
     Call before run_cover / run_show / week, and again before switching setters."""
-    global BALI, LIST, CLOSES_FROM, STEPS_FROM, SETTER
+    global BALI, LIST, EXCLUDE, CLOSES_FROM, STEPS_FROM, SETTER
     s = SETTERS[key]
     BALI = s['user']; LIST = list_leads(s['user']); CLOSES_FROM = s['since']
+    EXCLUDE = list_leads(s['user'], AB_USER_FIELD)   # Oct 28, 2026 (Sheila): Abandoned Typeform leads stay off this card
     STEPS_FROM = max(dt.date(2026, 10, 13), s['since']); SETTER = dict(key=key, **s)
     _SETS.clear()
 
