@@ -150,6 +150,10 @@ def load(D, back=16):
     calls=[c for c in allc if c.get('direction')=='outbound' and c.get('call_method')!='external' and c.get('lead_id')]
     for c in calls: c['_t']=pt(c['date_created']); c['_k']=classify(c)
     inbound=[c for c in allc if inbound_talk(c)]   # callbacks he answered (Oct 13)
+    # Nov 3, 2026 (Sheila): every answered inbound call from a lead, for time on the phone (any length; counts nothing else)
+    inbound_any=[c for c in allc if c.get('direction')=='inbound' and c.get('call_method')!='external' and c.get('lead_id')
+                 and c.get('disposition') in (None,'','answered') and (c.get('duration') or 0)>0]
+    for c in inbound_any: c['_t']=pt(c['date_created'])
     for c in inbound: c['_t']=pt(c['date_created']); c['_k']='talk'; c['_in']=True
     subs=get_all('/sequence_subscription/',{'sequence_id':SEQ},stop=lambda x: pt(x['date_created'])<start-dt.timedelta(days=3))
     enr={}
@@ -172,7 +176,8 @@ def load(D, back=16):
         keep=lambda x: x.get('lead_id') not in EXCLUDE
         calls=[c for c in calls if keep(c)]; inbound=[c for c in inbound if keep(c)]
         sms=[s for s in sms if keep(s)]; ms=[m for m in ms if keep(m)]; enr={l:x for l,x in enr.items() if l not in EXCLUDE}
-    return dict(calls=calls,enr=enr,sms=sms,meetings=ms,dnc=dnc,inbound=inbound)
+        inbound_any=[c for c in inbound_any if keep(c)]
+    return dict(calls=calls,enr=enr,sms=sms,meetings=ms,dnc=dnc,inbound=inbound,inbound_any=inbound_any)
 def first_calls(calls):
     f={}
     for c in sorted(calls,key=lambda c:c['_t']):

@@ -173,8 +173,37 @@ def track_tiles(m):
         det = "<br>".join(parts)
     else:
         det = (f"{'lead' if cc == 1 else 'leads'} booked with a closer" + (": " + ", ".join(nms) if nms else "")) if cc else "No closer calls booked"
-    return [dict(key="dials", name="Dials", value=m.get("dials", 0), detail=f"{m.get('dials', 0)} calls to {m.get('people_dialed', 0)} people", note=""),
-            dict(key="closer", name="Set to a closer", value=cc, detail=det, note="")]
+    # Nov 3, 2026 (Sheila): the big number is leads dialed; the dial count moves to the small print
+    pdl = m.get("people_dialed", 0)
+    out = [dict(key="dials", name="Leads dialed", value=pdl,
+                detail=f"{m.get('dials', 0)} dials to {pdl} {'lead' if pdl == 1 else 'leads'}", note=""),
+           dict(key="closer", name="Set to a closer", value=cc, detail=det, note="")]
+    ph = phone_tile(m)
+    if ph: out.append(ph)
+    return out
+
+def hm(sec):
+    """Seconds as '2h 05m' or '42m' (under a minute rounds up to 1m when not zero)."""
+    mi = int(round((sec or 0) / 60)) or (1 if sec else 0)
+    return f"{mi // 60}h {mi % 60:02d}m" if mi >= 60 else f"{mi}m"
+
+def wait_text(mi):
+    """Average speed-to-lead wait in minutes as card text: '9 min', '1 hr 25 min'."""
+    if mi is None: return ""
+    return f"{mi} min" if mi < 60 else f"{mi // 60} hr" + (f" {mi % 60} min" if mi % 60 else "")
+
+def phone_tile(m):
+    """Blue 'Time on the phone' tile (Sheila, Nov 3, 2026) from m['phone_time'] (bali_cover.py). None on older metrics."""
+    p = m.get("phone_time")
+    if not p: return None
+    parts = [f"{hm(p['outbound_talk_sec'])} on {p['pickups']} {'call' if p['pickups'] == 1 else 'calls'} where they picked up"]
+    if p["outbound_other_sec"]: parts.append(f"{hm(p['outbound_other_sec'])} on voicemails and screeners")
+    if p["inbound_n"]: parts.append(f"{hm(p['inbound_sec'])} on {p['inbound_n']} inbound {'call' if p['inbound_n'] == 1 else 'calls'}")
+    if p["zoom_n"]: parts.append(f"{hm(p['zoom_sec'])} on {p['zoom_n']} Zoom {'call' if p['zoom_n'] == 1 else 'calls'}")
+    det = ", ".join(parts) + "."
+    ns = p.get("zoom_no_show") or 0
+    if ns: det += f" {ns} Zoom {'call' if ns == 1 else 'calls'} where the lead never joined {'is' if ns == 1 else 'are'} not counted."
+    return dict(key="phone", name="Time on the phone", value=hm(p["total_sec"]), detail=det, note="")
 
 def closer_split(m):
     """cover.closer_split from bali_cover.py (Oct 8, 2026), names ordered as in closer_names. None on older metrics."""
@@ -213,7 +242,8 @@ def cover(m, win):
     tb = text_base(m); ts = m.get("text_sent", 0); notx = n - tb
     tx_det = f"{ts} of {tb} no-answers got one" + (f" ({notx} blocked or invalid {'number' if notx == 1 else 'numbers'}, not counted)" if notx else "")
     rows = [  # key, name, value, unit, detail, fix text when missed, extra
-        ("speed", "Speed to lead", pct(m.get("within15", 0), ih), "%", f"{m.get('within15',0)} of {ih} new leads in 15 min",
+        ("speed", "Speed to lead", pct(m.get("within15", 0), ih), "%", f"{m.get('within15',0)} of {ih} new leads in 15 min" +
+         (f"<br>Average wait for the {m.get('in_hours_called', 0)} you called: <b>{wait_text(m['avg_wait_min'])}</b>" if m.get("avg_wait_min") is not None else ""),
          f"{ih - m.get('within15',0)} of {ih} new sign-ups waited 15+ minutes" + (f" ({(m.get('speed') or {}).get('none',0)} never got a call that day)" if (m.get('speed') or {}).get('none') else "") + ". Call new sign-ups first, the moment they come in.", None),
         show_row(m),
         ("pickup", "Pickup rate", pct(m.get("pickups", 0), pd), "%", f"{m.get('pickups',0)} of {pd} people picked up",
