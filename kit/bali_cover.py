@@ -107,6 +107,7 @@ def apply_work_speed(D, data, m):
     sp = speed_work(D, data); w = [x['w'] for x in sp if x['w'] is not None]
     m['new_in_hours'] = len(sp); m['within15'] = sum(1 for x in w if x <= 15); m['in_hours_called'] = len(w)
     m['median_wait_min'] = round(statistics.median(w)) if w else None
+    m['avg_wait_min'] = round(sum(w) / len(w)) if w else None   # Nov 3, 2026 (Sheila): average wait, leads called that day
     bk = collections.Counter(_bucket(x['w']) for x in sp)
     m['speed'] = dict(n=len(sp), **{k: bk.get(k, 0) for k in ['le15', 'm15_60', 'h1_3', 'h3p', 'none']})
     m['speed_window'] = m['work_hours'] = work_window(D)[2]
@@ -120,6 +121,50 @@ def apply_work_speed(D, data, m):
     if 'speed7' in m:
         m['speed7'].update({g: dict(n=v[0], picked=v[1], real=v[2]) for g, v in agg.items()})
     return m
+
+_LOOK = str.maketrans('оеаросхі', 'oeaposxi')   # Calendly's notetaker name uses Cyrillic look-alike letters
+
+def _zoom(x):
+    """(start, end, other people who joined) from a meeting's Zoom integration in Close, or None when Close has no
+    Zoom length for it (Google Meet, no Zoom room opened, or no Zoom link)."""
+    for i in x.get('integrations') or []:
+        z = (i or {}).get('integration_data') or {}
+        if (i or {}).get('integration_name') == 'zoom' and z.get('start_time') and z.get('end_time'):
+            me = {(x.get('user_name') or '').lower(), (x.get('user_name') or '').split(' ')[0].lower(),
+                  ((globals().get('SETTER') or {}).get('name') or '').lower()}
+            others = [p.get('name') for p in z.get('participants') or [] if p.get('name')
+                      and p['name'].lower() not in me
+                      and not any(w in p['name'].translate(_LOOK).lower() for w in ('notetaker', 'calendly'))]
+            return pt(z['start_time']), pt(z['end_time']), others
+    return None
+
+def phone_time(D, data):
+    """Time on the phone on day D (Sheila, Nov 3, 2026): the length Close logged for every outbound call (pickups,
+    voicemails left, screeners; no-answers log 0), every answered inbound call from a lead, and every Zoom call on the
+    setter's own calendar that a lead joined (Zoom room time from Close's Zoom integration). Tracked, no target."""
+    a, b = day_bounds(D)
+    out = [c for c in data['calls'] if a <= c['_t'] < b]
+    inn = [c for c in data.get('inbound_any', []) if a <= c['_t'] < b]
+    talk = [c for c in out if c['_k'] == 'talk']
+    zs, seen, nolen, empty = [], set(), [], 0
+    for x in data['meetings']:
+        if x.get('user_id') != BALI or not x.get('starts_at') or (x.get('status') or '') in (
+                'canceled', 'declined-by-lead', 'declined-by-org') or (x.get('title') or '').lower().startswith('canceled'):
+            continue
+        st = pt(x['starts_at'])
+        if not (a <= st < b) or st > dt.datetime.now(UTC): continue
+        z = _zoom(x)
+        if z is None: nolen.append(x.get('title') or ''); continue
+        k = (z[0], z[1])
+        if k in seen: continue
+        seen.add(k)
+        if not z[2]: empty += 1; continue   # nobody but the setter joined: a no-show, not time with a prospect
+        zs.append(max((z[1] - z[0]).total_seconds(), 0))
+    sec = lambda cs: sum(c.get('duration') or 0 for c in cs)
+    o, t, i, zz = sec(out), sec(talk), sec(inn), sum(zs)
+    return dict(total_sec=int(o + i + zz), outbound_sec=int(o), outbound_talk_sec=int(t), outbound_other_sec=int(o - t),
+                pickups=len(talk), inbound_sec=int(i), inbound_n=len(inn), zoom_sec=int(zz), zoom_n=len(zs),
+                zoom_no_show=empty, meetings_no_length=len(nolen))
 
 def run_cover(D):
     cache = {}
@@ -135,6 +180,7 @@ def run_cover(D):
     finally:
         g['load'] = orig
     apply_work_speed(D, data, m)
+    m['phone_time'] = phone_time(D, data)   # Nov 3, 2026 (Sheila)
     a, b = day_bounds(D)
     dc = [c for c in data['calls'] if a <= c['_t'] < b]
     dnc = data.get('dnc', {})   # Oct 8 (Sheila): leads set to Do Not Contact by the end of D are left out of double dial
