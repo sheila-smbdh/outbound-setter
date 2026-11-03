@@ -192,17 +192,25 @@ def wait_text(mi):
     if mi is None: return ""
     return f"{mi} min" if mi < 60 else f"{mi // 60} hr" + (f" {mi % 60} min" if mi % 60 else "")
 
+def mins(sec):
+    """Seconds as '1 hr 43 min' or '21 min' for the phone tile's lines."""
+    mi = int(round((sec or 0) / 60)) or (1 if sec else 0)
+    return (f"{mi // 60} hr" + (f" {mi % 60} min" if mi % 60 else "")) if mi >= 60 else f"{mi} min"
+
 def phone_tile(m):
-    """Blue 'Time on the phone' tile (Sheila, Nov 3, 2026) from m['phone_time'] (bali_cover.py). None on older metrics."""
+    """Blue 'Time on the phone' tile (Sheila, Nov 3, 2026) from m['phone_time'] (bali_cover.py). None on older metrics.
+    Small print is one short bullet per category (Sheila, Nov 3, 2026)."""
     p = m.get("phone_time")
     if not p: return None
-    parts = [f"{hm(p['outbound_talk_sec'])} on {p['pickups']} {'call' if p['pickups'] == 1 else 'calls'} where they picked up"]
-    if p["outbound_other_sec"]: parts.append(f"{hm(p['outbound_other_sec'])} on voicemails and screeners")
-    if p["inbound_n"]: parts.append(f"{hm(p['inbound_sec'])} on {p['inbound_n']} inbound {'call' if p['inbound_n'] == 1 else 'calls'}")
-    if p["zoom_n"]: parts.append(f"{hm(p['zoom_sec'])} on {p['zoom_n']} Zoom {'call' if p['zoom_n'] == 1 else 'calls'}")
-    det = ", ".join(parts) + "."
+    pl = lambda n, w: f"{n} {w}" + ("" if n == 1 else "s")
+    rows = [(pl(p["pickups"], "call") + " picked up", p["outbound_talk_sec"])]
+    if p["outbound_other_sec"]: rows.append(("Voicemails and screeners", p["outbound_other_sec"]))
+    if p["inbound_n"]: rows.append((pl(p["inbound_n"], "inbound call"), p["inbound_sec"]))
+    if p["zoom_n"]: rows.append((pl(p["zoom_n"], "Zoom call"), p["zoom_sec"]))
+    det = '<ul class="pl">' + "".join(f"<li>{t}: {mins(v)}</li>" for t, v in rows)
     ns = p.get("zoom_no_show") or 0
-    if ns: det += f" {ns} Zoom {'call' if ns == 1 else 'calls'} where the lead never joined {'is' if ns == 1 else 'are'} not counted."
+    if ns: det += f"<li>{pl(ns, 'Zoom no-show')} (not counted)</li>"
+    det += "</ul>"
     return dict(key="phone", name="Time on the phone", value=hm(p["total_sec"]), detail=det, note="")
 
 def closer_split(m):
