@@ -16,21 +16,9 @@ LIST=None
 AB_USER_FIELD='cf_qiVzsFQUYHM2vmDeUg0mbfIrWgvU3ZJmhujqNtWiAhJ'
 EXCLUDE=None
 def list_leads(uid, field=ICU_FIELD):
-    """Lead ids whose user field `field` (default Initial Contact User) is uid (Close data search, read only)."""
-    q={"query":{"type":"and","queries":[{"type":"object_type","object_type":"lead"},
-        {"type":"field_condition","field":{"type":"custom_field","custom_field_id":field},
-         "condition":{"type":"reference","reference_type":"user_or_group","object_ids":[uid]}}]},
-       "_fields":{"lead":["id"]},"_limit":200}
-    ids=[];cur=None
-    while True:
-        b=dict(q)
-        if cur: b['cursor']=cur
-        r,e=_q(proxy_execute,'POST','/data/search/','close',body=b)
-        if e: raise Exception(str(e)[:300])
-        body=r.get('data') if isinstance(r.get('data'),dict) else r
-        ids+=[x['id'] for x in body.get('data') or []]; cur=body.get('cursor')
-        if not cur: break
-    return set(ids)
+    """Lead ids whose user field `field` (default Initial Contact User) is uid. GET lead search, read only
+    (Nov 4, 2026: was a POST /data/search/; GET keeps the whole kit GET-only for the direct Close API run)."""
+    return {x['id'] for x in get_all('/lead/',{'query':f'custom.{field}:"{uid}"','_fields':'id','_limit':200})}
 REAL_SEC=180  # calls with no Close outcome: a real conversation lasts 3+ minutes (or led to a booking)
 REAL_MIN_SEC=60  # outcome-tagged calls must last 60+ seconds (Sheila, Oct 5)
 REAL_TAGS=('conversation: set to closer','conversation: call back later','disqualified')
