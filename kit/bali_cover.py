@@ -54,15 +54,29 @@ def closes_to_date(D):
         ms = get_all('/activity/meeting/', {'lead_id': L})
         for x in ms: x['_t'] = pt(x['date_created'])
         ms = [x for x in ms if not (x.get('title') or '').lower().startswith('canceled')]
-        if any(x['_t'] < mine[0]['_t'] for x in ms): continue      # already booked before Bali dialed
+        # Nov 4, 2026 (Sheila): same rules as _bookings in bali_metrics.py. A Zoom the lead joined on the setter's
+        # calendar is a pickup, a text or email handoff counts (_handoff), and an earlier meeting blocks only when it
+        # was with the same person (same_person).
+        zt = zoom_talks(ms); msgs = None
+        talks = sorted([c for c in mine if c['_k'] == 'talk'] + zt, key=lambda c: c['_t'])
         ok = None
         for x in sorted(ms, key=lambda x: x['_t']):
             if x.get('user_id') not in CLOSERS: continue
-            lcs = [c for c in mine if c['_k'] == 'talk' and c['_t'] <= x['_t'] and x['_t'] - c['_t'] <= dt.timedelta(hours=24)]
-            if not lcs: continue
+            if any(y['_t'] < mine[0]['_t'] and same_person(y, x) for y in ms): continue   # already booked before Bali dialed
+            lcs = [c for c in talks if c['_t'] <= x['_t'] and x['_t'] - c['_t'] <= dt.timedelta(hours=24)]
+            if lcs: after = lcs[-1]['_t']
+            else:
+                if msgs is None:
+                    msgs = [m for m in get_all('/activity/sms/', {'lead_id': L}) if m.get('user_id') == BALI
+                            and m.get('direction') == 'outbound' and m.get('status') in ('sent', 'delivered')]
+                    msgs += [m for m in get_all('/activity/email/', {'lead_id': L}) if m.get('user_id') == BALI
+                             and m.get('direction') == 'outgoing' and m.get('status') == 'sent']
+                    for m in msgs: m['_t'] = pt(m.get('date_sent') or m['date_created'])
+                after = _handoff(x, lc, ms, msgs)
+                if after is None: continue
             # Oct 8, 2026 (Sheila): an earlier Bali-owned meeting (set to self, two-step) no longer blocks the credit
             # other_rep_call (bali_metrics.py, Oct 6): 0-second 'external' duplicates by other users don't count
-            if any(other_rep_call(c) and lcs[-1]['_t'] < c['_t'] < x['_t'] for c in lc): continue
+            if any(other_rep_call(c) and after < c['_t'] < x['_t'] for c in lc): continue
             ok = x; break
         if ok:
             out.append(dict(lead=o.get('lead_name'), closer=o.get('user_name'), value=(o.get('value') or 0) / 100,

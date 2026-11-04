@@ -152,6 +152,10 @@ def load(D, back=16):
     sms=get_all('/activity/sms/',{'user_id':BALI,'date_created__gte':su,'date_created__lt':eu})
     sms=[s for s in sms if s.get('direction')=='outbound' and s.get('status') in ('sent','delivered','scheduled','outbox','inbox') ]
     for s in sms: s['_t']=pt(s['date_created'])
+    # Nov 4, 2026 (Sheila): the setter's sent emails, for the text or email handoff rule in _bookings
+    emails=get_all('/activity/email/',{'user_id':BALI,'date_created__gte':su,'date_created__lt':eu})
+    emails=[e for e in emails if e.get('direction')=='outgoing' and e.get('status')=='sent' and e.get('lead_id')]
+    for e in emails: e['_t']=pt(e.get('date_sent') or e['date_created'])
     ms=get_all('/activity/meeting/',{'date_created__gte':(day_bounds(D-dt.timedelta(days=back))[0]).astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ'),'date_created__lt':eu})
     for m in ms: m['_t']=pt(m['date_created'])
     # Do Not Contact (Sheila, Oct 8): leads set to a Do Not Contact status by anyone, with the first time it was set
@@ -164,8 +168,9 @@ def load(D, back=16):
         keep=lambda x: x.get('lead_id') not in EXCLUDE
         calls=[c for c in calls if keep(c)]; inbound=[c for c in inbound if keep(c)]
         sms=[s for s in sms if keep(s)]; ms=[m for m in ms if keep(m)]; enr={l:x for l,x in enr.items() if l not in EXCLUDE}
+        emails=[e for e in emails if keep(e)]
         inbound_any=[c for c in inbound_any if keep(c)]
-    return dict(calls=calls,enr=enr,sms=sms,meetings=ms,dnc=dnc,inbound=inbound,inbound_any=inbound_any)
+    return dict(calls=calls,enr=enr,sms=sms,emails=emails,meetings=ms,dnc=dnc,inbound=inbound,inbound_any=inbound_any)
 def first_calls(calls):
     f={}
     for c in sorted(calls,key=lambda c:c['_t']):
@@ -175,31 +180,96 @@ def _byl(calls):
     byl=collections.defaultdict(list)
     for c in sorted(calls,key=lambda c:c['_t']): byl[c['lead_id']].append(c)
     return byl
+HANDOFF=dt.timedelta(days=14)   # Nov 4, 2026 (Sheila): a text or email handoff counts for 14 days
+def _dead_meeting(x):
+    return (x.get('status') or '') in ('canceled','declined-by-lead','declined-by-org') or (x.get('title') or '').lower().startswith('canceled')
+def _people(x):
+    """The lead-side people on a meeting: attendee contact ids and emails (team addresses left out)."""
+    p=set()
+    for a in x.get('attendees') or []:
+        e=(a.get('email') or '').strip().lower()
+        if e.endswith('@smbdealhunter.xyz'): continue
+        if a.get('contact_id'): p.add(a['contact_id'])
+        if e: p.add(e)
+    if x.get('contact_id'): p.add(x['contact_id'])
+    return p
+def same_person(y,x):
+    """Nov 4, 2026 (Sheila): an earlier meeting blocks a set only when it was with the same person (Mohamed Ibrahim:
+    Owen's Aug and Oct meetings were with Adriana Ibrahim, merged onto his lead). No attendees on either: assume same."""
+    a,b=_people(y),_people(x)
+    return not a or not b or bool(a&b)
+def zoom_talks(meetings):
+    """Nov 4, 2026 (Sheila): a Zoom on the setter's own calendar that the lead joined counts as a pickup for closer calls
+    (Lisa Song, Nov 3: Jordan's 20 min Zoom, then Solomon House booked). Call-like records at the Zoom start.
+    _zoom() lives in bali_cover.py (same namespace); without it nothing is added."""
+    zf=globals().get('_zoom'); out=[]
+    if not zf: return out
+    for x in meetings:
+        if x.get('user_id')!=BALI or not x.get('lead_id') or _dead_meeting(x): continue
+        z=zf(x)
+        if z and z[2]: out.append(dict(lead_id=x['lead_id'],_t=z[0],_k='talk',_zoom=True,duration=int((z[1]-z[0]).total_seconds())))
+    return out
+def _conversations(oc,lm):
+    """Times the setter really talked to the lead: real-conversation calls, answered callbacks, joined Zooms."""
+    out=[]
+    for o in oc:
+        if o.get('user_id')!=BALI or o.get('call_method')=='external' or not o.get('lead_id'): continue
+        if o.get('direction')=='outbound':
+            c=dict(o); c['_k']=classify(o)
+            if is_real_call(c): out.append(pt(o['date_created']))
+        elif inbound_talk(o): out.append(pt(o['date_created']))
+    return out+[z['_t'] for z in zoom_talks(lm)]
+def _handoff(x,oc,lm,msgs):
+    """Text or email handoff (Sheila, Nov 4, 2026; Mohamed Ibrahim, Nov 3: Jordan talked to him Oct 23, texted him Omar's
+    link Oct 30, he booked Omar Nov 3). The time of the setter's latest text or email (not a workflow message) sent in
+    the 14 days before the closer meeting was booked and after a real conversation with the setter, or None. A lead who
+    already had a closer meeting with the same person is a reschedule, not a new set (Gary Carlton, Nov 3)."""
+    hs=[m['_t'] for m in msgs if not m.get('sequence_id') and x['_t']-HANDOFF<=m['_t']<x['_t']]
+    if not hs: return None
+    if any(y.get('user_id') in CLOSERS and y['_t']<x['_t'] and same_person(y,x) for y in lm): return None
+    conv=_conversations(oc,lm)
+    hs=[h for h in hs if conv and h>min(conv)]
+    return max(hs) if hs else None
 def _bookings(D,data,byl):
-    """Closer calls and self-sets created on D after a Bali pickup within 24h (rules unchanged from round one).
-    From Oct 13 a callback Bali answered (data['inbound']) counts as a pickup here too."""
+    """Closer calls and self-sets created on D (rules from round one, plus the changes dated below):
+    a closer meeting within 24h after a setter pickup, no other rep's call in between. From Oct 13 a callback the
+    setter answered counts as a pickup; from Nov 4 so does a Zoom on the setter's calendar the lead joined, and a text
+    or email handoff (_handoff) counts too."""
     a,b=day_bounds(D)
     inb=_byl(data.get('inbound',[]))
-    talks=lambda l: sorted([c for c in byl.get(l,[]) if c['_k']=='talk']+inb.get(l,[]),key=lambda c:c['_t'])
-    bl=set(byl)|set(inb)
+    zm=_byl(zoom_talks(data['meetings']))
+    sent=_byl([m for m in data.get('sms',[])+data.get('emails',[]) if not m.get('sequence_id') and m.get('status') in ('sent','delivered')])
+    talks=lambda l: sorted([c for c in byl.get(l,[]) if c['_k']=='talk']+inb.get(l,[])+zm.get(l,[]),key=lambda c:c['_t'])
+    bl=set(byl)|set(inb)|set(zm)|set(sent)
     live=[x for x in data['meetings'] if x.get('lead_id') in bl and not (x.get('title') or '').lower().startswith('canceled')]
     closer=set(); selfset=set(); names=[]
     for x in live:
         if not (a<=x['_t']<b): continue
-        lcs=[c for c in talks(x['lead_id']) if c['_t']<=x['_t'] and (x['_t']-c['_t'])<=dt.timedelta(hours=24)]
-        if not lcs: continue
-        if x.get('user_id')==BALI: selfset.add(x['lead_id']); continue
+        l=x['lead_id']
+        lcs=[c for c in talks(l) if c['_t']<=x['_t'] and (x['_t']-c['_t'])<=dt.timedelta(hours=24)]
+        if x.get('user_id')==BALI:
+            if any(not c.get('_zoom') for c in lcs): selfset.add(l)
+            continue
         if x.get('user_id') not in CLOSERS: continue
+        if not lcs and not any(x['_t']-HANDOFF<=m['_t']<x['_t'] for m in sent.get(l,[])): continue
         # Oct 8, 2026 (Sheila): an earlier Bali-owned meeting (set to self, two-step) no longer blocks the closer-call credit
-        oc=_q(get_all,'/activity/call/',{'lead_id':x['lead_id']})
+        oc=_q(get_all,'/activity/call/',{'lead_id':l})
         # Oct 8, 2026 (Sheila): a lead who booked a meeting on their own before Bali's first real call is not Bali's set
+        # Nov 4, 2026 (Sheila): only a meeting with the same person blocks it (same_person)
         mine=[pt(o['date_created']) for o in oc if o.get('user_id')==BALI and o.get('call_method')!='external'
               and (o.get('direction')=='outbound' or inbound_talk(o))]
-        lm=_q(get_all,'/activity/meeting/',{'lead_id':x['lead_id']})
-        if mine and any(pt(y['date_created'])<min(mine) for y in lm if not (y.get('title') or '').lower().startswith('canceled')): continue
-        if any(other_rep_call(o) and lcs[-1]['_t']<pt(o['date_created'])<x['_t'] for o in oc): continue
-        if x['lead_id'] not in closer: names.append((x.get('title') or '').split(' and ')[0])
-        closer.add(x['lead_id'])
+        lm=_q(get_all,'/activity/meeting/',{'lead_id':l})
+        lm=[y for y in lm if not (y.get('title') or '').lower().startswith('canceled')]
+        for y in lm: y['_t']=pt(y['date_created'])
+        first=mine or [z['_t'] for z in zoom_talks(lm)]   # Zoom-only lead: the Zoom is the first contact (Bob Nicholson rule)
+        if first and any(y['_t']<min(first) and same_person(y,x) for y in lm): continue
+        if lcs: after=lcs[-1]['_t']
+        else:
+            after=_handoff(x,oc,lm,sent.get(l,[]))
+            if after is None: continue
+        if any(other_rep_call(o) and after<pt(o['date_created'])<x['_t'] for o in oc): continue
+        if l not in closer: names.append((x.get('title') or '').split(' and ')[0])
+        closer.add(l)
     return closer, selfset-closer, names
 def day_metrics(D, data, earliest_first=None, with_bookings=True):
     a,b=day_bounds(D)
