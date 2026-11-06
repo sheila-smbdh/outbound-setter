@@ -240,6 +240,9 @@ def show_row(m):
     if all("due_on_day" in sh["steps"][k] for k, _ in STEP_NAMES if k in sh["steps"]):
         extra["day"] = [dict(name=nm, due=sh["steps"][k]["due_on_day"], done=sh["steps"][k]["done_on_day"],
                              missed=sh["steps"][k].get("missed_on_day") or []) for k, nm in STEP_NAMES if k in sh["steps"]]
+        # Nov 6, 2026 (Sheila): with the day's check on the tile, the bottom half (all calls set since the start and
+        # the 7-day handoff list) comes off; it is history he can't change. Older metrics keep the old tile.
+        extra = dict(day=extra["day"])
     miss = sh.get("missed7") or []
     fx = (f"{n7 - s7} of {n7} closer calls in the last 7 days didn't show" + (f" ({names(miss)})" if miss else "") +
           ". Do all four handoff steps on every booking.")
