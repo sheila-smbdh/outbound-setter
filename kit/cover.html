@@ -38,6 +38,14 @@
 .kpi .steps div.r{display:flex;justify-content:space-between;gap:6px}
 .kpi .steps div.r span:last-child{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
 .kpi .steps .ok{color:var(--good)} .kpi .steps .no{color:var(--bad)} .kpi .steps .na{color:var(--ink3);font-weight:600!important}
+/* the card's day, step by step, in the empty top half of the show rate tile (Sheila, Nov 6, 2026) */
+.kpi.k-show .of{flex:none}
+.kpi .day{display:flex;flex-direction:column;gap:5px;font-size:12.5px;margin:4px 0 auto;padding-bottom:8px}
+.kpi .day .sh{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)}
+.kpi .day div.r{display:flex;justify-content:space-between;gap:6px}
+.kpi .day div.r span:last-child{font-weight:800;white-space:nowrap}
+.kpi .day .who{font-size:11px;color:var(--bad);margin-top:-4px}
+.kpi .day .ok{color:var(--good)} .kpi .day .no{color:var(--bad)} .kpi .day .na{color:var(--ink3);font-weight:600!important}
 .comp h2{color:var(--ink2)}
 .bl{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:12px}
 .bl .callout{display:flex;flex-direction:column;gap:6px}
@@ -128,6 +136,14 @@
     var x=k.extra||{}, head='<div class="nm">'+k.name+'</div><div class="v">'+v+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+'<div class="of">'+k.detail+'</div>';
     var inner=head;
     if(k.key==='speed' && m.hours) inner=head.replace('<div class="of">', chart()+'<div class="of">');
+    if(x.day){
+      var dl=dd.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
+      inner+='<div class="day"><div class="sh">Handoff steps on '+dl+'</div>'+x.day.map(function(s){
+        var cls=!s.due?'na':(s.done===s.due?'ok':'no');
+        var val=!s.due?'None due':(s.due>1?s.done+' of '+s.due+' done':(s.done?'Done':'Missed'));
+        return '<div class="r"><span>'+s.name+'</span><span class="'+cls+'">'+val+'</span></div>'+
+          (s.missed.length?'<div class="who">Missed: '+s.missed.join(', ')+'</div>':'')}).join('')+'</div>';
+    }
     if(x.all) inner+='<div class="all">'+x.all+'</div>';
     if(x.steps){
       inner+='<div class="steps"><div class="sh">'+x.steps_head+'</div>'+x.steps.map(function(s){

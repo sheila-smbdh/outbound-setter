@@ -188,7 +188,10 @@ def run_show(D, m, now=None):
     for k in ('email', 'note', 'day_before', 'morning_of'):
         s7 = [s for s in steps if s['step'] == k and lo <= s['due'].isoformat() <= hi]
         sd = [s for s in s7 if s['due'] == D]
+        # due_on_day / done_on_day: the steps owed on D itself, for the "on <day>" check at the top of the show
+        # rate tile (Sheila, Nov 6, 2026)
         st[k] = dict(due=len(s7), done=sum(s['done'] for s in s7),
+                     due_on_day=len(sd), done_on_day=sum(s['done'] for s in sd),
                      missed_on_day=[s['lead'] for s in sd if not s['done']],
                      missed_7d=[s['lead'] for s in s7 if not s['done']])
     m['show'] = dict(
