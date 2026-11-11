@@ -152,19 +152,30 @@ def lead_steps(l, nm, set_t, meetings, D):
         ok = any(set_t - dt.timedelta(minutes=10) <= t <= set_t + dt.timedelta(minutes=HANDOFF_MIN) for t in handoff)
         out.append(dict(step='email', due=etd(set_t), done=ok, lead=nm))
         out.append(dict(step='note', due=etd(set_t), done=_closer_note(l, set_t), lead=nm))   # Oct 15, 2026
+    rem = {}                                        # reminders owed, by the ET day they are due
     for x in meetings:
         if _dead(x): continue
         s = _start(x); S = etd(s); booked = etd(x['_t'])
-        if booked < S - dt.timedelta(days=1):      # day-before reminder owed only if booked 2+ days ahead
+        info = dict(booked=booked.isoformat(), call=S.isoformat())
+        # Day-before reminder: owed only when the call was booked 2+ days ahead. A call set for the next day (or the
+        # same day) gets the morning-of reminder only, so the lead isn't contacted too often (Sheila, Nov 11, 2026).
+        if booked < S - dt.timedelta(days=1):
             P = S - dt.timedelta(days=1); pa, pb = day_bounds(P)
             if STEPS_FROM <= P <= D:
-                out.append(dict(step='day_before', due=P, done=any(pa <= t < pb for t in mine), lead=nm))
+                rem.setdefault(P, []).append(dict(step='day_before', due=P, done=any(pa <= t < pb for t in mine), lead=nm, **info))
         if booked < S:                              # morning-of reminder owed if he hasn't responded
             sa = day_bounds(S)[0]
             last = max([t for t in mine if t < sa] or [x['_t']])
             replied = any(last <= t < sa for t in inbound)
             if not replied and STEPS_FROM <= S <= D:
-                out.append(dict(step='morning_of', due=S, done=any(sa <= t < s for t in mine), lead=nm))
+                rem.setdefault(S, []).append(dict(step='morning_of', due=S, done=any(sa <= t < s for t in mine), lead=nm, **info))
+    # One reminder per lead per day (Sheila, Nov 11, 2026). A lead with two live closer meetings (a second booking or a
+    # reschedule the closer hasn't declined yet) was counted, and missed, twice: Lisa Song, Jordan, Solomon House on
+    # Fri Nov 6 and Sat Nov 7. When both a morning-of and a day-before reminder fall on the same day, the morning-of one
+    # is kept; it is done if any of that kind was done.
+    for P in sorted(rem):
+        xs = rem[P]; keep = [r for r in xs if r['step'] == 'morning_of'] or xs
+        out.append(dict(keep[0], done=any(r['done'] for r in keep)))
     return out
 
 def run_show(D, m, now=None):
@@ -201,6 +212,8 @@ def run_show(D, m, now=None):
         n_all=len(alln), showed_all=sum(r['status'] == 'showed' for r in alln),
         pending=[r['lead'] for r in rows if r['status'] == 'pending'],
         unlogged=[r['lead'] for r in rows if r['status'] == 'unlogged'],
-        steps=st, steps_from=STEPS_FROM.isoformat(), rows=rows)
+        steps=st, steps_from=STEPS_FROM.isoformat(), rows=rows,
+        # every step counted in the 7-day window, for checking a card by lead (not shown on the card)
+        step_rows=[dict(s, due=s['due'].isoformat()) for s in steps if lo <= s['due'].isoformat() <= hi])
     m['setter'] = dict(key=SETTER['key'], name=SETTER['name'], since=CLOSES_FROM.isoformat())
     return m
