@@ -2,7 +2,7 @@
 
 Owner: Sheila Xu. Built Oct 25 to 26, 2026, at the setters' request: Close gives Bali, Jose and Jordan no good way to see everyone they have called and what each lead needs next.
 
-**The sheet:** "Setter Follow-up Tracker", https://docs.google.com/spreadsheets/d/1R9G94XcDYBViugBPW0OEMBkueU1hHanedyyxaBn_lSU/edit (Sheila's Drive; she shares it with the setters). One tab per setter (Bali, Jose, Jordan) plus "How it works". Nobody types in it: every refresh rewrites each tab from Close. To change a lead's next step, the setter updates the lead in Close.
+**The sheet:** "Setter Follow-up Tracker", https://docs.google.com/spreadsheets/d/1R9G94XcDYBViugBPW0OEMBkueU1hHanedyyxaBn_lSU/edit (Sheila's Drive; she shares it with the setters). One tab per setter (Jose, Jordan; Bali's tab is no longer refreshed since he left, Nov 11, 2026) plus "How it works". Nobody types in it: every refresh rewrites each tab from Close. To change a lead's next step, the setter updates the lead in Close.
 
 **Refresh:** once a day (Sheila, Oct 26), routine "Setter follow-up tracker", `CRON_TZ=America/New_York 41 8 * * *`, before any setter's shift starts. Prompt: `prompts/setter-tracker-routine.md`.
 
@@ -23,7 +23,7 @@ The workbench cuts a call off at about 60 seconds and restarts when that happens
 ## Which leads
 
 - **Welcome Series:** sign-ups in the "Welcome Series - Bali Test" workflow (`SEQ`) from the last 14 days whose Close field "Initial Contact User" is the setter (the same list rule as the scorecards, runbook "Three setters and the v5 cards").
-- **Abandoned Typeform (Bali only):** every lead whose field "Incomplete Typeform User" is Bali. Its "Signed up" date is when it entered the "001- Incomplete Typeform Lead Distribution" workflow.
+- **Abandoned Typeform (Jose and Jordan from Nov 11, 2026; was Bali only):** every lead whose field "Incomplete Typeform User" is the setter. Its "Signed up" date is when it entered the "001- Incomplete Typeform Lead Distribution" workflow.
 - Calls, texts and emails are the setter's own, from the last 15 days. Picked up, voicemail and no-voicemail-option use the scorecard's rules (`classify()`, `no_vm_option()` in `bali_metrics.py`).
 
 ## Sections, top to bottom

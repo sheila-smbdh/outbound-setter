@@ -1,5 +1,7 @@
 # Bali Abandoned Typeform card (runbook)
 
+**Paused Nov 11, 2026 (Sheila):** Bali left the team; the daily card routine is disabled. Jose's and Jordan's Abandoned Typeform leads now count on their Welcome Series cards (runbook, "Abandoned Typeform leads join Jose's and Jordan's cards").
+
 Owner: Sheila Xu. Test started Wed, Oct 21, 2026. Card layout: per-lead version approved by Sheila on Oct 22 (`mockups/abandoned-typeform-mockup.png`; first live render `mockups/abandoned-typeform-2026-10-21-live.png`). It replaced the Oct 21 tile layout (`mockups/abandoned-typeform/`). SOP: "Setter Abandoned Typeform Outbound SOP" (Google Doc `1pXszNKbcUglNTqoP74GBn2zarT9USTc-CbH9Ma3kva0`).
 
 This is a third image, separate from the two Welcome Series cards. It goes to the Slack group DM `C0C11LAF4DB` (Sheila, Bali, Zain, Helen, Jay) every weekday at about 8am ET, titled "Bali Abandoned Type Form" (Sheila, Oct 22, 2026; until then it went to her own DM). Nowhere else.
