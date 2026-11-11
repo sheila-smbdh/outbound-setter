@@ -1,5 +1,7 @@
 # Routine: "Bali Abandoned Type Form" (weekdays, lands about 8am ET)
 
+**Paused Nov 11, 2026 (Sheila):** Bali left the team. Jose and Jordan now work the Abandoned Typeform leads, and those leads count on their daily Welcome Series cards (runbook, "Abandoned Typeform leads join Jose's and Jordan's cards"). Trigger `trig_016jNL7TResT5jL1FTpdD3th` is disabled, not deleted.
+
 Created Oct 21, 2026 at Sheila's request. Fires a fresh Claude Code cloud session each weekday at 7:35am ET (`CRON_TZ=America/New_York 35 7 * * 1-5`) so the card is in the Slack group DM C0C11LAF4DB by about 8am (Sheila, Oct 22, 2026; it went to her own DM before). Trigger `trig_016jNL7TResT5jL1FTpdD3th`. The prompt below is the routine's stored prompt, word for word.
 
 ```

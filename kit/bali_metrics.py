@@ -15,6 +15,13 @@ LIST=None
 # keeps every lead (bali_abandoned.py runs that way). Not LIST: Initial Contact User only reaches back to mid October.
 AB_USER_FIELD='cf_qiVzsFQUYHM2vmDeUg0mbfIrWgvU3ZJmhujqNtWiAhJ'
 EXCLUDE=None
+# Nov 11, 2026 (Sheila): Jose's and Jordan's cards count their Abandoned Typeform leads as part of their list (the two
+# smart views stay separate in Close). When AB_MERGE is on (use_setter sets it from SETTERS 'merge_ab'), LIST also
+# holds the setter's "Incomplete Typeform User" leads, EXCLUDE is None, and load() adds entries into the abandoned
+# bucket (AB_SEQ) to the sign-ups, so speed to lead, new sign-ups and backlog count them too.
+AB_SEQ='seq_0i6NE63SCuSdwb4E7kXQc3'   # 001- Incomplete Typeform Lead Distribution
+AB_MERGE=False
+AB_LIST=set()   # the setter's Incomplete Typeform leads while AB_MERGE is on
 def list_leads(uid, field=ICU_FIELD):
     """Lead ids whose user field `field` (default Initial Contact User) is uid. GET lead search, read only
     (Nov 4, 2026: was a POST /data/search/; GET keeps the whole kit GET-only for the direct Close API run)."""
@@ -144,6 +151,9 @@ def load(D, back=16):
     for c in inbound_any: c['_t']=pt(c['date_created'])
     for c in inbound: c['_t']=pt(c['date_created']); c['_k']='talk'; c['_in']=True
     subs=get_all('/sequence_subscription/',{'sequence_id':SEQ},stop=lambda x: pt(x['date_created'])<start-dt.timedelta(days=3))
+    if AB_MERGE:   # Nov 11 (Sheila): abandoned bucket entries count as sign-ups on Jose's and Jordan's cards
+        subs+=[x for x in get_all('/sequence_subscription/',{'sequence_id':AB_SEQ},stop=lambda x: pt(x['date_created'])<start-dt.timedelta(days=3))
+               if x.get('lead_id') in AB_LIST]   # only their own abandoned leads; a Welcome Series lead keeps its sign-up time
     enr={}
     for s in subs:
         t=pt(s['date_created'])

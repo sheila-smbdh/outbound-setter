@@ -10,13 +10,13 @@
 # Usage, every cell under ~45 seconds: tracker_start(); then tracker_step() until it returns '... done'.
 import collections, datetime as dt, re, json, pickle, os, time
 from concurrent.futures import ThreadPoolExecutor
-TRK_SETTERS = {'Bali': 'user_c0wPSKtEPsqkIh08OnjiGaj6XHeFBjGSp2jyVxAggDl',
-               'Jose': 'user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk',
+# Nov 11, 2026 (Sheila): Bali left the team; his tab is no longer refreshed (left in the sheet as last written).
+TRK_SETTERS = {'Jose': 'user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk',
                'Jordan': 'user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC'}
 TRK_SEQ = SEQ                     # "Welcome Series - Bali Test": every setter's Welcome Series sign-ups come in here
 TRK_ICU_FIELD = 'cf_C6fOIXKxCBrG5PhlmEhcO6Rzu20G8XV6aA7wnADkH3P'   # "Initial Contact User": whose list a lead is on
 TRK_AB_FIELD = 'cf_qiVzsFQUYHM2vmDeUg0mbfIrWgvU3ZJmhujqNtWiAhJ'    # "Incomplete Typeform User" (Abandoned Typeform list)
-TRK_AB_FOR = ('Bali',)            # only Bali works the Abandoned Typeform list so far
+TRK_AB_FOR = ('Jose', 'Jordan')   # Nov 11, 2026 (Sheila): Jose and Jordan take the Abandoned Typeform leads
 TRK_AB_SEQ = 'seq_0i6NE63SCuSdwb4E7kXQc3'   # "001- Incomplete Typeform Lead Distribution": when a lead entered the bucket
 TRK_AB_SCAN_FROM = dt.datetime(2026, 10, 1, tzinfo=ET)
 TRK_AB_STEPS = (('Day 3', 2), ('Day 5', 4), ('Day 7', 6))   # business days after Day 1
@@ -270,8 +270,8 @@ def _trk_lead_row(name, lid, src, signup, info, d, mt, now, today):
     return out(bucket, step, due)
 
 def _trk_universe(st, now):
-    """Each setter's leads: Welcome Series sign-ups on their list (Initial Contact User) from the window, and for Bali
-    the Abandoned Typeform list (Incomplete Typeform User). Returns {setter: {lead_id: (list name, signed up)}}."""
+    """Each setter's leads: Welcome Series sign-ups on their list (Initial Contact User) from the window, and for the
+    setters in TRK_AB_FOR the Abandoned Typeform list (Incomplete Typeform User). Returns {setter: {lead_id: (list name, signed up)}}."""
     cut = now - dt.timedelta(days=TRK_WINDOW_DAYS)
     enr = {}
     for s in st['subs']:
@@ -389,7 +389,7 @@ TRK_HOW = [
     'One tab per setter. Rebuilt from Close every morning; nothing here needs typing in. To change a lead\'s next step, update the lead in Close (log the call, book the meeting, or set a callback task) and the next refresh picks it up.',
     'Click a lead name to open it in Close.',
     '',
-    'Which leads: Welcome Series sign-ups from the last 14 days on your list (Close field "Initial Contact User" = you). Bali also gets his Abandoned Typeform list (Close field "Incomplete Typeform User" = Bali); for those, "Signed up" is when they entered the abandoned bucket.',
+    'Which leads: Welcome Series sign-ups from the last 14 days on your list (Close field "Initial Contact User" = you). You also get your Abandoned Typeform list (Close field "Incomplete Typeform User" = you); for those, "Signed up" is when they entered the abandoned bucket.',
     '',
     'Welcome Series, no answer (SOP 4C): try 1 right away (double dial, voicemail, text); try 2 the same day a few hours later (dial only); try 3 the next day (voicemail OK). After try 3 the Value Series takes over.',
     'Abandoned Typeform, no answer: Day 1 double dial, voicemail, text; Day 3, 5 and 7 (business days after Day 1) a call and, if no answer, double dial, voicemail, text; then one call a month.',
