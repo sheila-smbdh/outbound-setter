@@ -13,6 +13,11 @@ Owner: Sheila Xu. Set up Sep 29, 2026. Round two starts Wed, Sep 30. Scorecard v
   - The cover has a draw box with the day's verdict, the reason for each miss, and the week so far.
   - The routine also checks weekend days on Monday and keeps the Google Sheet "Setter Draw Tracker".
   - A setter with no outbound calls on a day gets no card and no "no calls" line.
+  - Card layout:
+    - Wins and fixes are gone. Sets and closes since start sit under the title, then the draw box.
+    - Speed, leads dialed and the handoff tile are on top; everything else is smaller below.
+    - The handoff tile (the day's steps done, target 100%) replaces the show rate tile. Show rate is a small line on it, with no target.
+  - The morning-of reminder isn't owed when the lead accepted the calendar invite. That is an incoming "Accepted:" email on the lead, after the booking and before the call day (`_touch()` in `bali_show.py`).
 
 - **Bali left the team (Sheila, Nov 11, 2026):** the daily scorecards are Jose's and Jordan's only. Don't build, post or mention a card for Bali, and don't post a "no calls" line for him. `run_direct.py` now runs jose and jordan by default; `SETTERS['bali']` stays in `bali_show.py` for old days and the other Bali tools. His Abandoned Typeform card routine is paused and the Setter Follow-up Tracker no longer refreshes his tab.
 - **Abandoned Typeform leads join Jose's and Jordan's cards (Sheila, Nov 11, 2026):** the abandoned leads are now worked by Jose and Jordan and count on their daily card like any Welcome Series lead. Close keeps the two smart views separate ("Incomplete Typeform User" vs "Initial Contact User"), but the card treats them as one list: `SETTERS[...]['merge_ab']` makes `use_setter()` add the setter's Incomplete Typeform leads to `LIST`, drop `EXCLUDE`, and count entries into the abandoned bucket (`AB_SEQ`, "001- Incomplete Typeform Lead Distribution") as sign-ups for speed to lead, new sign-ups and backlog. Calls, sets, show rate, handoff steps and closes on those leads count too. On Nov 11 neither of them had an abandoned lead assigned yet, so nothing earlier changes. Bali's old days keep the Oct 28 split (no `merge_ab`).

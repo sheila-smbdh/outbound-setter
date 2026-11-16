@@ -121,7 +121,9 @@ def _sent_at(x):
     return pt(x['date_created'])
 
 def _touch(l):
-    """Bali's outbound emails, texts and calls on a lead, and the lead's inbound emails and texts."""
+    """Bali's outbound emails, texts and calls on a lead, the lead's inbound emails and texts, and when the lead accepted
+    a calendar invite (an incoming email whose subject starts "Accepted:", Google Calendar's reply to the closer that
+    Close logs on the lead; Sheila, Nov 16, 2026)."""
     em = _q(get_all, '/activity/email/', {'lead_id': l, '_fields': 'id,date_created,date_sent,date_scheduled,direction,user_id,subject,template_id,status'})
     sm = _q(get_all, '/activity/sms/', {'lead_id': l, '_fields': 'id,date_created,date_sent,date_scheduled,direction,user_id,status'})
     ca = _q(get_all, '/activity/call/', {'lead_id': l, '_fields': 'id,date_created,direction,user_id,call_method'})
@@ -135,7 +137,9 @@ def _touch(l):
     inbound = [pt(x['date_created']) for x in em if x.get('direction') == 'incoming'
                and not re.match(r'(new event|accepted|declined|updated|canceled|invitation)', (x.get('subject') or '').lower())]
     inbound += [pt(x['date_created']) for x in sm if x.get('direction') == 'inbound']
-    return sorted(mine), sorted(handoff), sorted(inbound)
+    accepted = [pt(x['date_created']) for x in em if x.get('direction') == 'incoming'
+                and (x.get('subject') or '').strip().lower().startswith('accepted:')]
+    return sorted(mine), sorted(handoff), sorted(inbound), sorted(accepted)
 
 def _strip(s): return re.sub(r'<[^>]+>', ' ', s or '').strip()
 
@@ -154,7 +158,7 @@ def _closer_note(l, set_t):
 def lead_steps(l, nm, set_t, meetings, D):
     """The three handoff steps for one set lead, each with the ET date it was due. Only steps due Oct 13 or later,
     and through D. A step that isn't owed (call booked for the next day or the same day) is left out."""
-    mine, handoff, inbound = _touch(l); out = []
+    mine, handoff, inbound, accepted = _touch(l); out = []
     if STEPS_FROM <= etd(set_t) <= D:
         ok = any(set_t - dt.timedelta(minutes=10) <= t <= set_t + dt.timedelta(minutes=HANDOFF_MIN) for t in handoff)
         out.append(dict(step='email', due=etd(set_t), done=ok, lead=nm))
@@ -174,7 +178,10 @@ def lead_steps(l, nm, set_t, meetings, D):
             sa = day_bounds(S)[0]
             last = max([t for t in mine if t < sa] or [x['_t']])
             replied = any(last <= t < sa for t in inbound)
-            if not replied and STEPS_FROM <= S <= D:
+            # Nov 16, 2026 (Sheila): a lead who accepted the calendar invite (after this booking, before the call day)
+            # owes no morning-of reminder either
+            acc = any(x['_t'] <= t < sa for t in accepted)
+            if not replied and not acc and STEPS_FROM <= S <= D:
                 rem.setdefault(S, []).append(dict(step='morning_of', due=S, done=any(sa <= t < s for t in mine), lead=nm, **info))
     # One reminder per lead per day (Sheila, Nov 11, 2026). A lead with two live closer meetings (a second booking or a
     # reschedule the closer hasn't declined yet) was counted, and missed, twice: Lisa Song, Jordan, Solomon House on

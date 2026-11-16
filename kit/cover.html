@@ -79,6 +79,23 @@
 .hc .lg{display:flex;gap:10px;font-size:10px;color:var(--ink3);align-items:center}
 .hc .lg s{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;text-decoration:none}
 @media (max-width:560px){#g1{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}}
+/* Nov 16, 2026 (Sheila): no wins/fixes; sets and closes so far under the title; the three draw KPIs on top,
+   the rest smaller at the bottom; the handoff tile replaces the show rate tile */
+.big2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.big2 .b2{display:flex;align-items:baseline;gap:10px;border-radius:12px;background:var(--good-soft);padding:10px 14px}
+.big2 .n{font-size:40px;font-weight:800;color:var(--good);line-height:1;font-variant-numeric:tabular-nums}
+.big2 .t{font-size:14px;font-weight:600;color:var(--ink2)}
+#gtop{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(0,1.45fr);align-items:stretch}
+#gtop .kpi .v{font-size:36px}
+.kpi.k-handoff .v{font-size:30px!important}
+.kpi .shw{font-size:12px;color:var(--ink2);border-top:1px solid color-mix(in srgb,var(--ink3) 30%,transparent);padding-top:6px}
+.rest{margin-top:14px}
+#grest{grid-template-columns:repeat(4,minmax(0,1fr))}
+#grest .kpi{padding:9px 9px 9px 10px;gap:4px}
+#grest .kpi .v{font-size:22px}
+#grest .kpi .of{font-size:11.5px}
+#grest .kpi .nm{font-size:11px}
+@media (max-width:560px){#gtop,#grest{grid-template-columns:1fr}.big2{grid-template-columns:1fr}}
 /* $1,000 draw box (Sheila, Nov 16, 2026): Jose and Jordan, Nov 16 to Nov 29 */
 .draw{border-radius:12px;border:2px solid var(--bad);background:var(--bad-soft);padding:12px 14px;margin:0 0 12px;display:flex;flex-direction:column;gap:8px}
 .draw.met{border-color:var(--good);background:var(--good-soft)}
@@ -105,28 +122,19 @@
     <h1 id="c0title"></h1>
     <div class="meta" id="c0meta"></div>
   </header>
-  <div class="draw" id="c0draw" style="display:none"></div>
-  <div class="bl">
-    <div class="callout win">
-      <div class="k" id="c0wink">Wins of the day</div>
-      <ol class="fixes" id="c0wins"></ol>
-      <div class="closes" id="c0sets"><div class="n" id="c0setsn"></div><div class="t" id="c0setst"></div></div>
-      <div class="closes"><div class="n" id="c0closes"></div><div class="t" id="c0closest"></div></div>
-    </div>
-    <div class="callout fix">
-      <div class="k" id="c0fixk">Fixes for tomorrow</div>
-      <ol class="fixes" id="c0fixes"></ol>
-    </div>
+  <div class="big2">
+    <div class="b2"><div class="n" id="c0setsn"></div><div class="t" id="c0setst"></div></div>
+    <div class="b2"><div class="n" id="c0closes"></div><div class="t" id="c0closest"></div></div>
   </div>
+  <div class="draw" id="c0draw" style="display:none"></div>
   <section>
-    <h2>Your numbers</h2>
-    <p class="lead">Green: hit the target. Yellow: almost (75% of the target or more). Red: missed. Blue: tracked, no target. The black line on each bar is the target.</p>
-    <div class="grp"><h3>1. Outreach</h3><div class="kpis" id="g1"></div></div>
-    <div class="grp"><h3>2. No answer</h3><div class="kpis" id="g2"></div></div>
-    <div class="bottom">
-      <div><h3>3. Activity</h3><div class="col" id="g3"></div></div>
-      <div><h3>4. Post call</h3><div id="g4" style="height:calc(100% - 25px)"></div></div>
-    </div>
+    <h2>Draw numbers</h2>
+    <div class="kpis" id="gtop"></div>
+  </section>
+  <section class="rest">
+    <h2>Other numbers</h2>
+    <p class="lead">Tracked, not part of the draw. Green: hit. Yellow: almost. Red: missed. Blue: no target.</p>
+    <div class="kpis" id="grest"></div>
   </section>
 </div>
 
@@ -137,33 +145,28 @@
   var p=m.date.split('-'), dd=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));
   $('c0title').textContent=D.setter.name+"'s Day: "+dd.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'long',month:'short',day:'numeric'});
   var K={}; C.kpis.forEach(function(k){K[k.key]=k}); var T={}; (C.track||[]).forEach(function(k){T[k.key]=k});
-  var scored=C.kpis.filter(function(k){return k.status!=='none'});
-  var hit=scored.filter(function(k){return k.hit}).length;
-  $('c0meta').textContent='You hit '+hit+' of '+scored.length+' targets · '+m.dials+' dials to '+m.people_dialed+' people · '+m.first_call+' to '+m.last_call+' ET';
-  $('c0wink').textContent=C.wins.length===1?'Win of the day':'Wins of the day';
-  $('c0wins').innerHTML=C.wins.map(function(w){return '<li><b>'+w[0]+':</b> '+w[1]+'</li>'}).join('');
-  if(C.sets==null){$('c0sets').style.display='none'}else{$('c0setsn').textContent=C.sets;$('c0setst').textContent=C.sets_text;}
-  $('c0closes').textContent=C.closes;
-  $('c0closest').textContent=C.closes_text;
-  $('c0fixk').textContent=C.fixes.length===1?'Fix for tomorrow':'Fixes for tomorrow';
-  $('c0fixes').innerHTML=C.fixes.map(function(f){return '<li><b>'+f[0]+':</b> '+f[1]+'</li>'}).join('');
-  var PILL={hit:'Hit',close:'Almost',miss:'Missed',none:'No calls due'};
+  $('c0meta').textContent=m.dials+' dials to '+m.people_dialed+' leads · '+m.first_call+' to '+m.last_call+' ET';
+  var since=D.setter.since;   // already a label, e.g. "Oct 20" (build.py setter())
+  $('c0setsn').textContent=C.sets==null?'–':C.sets; $('c0setst').textContent=(C.sets===1?'set':'sets')+' to a closer since '+since;
+  $('c0closes').textContent=C.closes; $('c0closest').textContent=(C.closes===1?'close':'closes')+' since '+since+(C.closes_names?': '+C.closes_names:'');
+  var PILL={hit:'Hit',close:'Almost',miss:'Missed',none:'None due'};
   function tile(k){
     if(!k) return '';
-    var u=k.unit==='%'?'%':'', v=k.value==null?'–':k.value+u;
+    var u=k.unit==='%'?'%':'', v=(k.extra&&k.extra.big)||(k.value==null?'–':k.value+u);
     var w=Math.min(100,k.value||0), t=k.target;
-    var x=k.extra||{}, head='<div class="nm">'+k.name+'</div><div class="v">'+v+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+'<div class="of">'+k.detail+'</div>';
+    var x=k.extra||{}, head='<div class="nm">'+k.name+'</div><div class="v">'+v+'</div>'+(k.note?'<div class="nt">'+k.note+'</div>':'')+(k.detail?'<div class="of">'+k.detail+'</div>':'');
     var inner=head;
     if(k.key==='speed' && m.hours) inner=head.replace('<div class="of">', chart()+'<div class="of">');
     if(x.day){
       var dl=dd.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
-      inner+='<div class="day"><div class="sh">Handoff steps on '+dl+'</div>'+x.day.map(function(s){
+      inner+='<div class="day"><div class="sh">'+(k.key==='handoff'?'Due on ':'Handoff steps on ')+dl+'</div>'+x.day.map(function(s){
         var cls=!s.due?'na':(s.done===s.due?'ok':'no');
         var val=!s.due?'None due':(s.due>1?s.done+' of '+s.due+' done':(s.done?'Done':'Missed'));
         return '<div class="r"><span>'+s.name+'</span><span class="'+cls+'">'+val+'</span></div>'+
           (s.missed.length?'<div class="who">Missed: '+s.missed.join(', ')+'</div>':'')}).join('')+'</div>';
     }
     if(x.all) inner+='<div class="all">'+x.all+'</div>';
+    if(x.show) inner+='<div class="shw">'+x.show+'</div>';
     if(x.steps){
       inner+='<div class="steps"><div class="sh">'+x.steps_head+'</div>'+x.steps.map(function(s){
         var cls=s.due?(s.done===s.due?'ok':'no'):'na', val=s.due?s.done+' of '+s.due:'none due yet';
@@ -171,7 +174,7 @@
     }
     return '<div class="kpi k-'+k.key+' '+k.status+'">'+inner+
       '<div class="tbar"><i style="width:'+w+'%"></i><b style="left:calc('+t+'% - 1px)"></b></div>'+
-      '<div class="st"><span>Target '+k.target+u+'</span><span class="pill">'+PILL[k.status]+'</span></div></div>'}
+      '<div class="st"><span>Target '+k.target+u+'</span><span class="pill">'+(x.pill||PILL[k.status])+'</span></div></div>'}
   // new sign-ups by hour that day (solid bars) and the hours you were dialing (light blue), 9am to 9pm ET
   function chart(){
     var H=m.hours.filter(function(x){return x.h>=9&&x.h<21}), mx=Math.max.apply(null,H.map(function(x){return x.signups}).concat([1]));
@@ -185,9 +188,8 @@
     return '<div class="kpi track"><div class="nm">'+k.name+'</div>'+
       '<div class="v">'+k.value+'</div><div class="of">'+k.detail+'</div>'+
       '<div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>'}
-  $('g1').innerHTML=['speed','pickup','connect'].map(function(x){return tile(K[x])}).join('');
-  $('g2').innerHTML=['vm','text','dd'].map(function(x){return tile(K[x])}).join('');
-  $('g3').innerHTML=(K.leads?tile(K.leads):track(T.dials))+track(T.closer)+track(T.phone);
+  $('gtop').innerHTML=tile(K.speed)+tile(K.leads)+tile(K.handoff||K.show);
+  $('grest').innerHTML=['pickup','connect','vm','text','dd'].map(function(x){return tile(K[x])}).join('')+track(T.closer)+track(T.phone);
   // $1,000 draw box (Sheila, Nov 16, 2026)
   var W=D.draw;
   if(W){
@@ -208,6 +210,5 @@
     }
     b.innerHTML=h;
   }
-  $('g4').innerHTML=tile(K.show);
 })();
 </script>

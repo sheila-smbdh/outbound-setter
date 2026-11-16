@@ -13,7 +13,7 @@ Owner: Sheila Xu. Set Nov 16, 2026.
      - the handoff email within an hour of booking
      - the closer note in Close
      - the day-before reminder, owed when the call was booked 2 or more days out
-     - the morning-of reminder, owed when the lead hasn't replied since the setter's last message
+     - the morning-of reminder, owed unless the lead replied since the setter's last message or accepted the calendar invite. An accepted invite is an incoming email on the lead whose subject starts "Accepted:", Google Calendar's reply to the closer (Sheila, Nov 16). It must arrive after the booking and before the call day.
 - **Nothing owed counts as met** (Sheila, Nov 16). This covers a day with no new sign-ups during their hours, or no handoff steps due. Leads dialed always applies.
 - **No outbound calls:** the day is not met.
 - **Weekends:** setters aren't expected to work weekends. They can work a weekend day to make up a missed weekday (Sheila, Nov 16).
@@ -23,14 +23,21 @@ Owner: Sheila Xu. Set Nov 16, 2026.
 
 ## Where it shows
 
-- **The daily card** (`kit/build.py`, `kit/cover.html`) shows Jose and Jordan a red or green "$1,000 draw" box under the title, Nov 16 to 29 only. The box holds:
+- **Card layout (Sheila, Nov 16):** top to bottom:
+  1. The title.
+  2. Two big numbers: sets to a closer and closes since the setter started. Wins and fixes are gone.
+  3. The draw box.
+  4. "Draw numbers": speed to lead, leads dialed and the handoff tile.
+  5. "Other numbers", smaller: pickup, connect, voicemail, text, double dial, set to a closer and time on the phone.
+- **Handoff tile:** it replaces the show rate tile. Its big number is the day's handoff steps done (for example "3 of 4 done"), with a target of 100%. Under it is one row per step with who was missed. Show rate for the last 7 days is a small line at the bottom, with no target.
+- **The daily card** (`kit/build.py`, `kit/cover.html`) shows Jose and Jordan a red or green "$1,000 draw" box under the big numbers, Nov 16 to 29 only. The box holds:
   - whether today counts
   - each of the three KPIs as met or missed, with the number
   - one plain line for each miss saying what cost the day (for example "Dialed 48 leads; the draw needs 60. 12 short.")
   - the week so far, with a chip per day
 - During the draw, the speed and leads tiles are red when missed, never yellow "almost".
-- Leads dialed is a scored tile (target 60) and counts in "You hit X of Y targets". The fixes list puts the priorities (speed, leads dialed, show rate) ahead of compliance.
-- **The tracker sheet** "Setter Draw Tracker" (Google Sheet `<SHEET_ID>`, Sheila's Drive):
+- Leads dialed is a scored tile with a target of 60.
+- **The tracker sheet** "Setter Draw Tracker" (Google Sheet `1hvHFzqlPJzOq2ght4Ld4iZopX_9RgfYnMbWRuGScOzE`, https://docs.google.com/spreadsheets/d/1hvHFzqlPJzOq2ght4Ld4iZopX_9RgfYnMbWRuGScOzE/edit, Sheila's Drive):
   - **Days:** one row per setter per day: the three KPIs, the missed handoff steps by lead, the verdict and why.
     - Column R ("Sheila's override") is Sheila's: type Met or Not met to overrule a day. The routine never writes R.
     - Column S ("Counts as") is the override if set, else the verdict. Weeks counts S.
