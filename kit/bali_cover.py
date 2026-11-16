@@ -120,18 +120,26 @@ def apply_work_speed(D, data, m):
     """Replace the dialing-window speed fields in m with the work-hours version (cover and detail card)."""
     sp = speed_work(D, data); w = [x['w'] for x in sp if x['w'] is not None]
     m['new_in_hours'] = len(sp); m['within15'] = sum(1 for x in w if x <= 15); m['in_hours_called'] = len(w)
+    # Nov 16, 2026 (Sheila): Jose's and Jordan's speed to lead is judged at 20 minutes (the draw KPI). SETTERS[key]
+    # ['speed_min'] in bali_show.py sets it; the card's speed tile and the draw use m['within_min'] of m['speed_min'].
+    # within15 stays as it was for older records and week().
+    sm = (globals().get('SETTER') or {}).get('speed_min', 15)
+    m['speed_min'] = sm; m['within_min'] = sum(1 for x in w if x <= sm)
     m['median_wait_min'] = round(statistics.median(w)) if w else None
     m['avg_wait_min'] = round(sum(w) / len(w)) if w else None   # Nov 3, 2026 (Sheila): average wait, leads called that day
     bk = collections.Counter(_bucket(x['w']) for x in sp)
     m['speed'] = dict(n=len(sp), **{k: bk.get(k, 0) for k in ['le15', 'm15_60', 'h1_3', 'h3p', 'none']})
+    if sm != 15:   # first two buckets split at speed_min instead of 15 (the funnel card labels them from m['speed_min'])
+        m['speed']['le15'] = sum(1 for x in w if x <= sm); m['speed']['m15_60'] = sum(1 for x in w if sm < x <= 60)
     m['speed_window'] = m['work_hours'] = work_window(D)[2]
     agg = {'fast': [0, 0, 0], 'slow': [0, 0, 0]}
     for t in m.get('trend', []):
         d = dt.date.fromisoformat(t['date']); sd = speed_work(d, data)
         t['new_in_hours'] = len(sd); t['within15'] = sum(1 for x in sd if x['w'] is not None and x['w'] <= 15)
+        t['within_min'] = sum(1 for x in sd if x['w'] is not None and x['w'] <= sm)
         for x in sd:
             if x['w'] is None: continue
-            g = 'fast' if x['w'] <= 15 else 'slow'; agg[g][0] += 1; agg[g][1] += x['pick']; agg[g][2] += x['real']
+            g = 'fast' if x['w'] <= sm else 'slow'; agg[g][0] += 1; agg[g][1] += x['pick']; agg[g][2] += x['real']
     if 'speed7' in m:
         m['speed7'].update({g: dict(n=v[0], picked=v[1], real=v[2]) for g, v in agg.items()})
     return m

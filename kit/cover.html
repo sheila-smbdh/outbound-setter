@@ -79,6 +79,24 @@
 .hc .lg{display:flex;gap:10px;font-size:10px;color:var(--ink3);align-items:center}
 .hc .lg s{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;text-decoration:none}
 @media (max-width:560px){#g1{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}}
+/* $1,000 draw box (Sheila, Nov 16, 2026): Jose and Jordan, Nov 16 to Nov 29 */
+.draw{border-radius:12px;border:2px solid var(--bad);background:var(--bad-soft);padding:12px 14px;margin:0 0 12px;display:flex;flex-direction:column;gap:8px}
+.draw.met{border-color:var(--good);background:var(--good-soft)}
+.draw .dh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.draw .dt{font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--bad)}
+.draw.met .dt{color:var(--good)}
+.draw .wk{font-size:13px;font-weight:700;color:var(--ink2)}
+.draw .ck{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.draw .c{border-radius:8px;background:var(--card);padding:7px 9px;border-left:5px solid var(--bad)}
+.draw .c.ok{border-left-color:var(--good)} .draw .c.na{border-left-color:var(--ink3)}
+.draw .c .n{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+.draw .c .s{font-size:15px;font-weight:800;color:var(--bad)} .draw .c.ok .s{color:var(--good)} .draw .c.na .s{color:var(--ink3);font-size:13px}
+.draw .c .t{font-size:11px;color:var(--ink3)}
+.draw ul{margin:0;padding-left:18px;font-size:13.5px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.draw .days{display:flex;gap:4px;flex-wrap:wrap}
+.draw .days span{font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--card);color:var(--ink3);border:1px solid var(--line)}
+.draw .days span.y{background:var(--good);color:#fff;border-color:var(--good)} .draw .days span.n{background:var(--bad);color:#fff;border-color:var(--bad)}
+@media (max-width:560px){.draw .ck{grid-template-columns:1fr}}
 </style>
 
 <div class="card" id="card0">
@@ -87,6 +105,7 @@
     <h1 id="c0title"></h1>
     <div class="meta" id="c0meta"></div>
   </header>
+  <div class="draw" id="c0draw" style="display:none"></div>
   <div class="bl">
     <div class="callout win">
       <div class="k" id="c0wink">Wins of the day</div>
@@ -168,7 +187,27 @@
       '<div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>'}
   $('g1').innerHTML=['speed','pickup','connect'].map(function(x){return tile(K[x])}).join('');
   $('g2').innerHTML=['vm','text','dd'].map(function(x){return tile(K[x])}).join('');
-  $('g3').innerHTML=track(T.dials)+track(T.closer)+track(T.phone);
+  $('g3').innerHTML=(K.leads?tile(K.leads):track(T.dials))+track(T.closer)+track(T.phone);
+  // $1,000 draw box (Sheila, Nov 16, 2026)
+  var W=D.draw;
+  if(W){
+    var b=$('c0draw'); b.style.display=''; if(W.met) b.className='draw met';
+    var h='<div class="dh"><div class="dt">$'+W.amount.toLocaleString('en-US')+' draw: '+(W.met?'today counts':'today does NOT count')+'</div>';
+    if(W.week){
+      var w=W.week, need=Math.max(w.needed-w.met,0);
+      h+='<div class="wk">Week of '+new Date(w.week+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'})+': '+w.met+' of '+w.needed+' days'+
+        (need===0?' · draw earned':(need>w.days_left?' · draw out of reach this week':' · need '+need+' more'+(w.days_left<=2?' (weekend days count if you dial)':'')))+'</div>';
+    }
+    h+='</div><div class="ck">'+W.checks.map(function(c){
+      var cls=!c.owed?'na':(c.met?'ok':'');
+      return '<div class="c '+cls+'"><div class="n">'+c.name+'</div><div class="s">'+(c.owed?(c.met?'Met: ':'Missed: '):'')+c.shown+'</div><div class="t">Draw needs '+c.target+(c.owed?'':' · nothing owed, counts as met')+'</div></div>'}).join('')+'</div>';
+    if(W.misses.length) h+='<ul>'+W.misses.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
+    if(W.week&&W.week.days.length){
+      h+='<div class="days">'+W.week.days.map(function(x){var q=new Date(x.date+'T12:00:00Z');
+        return '<span class="'+(x.met?'y':'n')+'">'+q.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'})+' '+(x.met?'met':'missed')+'</span>'}).join('')+'</div>';
+    }
+    b.innerHTML=h;
+  }
   $('g4').innerHTML=tile(K.show);
 })();
 </script>

@@ -36,9 +36,10 @@ SETTERS = dict(
     bali=dict(name='Bali', user='user_c0wPSKtEPsqkIh08OnjiGaj6XHeFBjGSp2jyVxAggDl', since=dt.date(2026, 9, 16),
               hours=[(dt.date(2026, 9, 16), 'America/Los_Angeles', '09:00', '17:00', 'PT')]),
     # merge_ab (Sheila, Nov 11, 2026): the setter's Abandoned Typeform leads count on their Welcome Series card
-    jose=dict(name='Jose', user='user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk', since=dt.date(2026, 10, 20), merge_ab=True,
+    # speed_min (Sheila, Nov 16, 2026): speed to lead within 20 minutes for Jose and Jordan (the draw KPI); default 15
+    jose=dict(name='Jose', speed_min=20, user='user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk', since=dt.date(2026, 10, 20), merge_ab=True,
               hours=[(dt.date(2026, 10, 20), 'America/New_York', '10:30', '18:30', 'ET')]),
-    jordan=dict(name='Jordan', user='user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC', since=dt.date(2026, 10, 20), merge_ab=True,
+    jordan=dict(name='Jordan', speed_min=20, user='user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC', since=dt.date(2026, 10, 20), merge_ab=True,
                 hours=[(dt.date(2026, 10, 20), 'America/Denver', '09:00', '17:00', 'MT'),
                        (dt.date(2026, 11, 1), 'America/Chicago', '09:00', '17:00', 'CT')]))
 SETTER = dict(key='bali', **SETTERS['bali'])
