@@ -17,6 +17,8 @@ Owner: Sheila Xu. Set up Sep 29, 2026. Round two starts Wed, Sep 30. Scorecard v
     - Wins and fixes are gone. Sets and closes since start sit under the title, then the draw box.
     - Speed, leads dialed and the handoff tile are on top; everything else is smaller below.
     - The handoff tile (the day's steps done, target 100%) replaces the show rate tile. Show rate is a small line on it, with no target.
+  - Speed to lead leaves out sign-ups during the scheduled team meeting and training (`MEETINGS_ON` and `MEETINGS_WEEKLY` in `bali_cover.py`). The setters' own inbound calls still count (Sheila, Nov 16).
+  - The card says "the draw" with no dollar amount.
   - The morning-of reminder isn't owed when the lead accepted the calendar invite. That is an incoming "Accepted:" email on the lead, after the booking and before the call day (`_touch()` in `bali_show.py`).
 
 - **Bali left the team (Sheila, Nov 11, 2026):** the daily scorecards are Jose's and Jordan's only. Don't build, post or mention a card for Bali, and don't post a "no calls" line for him. `run_direct.py` now runs jose and jordan by default; `SETTERS['bali']` stays in `bali_show.py` for old days and the other Bali tools. His Abandoned Typeform card routine is paused and the Setter Follow-up Tracker no longer refreshes his tab.

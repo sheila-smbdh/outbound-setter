@@ -313,7 +313,7 @@ def cover(m, win):
             # draw KPIs are pass or fail while the draw runs: no yellow "almost" (Sheila, Nov 16, 2026)
             if drawing and key in ("speed", "leads") and not hit: status = "miss"
         k = dict(key=key, name=name, value=val, unit=unit, detail=det, target=T[key], hit=hit, status=status,
-                 note=f"Your hours: {work_hours(m)}." if key == "speed" else NOTES.get(key, ""), group="comp" if key in COMPLIANCE else "priority")
+                 note=(f"Your hours: {work_hours(m)}." + (f" {m['speed_meeting_skipped']} sign-up{'s' if m['speed_meeting_skipped'] != 1 else ''} during the team meeting ({', '.join(m['meetings'])} ET) not counted." if m.get('speed_meeting_skipped') else "")) if key == "speed" else NOTES.get(key, ""), group="comp" if key in COMPLIANCE else "priority")
         if extra: k["extra"] = extra
         kpis.append(k)
         if status in ("close", "miss") and key in PRIORITY: pmiss.append(((T[key] - val) / T[key], name, fx))

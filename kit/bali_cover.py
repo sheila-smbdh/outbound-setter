@@ -104,12 +104,34 @@ def work_window(D):
     if ab != 'ET': lab += f" ({_clock(a.astimezone(ET))}-{_clock(b.astimezone(ET))} ET)"
     return a, b, lab
 
+# Team meetings left out of speed to lead (Sheila, Nov 16, 2026): new sign-ups that come in while Jose and Jordan are in
+# a scheduled team meeting or training don't count toward speed to lead, either way. Their own inbound calls still count.
+# ET times. Dated entries are one-offs; MEETINGS_WEEKLY repeat on that weekday (0 = Monday) from the given date.
+MEETINGS_ON = {
+    dt.date(2026, 11, 16): [('11:00', '12:30')],   # Monday team meeting 11-12, then outbound setter training 12-12:30
+    dt.date(2026, 11, 17): [('12:00', '12:30')],   # outbound setter training
+    dt.date(2026, 11, 18): [('12:00', '12:30')],
+    dt.date(2026, 11, 19): [('12:00', '12:30')],
+}
+MEETINGS_WEEKLY = [(dt.date(2026, 11, 23), 0, '11:00', '12:00')]   # Monday team meeting (no training from Nov 23)
+MEETING_SETTERS = ('jose', 'jordan')
+
+def meeting_blocks(D):
+    """The scheduled team meeting windows on day D as (start, end) ET datetimes; none for setters not in MEETING_SETTERS."""
+    if (globals().get('SETTER') or {}).get('key') not in MEETING_SETTERS: return []
+    bl = list(MEETINGS_ON.get(D, []))
+    bl += [(s, e) for since, wd, s, e in MEETINGS_WEEKLY if D >= since and D.weekday() == wd and D not in MEETINGS_ON]
+    mk = lambda x: dt.datetime.combine(D, dt.time.fromisoformat(x), tzinfo=ET)
+    return [(mk(s), mk(e)) for s, e in bl]
+
 def speed_work(D, data):
     """Speed to lead for day D: new sign-ups (enrolled on D during the setter's work hours, work_window), first
     call after sign-up that same day. A lead never called that day counts as a miss."""
     a, b = day_bounds(D); wa, wb, _ = work_window(D); byl = _byl(data['calls']); out = []
+    mb = meeting_blocks(D)
     for l, e in data['enr'].items():
         if not (a <= e < b and wa <= e < wb): continue
+        if any(s <= e < f for s, f in mb): continue   # signed up during a team meeting: left out (Nov 16, 2026)
         cs = [c for c in byl.get(l, []) if c['_t'] >= e - dt.timedelta(minutes=1) and c['_t'] < b]
         if not cs: out.append(dict(w=None, pick=False, real=False)); continue
         out.append(dict(w=max((cs[0]['_t'] - e).total_seconds() / 60, 0), pick=cs[0]['_k'] == 'talk',
@@ -124,6 +146,9 @@ def apply_work_speed(D, data, m):
     # ['speed_min'] in bali_show.py sets it; the card's speed tile and the draw use m['within_min'] of m['speed_min'].
     # within15 stays as it was for older records and week().
     sm = (globals().get('SETTER') or {}).get('speed_min', 15)
+    wa, wb, _ = work_window(D); mb = meeting_blocks(D)
+    m['speed_meeting_skipped'] = sum(1 for e in data['enr'].values() if wa <= e < wb and any(s <= e < f for s, f in mb))
+    m['meetings'] = [f"{s.strftime('%-I:%M')}-{f.strftime('%-I:%M%p').lower()}" for s, f in mb]
     m['speed_min'] = sm; m['within_min'] = sum(1 for x in w if x <= sm)
     m['median_wait_min'] = round(statistics.median(w)) if w else None
     m['avg_wait_min'] = round(sum(w) / len(w)) if w else None   # Nov 3, 2026 (Sheila): average wait, leads called that day

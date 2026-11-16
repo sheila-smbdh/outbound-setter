@@ -205,15 +205,15 @@
     var b=$('c0draw'); b.style.display=''; if(W.met) b.className='draw met';
     // Wording (Sheila, Nov 16, 2026): a day with all 3 KPIs hit is a "qualifying day"; 5 qualifying days in a week
     // (Mon to Sun) make the setter eligible for that week's $1,000 draw.
-    var amt='$'+W.amount.toLocaleString('en-US');
-    var h='<div class="rule"><b>'+amt+' weekly draw:</b> hit all 3 KPIs on '+W.needed+' of the 7 days this week (Mon to Sun) to be eligible.</div>';
+    // no dollar amount on the card (Sheila, Nov 16, 2026): just "the draw"
+    var h='<div class="rule"><b>The draw:</b> hit all 3 KPIs on '+W.needed+' of the 7 days this week (Mon to Sun) to be eligible.</div>';
     h+='<div class="dh"><div class="dt">'+(W.met?'Today is a qualifying day':'Today is not a qualifying day')+'</div>';
     var wst='';
     if(W.week){
       var w=W.week, need=Math.max(w.needed-w.met,0), end=new Date(w.end+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
       var wcls=need===0?'y':(need>w.days_left?'n':'');
       h+='<div class="wc '+wcls+'"><span>'+w.met+' of '+w.needed+'</span> qualifying days this week</div>';
-      wst=need===0?'<b>Eligible for this week\'s '+amt+' draw.</b>':
+      wst=need===0?'<b>Eligible for this week\'s draw.</b>':
           (need>w.days_left?'<b>Not eligible this week:</b> '+need+' more qualifying days needed, only '+w.days_left+' days left.':
            'Need <b>'+need+' more</b> qualifying '+(need===1?'day':'days')+' by '+end+' to be eligible'+(w.days_left<=2?' (a weekend day counts if you dial)':'')+'.');
     }
