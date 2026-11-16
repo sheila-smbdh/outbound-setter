@@ -25,16 +25,13 @@ Owner: Sheila Xu. Set Nov 16, 2026.
 
 - **Card layout (Sheila, Nov 16):** top to bottom:
   1. The title.
-  2. Two big numbers: sets to a closer and closes since the setter started. Wins and fixes are gone.
-  3. The draw box.
-  4. "Draw numbers": speed to lead, leads dialed and the handoff tile.
-  5. "Other numbers", smaller: pickup, connect, voicemail, text, double dial, set to a closer and time on the phone.
-- **Handoff tile:** it replaces the show rate tile. Its big number is the day's handoff steps done (for example "3 of 4 done"), with a target of 100%. Under it is one row per step with who was missed. Show rate for the last 7 days is a small line at the bottom, with no target.
-- **The daily card** (`kit/build.py`, `kit/cover.html`) shows Jose and Jordan a red or green "$1,000 draw" box under the big numbers, Nov 16 to 29 only. The box holds:
-  - whether today counts
-  - each of the three KPIs as met or missed, with the number
-  - one plain line for each miss saying what cost the day (for example "Dialed 48 leads; the draw needs 60. 12 short.")
-  - the week so far, with a chip per day
+  2. The line under it: dials, leads, time on the phone, and first to last call.
+  3. Two big numbers: sets to a closer and closes since the setter started. Wins and fixes are gone.
+  4. The draw box: "Draw: today meets the draw" or "Draw: today does not meet the draw", the three KPI boxes, the week so far. No bullet list.
+  5. "Draw numbers": speed to lead and leads dialed stacked on the left, the handoff tile on the right.
+  6. "Other numbers", smaller, 3 and 3: pickup, connect, set to a closer; voicemail, text, double dial.
+- **Handoff tile:** it replaces the show rate tile. Its big number is the day's handoff steps done (for example "3 of 4 done"), with a target of 100%. Under it is one row per step with who was missed, then the target bar ("Target 100%"). Below a gray line, show rate for the last 7 days sits under "Tracked, no target".
+- **The draw box** (`kit/build.py`, `kit/cover.html`) is red or green and shows on Jose's and Jordan's cards Nov 16 to 29 only. The full reason for each miss is in the sheet's "Why not met" column, not on the card.
 - During the draw, the speed and leads tiles are red when missed, never yellow "almost".
 - Leads dialed is a scored tile with a target of 60.
 - **The tracker sheet** "Setter Draw Tracker" (Google Sheet `1hvHFzqlPJzOq2ght4Ld4iZopX_9RgfYnMbWRuGScOzE`, https://docs.google.com/spreadsheets/d/1hvHFzqlPJzOq2ght4Ld4iZopX_9RgfYnMbWRuGScOzE/edit, Sheila's Drive):

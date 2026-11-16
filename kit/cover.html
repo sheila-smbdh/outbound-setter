@@ -85,12 +85,14 @@
 .big2 .b2{display:flex;align-items:baseline;gap:10px;border-radius:12px;background:var(--good-soft);padding:10px 14px}
 .big2 .n{font-size:40px;font-weight:800;color:var(--good);line-height:1;font-variant-numeric:tabular-nums}
 .big2 .t{font-size:14px;font-weight:600;color:var(--ink2)}
-#gtop{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(0,1.45fr);align-items:stretch}
+#gtop{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch}
+#gtop .stk{display:flex;flex-direction:column;gap:8px}
 #gtop .kpi .v{font-size:36px}
 .kpi.k-handoff .v{font-size:30px!important}
-.kpi .shw{font-size:12px;color:var(--ink2);border-top:1px solid color-mix(in srgb,var(--ink3) 30%,transparent);padding-top:6px}
+.kpi .shw{font-size:12px;color:var(--ink2);border-top:1px solid color-mix(in srgb,var(--ink3) 45%,transparent);padding-top:8px;margin-top:4px}
+.kpi .shw .sh{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
 .rest{margin-top:14px}
-#grest{grid-template-columns:repeat(4,minmax(0,1fr))}
+#grest{grid-template-columns:repeat(3,minmax(0,1fr))}
 #grest .kpi{padding:9px 9px 9px 10px;gap:4px}
 #grest .kpi .v{font-size:22px}
 #grest .kpi .of{font-size:11.5px}
@@ -145,7 +147,7 @@
   var p=m.date.split('-'), dd=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));
   $('c0title').textContent=D.setter.name+"'s Day: "+dd.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'long',month:'short',day:'numeric'});
   var K={}; C.kpis.forEach(function(k){K[k.key]=k}); var T={}; (C.track||[]).forEach(function(k){T[k.key]=k});
-  $('c0meta').textContent=m.dials+' dials to '+m.people_dialed+' leads · '+m.first_call+' to '+m.last_call+' ET';
+  $('c0meta').textContent=m.dials+' dials to '+m.people_dialed+' leads'+(T.phone?' · '+T.phone.value+' on the phone':'')+' · '+m.first_call+' to '+m.last_call+' ET';
   var since=D.setter.since;   // already a label, e.g. "Oct 20" (build.py setter())
   $('c0setsn').textContent=C.sets==null?'–':C.sets; $('c0setst').textContent=(C.sets===1?'set':'sets')+' to a closer since '+since;
   $('c0closes').textContent=C.closes; $('c0closest').textContent=(C.closes===1?'close':'closes')+' since '+since+(C.closes_names?': '+C.closes_names:'');
@@ -166,7 +168,6 @@
           (s.missed.length?'<div class="who">Missed: '+s.missed.join(', ')+'</div>':'')}).join('')+'</div>';
     }
     if(x.all) inner+='<div class="all">'+x.all+'</div>';
-    if(x.show) inner+='<div class="shw">'+x.show+'</div>';
     if(x.steps){
       inner+='<div class="steps"><div class="sh">'+x.steps_head+'</div>'+x.steps.map(function(s){
         var cls=s.due?(s.done===s.due?'ok':'no'):'na', val=s.due?s.done+' of '+s.due:'none due yet';
@@ -174,7 +175,8 @@
     }
     return '<div class="kpi k-'+k.key+' '+k.status+'">'+inner+
       '<div class="tbar"><i style="width:'+w+'%"></i><b style="left:calc('+t+'% - 1px)"></b></div>'+
-      '<div class="st"><span>Target '+k.target+u+'</span><span class="pill">'+(x.pill||PILL[k.status])+'</span></div></div>'}
+      '<div class="st"><span>Target '+k.target+u+'</span><span class="pill">'+(x.pill||PILL[k.status])+'</span></div>'+
+      (x.show?'<div class="shw"><div class="sh">Tracked, no target</div>'+x.show+'</div>':'')+'</div>'}
   // new sign-ups by hour that day (solid bars) and the hours you were dialing (light blue), 9am to 9pm ET
   function chart(){
     var H=m.hours.filter(function(x){return x.h>=9&&x.h<21}), mx=Math.max.apply(null,H.map(function(x){return x.signups}).concat([1]));
@@ -188,13 +190,14 @@
     return '<div class="kpi track"><div class="nm">'+k.name+'</div>'+
       '<div class="v">'+k.value+'</div><div class="of">'+k.detail+'</div>'+
       '<div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>'}
-  $('gtop').innerHTML=tile(K.speed)+tile(K.leads)+tile(K.handoff||K.show);
-  $('grest').innerHTML=['pickup','connect','vm','text','dd'].map(function(x){return tile(K[x])}).join('')+track(T.closer)+track(T.phone);
+  $('gtop').innerHTML='<div class="stk">'+tile(K.speed)+tile(K.leads)+'</div>'+tile(K.handoff||K.show);
+  // 3 + 3 (Sheila, Nov 16): pickup, connect, set to a closer; voicemail, text, double dial. Time on the phone moves to the line under the title.
+  $('grest').innerHTML=tile(K.pickup)+tile(K.connect)+track(T.closer)+['vm','text','dd'].map(function(x){return tile(K[x])}).join('');
   // $1,000 draw box (Sheila, Nov 16, 2026)
   var W=D.draw;
   if(W){
     var b=$('c0draw'); b.style.display=''; if(W.met) b.className='draw met';
-    var h='<div class="dh"><div class="dt">$'+W.amount.toLocaleString('en-US')+' draw: '+(W.met?'today counts':'today does NOT count')+'</div>';
+    var h='<div class="dh"><div class="dt">Draw: '+(W.met?'today meets the draw':'today does not meet the draw')+'</div>';
     if(W.week){
       var w=W.week, need=Math.max(w.needed-w.met,0);
       h+='<div class="wk">Week of '+new Date(w.week+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'})+': '+w.met+' of '+w.needed+' days'+
@@ -203,7 +206,6 @@
     h+='</div><div class="ck">'+W.checks.map(function(c){
       var cls=!c.owed?'na':(c.met?'ok':'');
       return '<div class="c '+cls+'"><div class="n">'+c.name+'</div><div class="s">'+(c.owed?(c.met?'Met: ':'Missed: '):'')+c.shown+'</div><div class="t">Draw needs '+c.target+(c.owed?'':' · nothing owed, counts as met')+'</div></div>'}).join('')+'</div>';
-    if(W.misses.length) h+='<ul>'+W.misses.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>';
     if(W.week&&W.week.days.length){
       h+='<div class="days">'+W.week.days.map(function(x){var q=new Date(x.date+'T12:00:00Z');
         return '<span class="'+(x.met?'y':'n')+'">'+q.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'})+' '+(x.met?'met':'missed')+'</span>'}).join('')+'</div>';
