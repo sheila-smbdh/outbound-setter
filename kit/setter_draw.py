@@ -21,7 +21,7 @@ STEPS = [('email', 'handoff email'), ('note', 'closer note'), ('day_before', 'da
          ('morning_of', 'morning-of reminder')]
 COLS = ['Week of', 'Date', 'Day', 'Setter', 'Leads dialed', 'Leads 60+', 'New sign-ups in hours',
         'Called within 20 min', 'Speed %', 'Speed 60%+', 'Handoff steps due', 'Handoff steps done',
-        'Handoff 100%', 'Missed handoff steps', 'Draw day', 'Why not met', 'Checked at (ET)',
+        'Handoff 100%', 'Missed handoff steps', 'Qualifying day', 'Why not met', 'Checked at (ET)',
         "Sheila's override", 'Counts as']   # R is Sheila's to type in; S is a formula (override if set, else O)
 SETTER_NAMES = dict(jose='Jose', jordan='Jordan')
 

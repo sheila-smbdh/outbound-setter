@@ -27,8 +27,12 @@ Owner: Sheila Xu. Set Nov 16, 2026.
   1. The title.
   2. The line under it: dials, leads, time on the phone, and first to last call.
   3. Two big numbers: sets to a closer and closes since the setter started. Wins and fixes are gone.
-  4. The draw box: "Draw: today meets the draw" or "Draw: today does not meet the draw", the three KPI boxes, the week so far. No bullet list.
-  5. "Draw numbers": speed to lead and leads dialed stacked on the left, the handoff tile on the right.
+  4. The draw box. Its wording (Sheila, Nov 16) is built on the term "qualifying day", meaning a day with all 3 KPIs hit. It holds:
+     - the rule line: "$1,000 weekly draw: hit all 3 KPIs on 5 of the 7 days this week (Mon to Sun) to be eligible."
+     - "Today is (not) a qualifying day", with the week count ("1 of 5 qualifying days this week")
+     - the three KPI boxes and a chip per day
+     - the week status: "Need N more qualifying days by Sun, Nov 22 to be eligible.", "Eligible for this week's $1,000 draw." or "Not eligible this week: ..."
+  5. "Draw KPIs: hit all 3 for a qualifying day": speed to lead and leads dialed stacked on the left, the handoff tile on the right.
   6. "Other numbers", smaller, 3 and 3: pickup, connect, set to a closer; voicemail, text, double dial.
 - **Handoff tile:** it replaces the show rate tile. Its big number is the day's handoff steps done (for example "3 of 4 done"), with a target of 100%. Under it is one row per step with who was missed, then the target bar ("Target 100%"). Below a gray line, show rate for the last 7 days sits under "Tracked, no target".
 - **The draw box** (`kit/build.py`, `kit/cover.html`) is red or green and shows on Jose's and Jordan's cards Nov 16 to 29 only. The full reason for each miss is in the sheet's "Why not met" column, not on the card.

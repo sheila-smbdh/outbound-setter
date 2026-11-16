@@ -112,6 +112,12 @@
 .draw .c .s{font-size:15px;font-weight:800;color:var(--bad)} .draw .c.ok .s{color:var(--good)} .draw .c.na .s{color:var(--ink3);font-size:13px}
 .draw .c .t{font-size:11px;color:var(--ink3)}
 .draw ul{margin:0;padding-left:18px;font-size:13.5px;font-weight:600;display:flex;flex-direction:column;gap:3px}
+.draw .rule{font-size:13px;color:var(--ink2)} .draw .rule b{color:var(--ink)}
+.draw .wc{font-size:13px;font-weight:700;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.draw .wc span{font-size:17px;font-weight:800;color:var(--ink)}
+.draw .wc.y{border-color:var(--good)} .draw .wc.y span{color:var(--good)} .draw .wc.n{border-color:var(--bad)} .draw .wc.n span{color:var(--bad)}
+.draw .wf{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.draw .ws{font-size:13px;color:var(--ink2)} .draw .ws b{color:var(--ink)}
 .draw .days{display:flex;gap:4px;flex-wrap:wrap}
 .draw .days span{font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--card);color:var(--ink3);border:1px solid var(--line)}
 .draw .days span.y{background:var(--good);color:#fff;border-color:var(--good)} .draw .days span.n{background:var(--bad);color:#fff;border-color:var(--bad)}
@@ -130,7 +136,7 @@
   </div>
   <div class="draw" id="c0draw" style="display:none"></div>
   <section>
-    <h2>Draw numbers</h2>
+    <h2>Draw KPIs: hit all 3 for a qualifying day</h2>
     <div class="kpis" id="gtop"></div>
   </section>
   <section class="rest">
@@ -197,18 +203,26 @@
   var W=D.draw;
   if(W){
     var b=$('c0draw'); b.style.display=''; if(W.met) b.className='draw met';
-    var h='<div class="dh"><div class="dt">Draw: '+(W.met?'today meets the draw':'today does not meet the draw')+'</div>';
+    // Wording (Sheila, Nov 16, 2026): a day with all 3 KPIs hit is a "qualifying day"; 5 qualifying days in a week
+    // (Mon to Sun) make the setter eligible for that week's $1,000 draw.
+    var amt='$'+W.amount.toLocaleString('en-US');
+    var h='<div class="rule"><b>'+amt+' weekly draw:</b> hit all 3 KPIs on '+W.needed+' of the 7 days this week (Mon to Sun) to be eligible.</div>';
+    h+='<div class="dh"><div class="dt">'+(W.met?'Today is a qualifying day':'Today is not a qualifying day')+'</div>';
+    var wst='';
     if(W.week){
-      var w=W.week, need=Math.max(w.needed-w.met,0);
-      h+='<div class="wk">Week of '+new Date(w.week+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'})+': '+w.met+' of '+w.needed+' days'+
-        (need===0?' · draw earned':(need>w.days_left?' · draw out of reach this week':' · need '+need+' more'+(w.days_left<=2?' (weekend days count if you dial)':'')))+'</div>';
+      var w=W.week, need=Math.max(w.needed-w.met,0), end=new Date(w.end+'T12:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short',month:'short',day:'numeric'});
+      var wcls=need===0?'y':(need>w.days_left?'n':'');
+      h+='<div class="wc '+wcls+'"><span>'+w.met+' of '+w.needed+'</span> qualifying days this week</div>';
+      wst=need===0?'<b>Eligible for this week\'s '+amt+' draw.</b>':
+          (need>w.days_left?'<b>Not eligible this week:</b> '+need+' more qualifying days needed, only '+w.days_left+' days left.':
+           'Need <b>'+need+' more</b> qualifying '+(need===1?'day':'days')+' by '+end+' to be eligible'+(w.days_left<=2?' (a weekend day counts if you dial)':'')+'.');
     }
     h+='</div><div class="ck">'+W.checks.map(function(c){
       var cls=!c.owed?'na':(c.met?'ok':'');
-      return '<div class="c '+cls+'"><div class="n">'+c.name+'</div><div class="s">'+(c.owed?(c.met?'Met: ':'Missed: '):'')+c.shown+'</div><div class="t">Draw needs '+c.target+(c.owed?'':' · nothing owed, counts as met')+'</div></div>'}).join('')+'</div>';
-    if(W.week&&W.week.days.length){
-      h+='<div class="days">'+W.week.days.map(function(x){var q=new Date(x.date+'T12:00:00Z');
-        return '<span class="'+(x.met?'y':'n')+'">'+q.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'})+' '+(x.met?'met':'missed')+'</span>'}).join('')+'</div>';
+      return '<div class="c '+cls+'"><div class="n">'+c.name+'</div><div class="s">'+(c.owed?(c.met?'Hit: ':'Missed: '):'')+c.shown+'</div><div class="t">Needs '+c.target+(c.owed?'':' · nothing owed, counts as hit')+'</div></div>'}).join('')+'</div>';
+    if(W.week){
+      h+='<div class="wf"><div class="days">'+W.week.days.map(function(x){var q=new Date(x.date+'T12:00:00Z');
+        return '<span class="'+(x.met?'y':'n')+'">'+q.toLocaleDateString('en-US',{timeZone:'UTC',weekday:'short'})+(x.met?' qualifying':' not qualifying')+'</span>'}).join('')+'</div><div class="ws">'+wst+'</div></div>';
     }
     b.innerHTML=h;
   }
