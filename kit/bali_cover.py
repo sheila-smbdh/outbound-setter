@@ -104,12 +104,34 @@ def work_window(D):
     if ab != 'ET': lab += f" ({_clock(a.astimezone(ET))}-{_clock(b.astimezone(ET))} ET)"
     return a, b, lab
 
+# Team meetings left out of speed to lead (Sheila, Nov 16, 2026): new sign-ups that come in while Jose and Jordan are in
+# a scheduled team meeting or training don't count toward speed to lead, either way. Their own inbound calls still count.
+# ET times. Dated entries are one-offs; MEETINGS_WEEKLY repeat on that weekday (0 = Monday) from the given date.
+MEETINGS_ON = {
+    dt.date(2026, 11, 16): [('11:00', '12:30')],   # Monday team meeting 11-12, then outbound setter training 12-12:30
+    dt.date(2026, 11, 17): [('12:00', '12:30')],   # outbound setter training
+    dt.date(2026, 11, 18): [('12:00', '12:30')],
+    dt.date(2026, 11, 19): [('12:00', '12:30')],
+}
+MEETINGS_WEEKLY = [(dt.date(2026, 11, 23), 0, '11:00', '12:00')]   # Monday team meeting (no training from Nov 23)
+MEETING_SETTERS = ('jose', 'jordan')
+
+def meeting_blocks(D):
+    """The scheduled team meeting windows on day D as (start, end) ET datetimes; none for setters not in MEETING_SETTERS."""
+    if (globals().get('SETTER') or {}).get('key') not in MEETING_SETTERS: return []
+    bl = list(MEETINGS_ON.get(D, []))
+    bl += [(s, e) for since, wd, s, e in MEETINGS_WEEKLY if D >= since and D.weekday() == wd and D not in MEETINGS_ON]
+    mk = lambda x: dt.datetime.combine(D, dt.time.fromisoformat(x), tzinfo=ET)
+    return [(mk(s), mk(e)) for s, e in bl]
+
 def speed_work(D, data):
     """Speed to lead for day D: new sign-ups (enrolled on D during the setter's work hours, work_window), first
     call after sign-up that same day. A lead never called that day counts as a miss."""
     a, b = day_bounds(D); wa, wb, _ = work_window(D); byl = _byl(data['calls']); out = []
+    mb = meeting_blocks(D)
     for l, e in data['enr'].items():
         if not (a <= e < b and wa <= e < wb): continue
+        if any(s <= e < f for s, f in mb): continue   # signed up during a team meeting: left out (Nov 16, 2026)
         cs = [c for c in byl.get(l, []) if c['_t'] >= e - dt.timedelta(minutes=1) and c['_t'] < b]
         if not cs: out.append(dict(w=None, pick=False, real=False)); continue
         out.append(dict(w=max((cs[0]['_t'] - e).total_seconds() / 60, 0), pick=cs[0]['_k'] == 'talk',
@@ -120,18 +142,29 @@ def apply_work_speed(D, data, m):
     """Replace the dialing-window speed fields in m with the work-hours version (cover and detail card)."""
     sp = speed_work(D, data); w = [x['w'] for x in sp if x['w'] is not None]
     m['new_in_hours'] = len(sp); m['within15'] = sum(1 for x in w if x <= 15); m['in_hours_called'] = len(w)
+    # Nov 16, 2026 (Sheila): Jose's and Jordan's speed to lead is judged at 20 minutes (the draw KPI). SETTERS[key]
+    # ['speed_min'] in bali_show.py sets it; the card's speed tile and the draw use m['within_min'] of m['speed_min'].
+    # within15 stays as it was for older records and week().
+    sm = (globals().get('SETTER') or {}).get('speed_min', 15)
+    wa, wb, _ = work_window(D); mb = meeting_blocks(D)
+    m['speed_meeting_skipped'] = sum(1 for e in data['enr'].values() if wa <= e < wb and any(s <= e < f for s, f in mb))
+    m['meetings'] = [f"{s.strftime('%-I:%M')}-{f.strftime('%-I:%M%p').lower()}" for s, f in mb]
+    m['speed_min'] = sm; m['within_min'] = sum(1 for x in w if x <= sm)
     m['median_wait_min'] = round(statistics.median(w)) if w else None
     m['avg_wait_min'] = round(sum(w) / len(w)) if w else None   # Nov 3, 2026 (Sheila): average wait, leads called that day
     bk = collections.Counter(_bucket(x['w']) for x in sp)
     m['speed'] = dict(n=len(sp), **{k: bk.get(k, 0) for k in ['le15', 'm15_60', 'h1_3', 'h3p', 'none']})
+    if sm != 15:   # first two buckets split at speed_min instead of 15 (the funnel card labels them from m['speed_min'])
+        m['speed']['le15'] = sum(1 for x in w if x <= sm); m['speed']['m15_60'] = sum(1 for x in w if sm < x <= 60)
     m['speed_window'] = m['work_hours'] = work_window(D)[2]
     agg = {'fast': [0, 0, 0], 'slow': [0, 0, 0]}
     for t in m.get('trend', []):
         d = dt.date.fromisoformat(t['date']); sd = speed_work(d, data)
         t['new_in_hours'] = len(sd); t['within15'] = sum(1 for x in sd if x['w'] is not None and x['w'] <= 15)
+        t['within_min'] = sum(1 for x in sd if x['w'] is not None and x['w'] <= sm)
         for x in sd:
             if x['w'] is None: continue
-            g = 'fast' if x['w'] <= 15 else 'slow'; agg[g][0] += 1; agg[g][1] += x['pick']; agg[g][2] += x['real']
+            g = 'fast' if x['w'] <= sm else 'slow'; agg[g][0] += 1; agg[g][1] += x['pick']; agg[g][2] += x['real']
     if 'speed7' in m:
         m['speed7'].update({g: dict(n=v[0], picked=v[1], real=v[2]) for g, v in agg.items()})
     return m

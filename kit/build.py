@@ -33,15 +33,22 @@ Oct 15, 2026 (Sheila): a fourth handoff step under show rate, "Closer note attac
 bali_show.py): Bali writes the lead's background in Close for the closer by the end of the booking day.
 Oct 22, 2026 (Sheila): speed to lead counts each setter's own 8 work hours (SETTERS in bali_show.py), and the speed tile
 says which hours in its small print (metrics 'work_hours', e.g. "Your hours: 9am-5pm PT (12pm-8pm ET).").
+Nov 16, 2026 (Sheila): the $1,000 draw for Jose and Jordan (setter_draw.py). Speed to lead is judged at 20 minutes
+(metrics 'within_min' of 'speed_min'); Leads dialed is a scored tile with a target of 60; and a draw box under the title
+says whether the day counts toward the draw, which of the three draw KPIs missed and why, and the week so far
+(--draw draw-week-<key>-<date>.json from setter_draw.py merge). Shown Nov 16 to Nov 29, 2026 only.
+usage with the draw: python3 build.py metrics.json out_dir --draw draw-week-jose-2026-11-16.json
 """
 import json, sys, os, asyncio, pathlib, datetime
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import setter_draw
 
 HERE = pathlib.Path(__file__).parent
 BASE = dict(within15_pct=7, target_within15_pct=60, median_wait="about 1.5 hrs",
             conv_rate_pct=26, closer_per_day="0.75")
 # Cover-page targets (Sheila, Sep 30, 2026; connect added Oct 5, 2026; show rate added Oct 13, 2026)
-TARGETS = dict(speed=60, dials=200, show=90, pickup=25, connect=10, vm=85, text=85, dd=85)  # vm/text/dd lowered from 100 to 85 (Sheila, Oct 14)  # dials raised from 150 to 200 on Sep 30
-PRIORITY = ('speed', 'dials', 'show')                   # Sheila, Oct 13: what Bali focuses on now
+TARGETS = dict(speed=60, dials=200, leads=60, handoff=100, show=90, pickup=25, connect=10, vm=85, text=85, dd=85)  # vm/text/dd lowered from 100 to 85 (Sheila, Oct 14)  # dials raised from 150 to 200 on Sep 30
+PRIORITY = ('speed', 'leads', 'handoff')   # leads (60 leads dialed a day) added Nov 16, 2026 (Sheila, the draw)                   # Sheila, Oct 13: what Bali focuses on now
 COMPLIANCE = ('pickup', 'connect', 'vm', 'text', 'dd')  # still tracked, at the bottom of the cover
 WIN_GROUPS = (('pickup', 'connect'), ('vm', 'text', 'dd'))   # compliance hits share a win line (Sheila, Oct 14)
 CLOSE_PCT = 75   # yellow ('almost') when the number is at least 75% of its target
@@ -51,12 +58,12 @@ ROUND_TWO = "2026-09-30"   # round two start, for the cumulative sets line
 NOTES = dict(connect="Set to self counts only when a meeting is actually booked.",
              show="Last 7 days. A rescheduled call counts on its new date.")
 STEP_NAMES = [("email", "Handoff email right after booking"), ("note", "Closer note attached"),
-              ("day_before", "Reminder the day before"), ("morning_of", "Morning-of reminder (no reply)")]
+              ("day_before", "Reminder the day before"), ("morning_of", "Morning-of reminder (no reply, invite not accepted)")]
 STEP_FIX = dict(
     email=("Handoff email", "Not sent within an hour of booking for {n}. Send the Setter to Closer Handoff email from Close right after you book."),
     note=("Closer note", "No closer note in Close for {n}. Write the lead's background in Close the day you book, so the closer can read it before the call."),
     day_before=("Day-before reminder", "{n} got no reminder from you the day before the call. Send one the day before every closer call."),
-    morning_of=("Morning-of reminder", "{n} hadn't replied and got no reminder from you the morning of the call. Send a personal reminder that morning."))
+    morning_of=("Morning-of reminder", "{n} hadn't replied or accepted the invite and got no reminder from you the morning of the call. Send a personal reminder that morning."))
 FOOT = ("From Close, times in ET. Picked up: talked to a real person (TALK code or 45+ sec; screeners and voicemails don't count). "
         "Real conversation: a call of 60+ sec tagged set to closer, call back later or disqualified, or set to self when a meeting was actually booked (untagged calls: 3+ min or led to a booking). "
         "Voicemail: voicemail drop, the left-voicemail outcome or a note starting with VM; "
@@ -94,6 +101,8 @@ def work_hours(m):
     return m.get("work_hours") or "9am-9pm ET"
 
 def pct(a, b): return round(100 * a / b) if b else 0
+def smin(m): return m.get("speed_min", 15)
+def wmin(m): return m.get("within_min", m.get("within15", 0)) or 0
 
 def names(xs, k=3):
     xs = list(xs)
@@ -129,9 +138,9 @@ def pick_win(m):
     if parts: return " ".join(parts)
     n = m.get("missed_first", 0)
     if m.get("closer_calls"): return f"You booked {m['closer_calls']} closer call{'s' if m['closer_calls']>1 else ''}. Keep booking them live, while the lead is on the phone."
-    sp = pct(m.get("within15", 0), m.get("new_in_hours", 0))
+    sp = pct(wmin(m), m.get("new_in_hours", 0))
     if m.get("new_in_hours") and sp > BASE["within15_pct"]:
-        return f"{m['within15']} of {m['new_in_hours']} new leads got a call within 15 minutes ({sp}%), up from {BASE['within15_pct']}% in round one."
+        return f"{wmin(m)} of {m['new_in_hours']} new leads got a call within {smin(m)} minutes ({sp}%), up from {BASE['within15_pct']}% in round one."
     if m.get("vm_left"): return f"You left {m['vm_left']} voicemails on first-call misses. That's the touch that lands when they don't pick up."
     if m.get("dials") and m.get("us_number_calls") == m.get("dials"): return "Every call went out on your US number."
     if m.get("self_sets"): return f"You booked {m['self_sets']} call{'s' if m['self_sets']>1 else ''} to your own calendar."
@@ -147,8 +156,8 @@ def pick_fix(m):
     if vb >= 5 and pct(m.get("vm_left", 0), vb) < 50:
         return f"{vb} people didn't pick up on your first call and gave you a chance to leave a voicemail; you left {m.get('vm_left',0)}. Leave the SOP voicemail every time, then text."
     ih = m.get("new_in_hours", 0)
-    if ih and pct(m.get("within15", 0), ih) < BASE["target_within15_pct"]:
-        late = ih - m.get("within15", 0)
+    if ih and pct(wmin(m), ih) < BASE["target_within15_pct"]:
+        late = ih - wmin(m)
         return f"{late} of {ih} new leads waited more than 15 minutes. Keep your list sorted newest first and call new sign-ups before anything else."
     if n >= 5 and pct(m.get("try2_same_day", 0), n) < 50:
         return f"Only {m.get('try2_same_day',0)} of {n} no-answers got a second call later that day. Keep the call task and dial again in a few hours."
@@ -173,11 +182,8 @@ def track_tiles(m):
         det = "<br>".join(parts)
     else:
         det = (f"{'lead' if cc == 1 else 'leads'} booked with a closer" + (": " + ", ".join(nms) if nms else "")) if cc else "No closer calls booked"
-    # Nov 3, 2026 (Sheila): the big number is leads dialed; the dial count moves to the small print
-    pdl = m.get("people_dialed", 0)
-    out = [dict(key="dials", name="Leads dialed", value=pdl,
-                detail=f"{m.get('dials', 0)} dials to {pdl} {'lead' if pdl == 1 else 'leads'}", note=""),
-           dict(key="closer", name="Set to a closer", value=cc, detail=det, note="")]
+    # Nov 3, 2026 (Sheila): the big number is leads dialed; Nov 16 it became a scored tile (cover kpis, key "leads")
+    out = [dict(key="closer", name="Set to a closer", value=cc, detail=det, note="")]
     ph = phone_tile(m)
     if ph: out.append(ph)
     return out
@@ -248,6 +254,24 @@ def show_row(m):
           ". Do all four handoff steps on every booking.")
     return ("show", "Show rate", val, "%", det, fx, extra)
 
+def handoff_row(m):
+    """Handoff tile (Sheila, Nov 16, 2026), in place of the show rate tile: the day's handoff steps are the KPI (100% of
+    the steps due that day), one row per step with who was missed; show rate is a small line at the bottom, no target."""
+    sh = m.get("show")
+    if not sh or not all("due_on_day" in (sh["steps"].get(k) or {}) for k, _ in STEP_NAMES): return show_row(m)
+    st = sh["steps"]
+    day = [dict(name=nm, due=st[k]["due_on_day"], done=st[k]["done_on_day"], missed=st[k].get("missed_on_day") or [])
+           for k, nm in STEP_NAMES if k in st]
+    due = sum(x["due"] for x in day); done = sum(x["done"] for x in day)
+    n7, s7 = sh["n7"], sh["showed7"]
+    showl = (f"Show rate, last 7 days: <b>{pct(s7, n7)}%</b> ({s7} of {n7} closer calls showed)" if n7
+             else "Show rate, last 7 days: no closer calls were due")
+    missed = [f"{nm.lower()} for {', '.join(x['missed'])}" for x in day for nm in [x['name']] if x["missed"]]
+    fx = "Missed: " + "; ".join(missed) + ". Do all four steps on every booking." if missed else ""
+    return ("handoff", "Handoff steps", pct(done, due) if due else None, "%",
+            "", fx, dict(day=day, show=showl, big=(f"{done} of {due} done" if due else "None due"),
+                         pill=("None due" if not due else None)))
+
 def cover(m, win):
     c = m.get("cover") or {}
     T = TARGETS; n = m.get("missed_first", 0); ih = m.get("new_in_hours", 0); pd = m.get("people_dialed", 0)
@@ -258,10 +282,13 @@ def cover(m, win):
     tb = text_base(m); ts = m.get("text_sent", 0); notx = n - tb
     tx_det = f"{ts} of {tb} no-answers got one" + (f" ({notx} blocked or invalid {'number' if notx == 1 else 'numbers'}, not counted)" if notx else "")
     rows = [  # key, name, value, unit, detail, fix text when missed, extra
-        ("speed", "Speed to lead", pct(m.get("within15", 0), ih), "%", f"{m.get('within15',0)} of {ih} new leads in 15 min" +
+        ("speed", "Speed to lead", pct(wmin(m), ih), "%", f"{wmin(m)} of {ih} new leads in {smin(m)} min" +
          (f"<br>Average wait for the {m.get('in_hours_called', 0)} you called: <b>{wait_text(m['avg_wait_min'])}</b>" if m.get("avg_wait_min") is not None else ""),
-         f"{ih - m.get('within15',0)} of {ih} new sign-ups waited 15+ minutes" + (f" ({(m.get('speed') or {}).get('none',0)} never got a call that day)" if (m.get('speed') or {}).get('none') else "") + ". Call new sign-ups first, the moment they come in.", None),
-        show_row(m),
+         f"{ih - wmin(m)} of {ih} new sign-ups waited {smin(m)}+ minutes" + (f" ({(m.get('speed') or {}).get('none',0)} never got a call that day)" if (m.get('speed') or {}).get('none') else "") + ". Call new sign-ups first, the moment they come in.", None),
+        handoff_row(m),
+        # Nov 16, 2026 (Sheila): 60 leads dialed a day is a draw KPI, so Leads dialed is scored (was a blue tracked tile)
+        ("leads", "Leads dialed", pd, "", f"{m.get('dials', 0)} dials to {pd} {'lead' if pd == 1 else 'leads'}",
+         f"Dialed {pd} leads, {max(TARGETS['leads'] - pd, 0)} short of {TARGETS['leads']}. Work the list until you reach {TARGETS['leads']} leads.", None),
         ("pickup", "Pickup rate", pct(m.get("pickups", 0), pd), "%", f"{m.get('pickups',0)} of {pd} people picked up",
          f"{m.get('pickups',0)} of {pd} people picked up. Faster first calls and double dials lift this.", None),
         ("connect", "Connect rate", pct(rc, pd), "%", f"{rc} of {pd} people had a real conversation",
@@ -274,6 +301,7 @@ def cover(m, win):
          f"{dn - dd} of {dn} no-answers weren't redialed. Hang up and dial again right away.", None),
     ]
     kpis, pmiss, cmiss = [], [], []
+    drawing = (m.get("setter") or {}).get("key") in setter_draw.SETTER_NAMES and setter_draw.in_draw(m["date"])
     for r in rows:
         if r is None: continue
         key, name, val, unit, det, fx, extra = r
@@ -282,8 +310,10 @@ def cover(m, win):
         else:
             hit = val >= T[key]
             status = "hit" if hit else ("close" if val >= T[key] * CLOSE_PCT / 100 else "miss")
+            # draw KPIs are pass or fail while the draw runs: no yellow "almost" (Sheila, Nov 16, 2026)
+            if drawing and key in ("speed", "leads") and not hit: status = "miss"
         k = dict(key=key, name=name, value=val, unit=unit, detail=det, target=T[key], hit=hit, status=status,
-                 note=f"Your hours: {work_hours(m)}." if key == "speed" else NOTES.get(key, ""), group="comp" if key in COMPLIANCE else "priority")
+                 note=(f"Your hours: {work_hours(m)}." + (f" {m['speed_meeting_skipped']} sign-up{'s' if m['speed_meeting_skipped'] != 1 else ''} during the team meeting ({', '.join(m['meetings'])} ET) not counted." if m.get('speed_meeting_skipped') else "")) if key == "speed" else NOTES.get(key, ""), group="comp" if key in COMPLIANCE else "priority")
         if extra: k["extra"] = extra
         kpis.append(k)
         if status in ("close", "miss") and key in PRIORITY: pmiss.append(((T[key] - val) / T[key], name, fx))
@@ -347,9 +377,10 @@ def cover(m, win):
     sets_text = ("set to a closer" if sets == 1 else "sets to a closer") + f" from your dials so far" if sd else ""
     wins, fixes = short_wins(m, kpis, cl), short_fixes(m, kpis)
     return dict(win=win, wins=wins, fixes=fixes, kpis=kpis, track=track_tiles(m), closes=len(cl), closes_text=closes_text,
+                closes_names=", ".join(r["lead"] for r in cl),
                 sets=sets, sets_text=sets_text, footnote=COVER_FOOT.format(hours=work_hours(m)))
 
-SHORT_FIX = dict(speed="Call new sign-ups the moment they come in.", show="Do all four handoff steps on every booking.",
+SHORT_FIX = dict(speed="Call new sign-ups the moment they come in.", leads="Keep dialing until you reach 60 leads.", handoff="Do all four steps on every booking.", show="Do all four handoff steps on every booking.",
                  pickup="Call faster and double dial.", connect="Keep pickups on the line with the opener.",
                  vm="Leave one at every beep.", text="Text right after every voicemail.", dd="Redial right away after a no-answer.")
 STEP_SHORT = dict(email="email", note="closer note", day_before="day-before", morning_of="morning-of")
@@ -378,18 +409,36 @@ def short_fixes(m, kpis):
         tot = sum(n for _, n in miss)
         out.append(["Handoff", f"{tot} {'step' if tot == 1 else 'steps'} missed (" +
                     ", ".join(f"{n} {STEP_SHORT[k]}" for k, n in miss) + "). Do all four on every booking."])
-    bad = sorted([k for k in kpis if k["status"] in ("miss", "close")], key=lambda k: (k["value"] or 0) / k["target"])
+    # priorities (speed, leads dialed, show rate) before compliance, worst first within each (Nov 16, 2026: the draw)
+    bad = sorted([k for k in kpis if k["status"] in ("miss", "close")],
+                 key=lambda k: (k["group"] == "comp", (k["value"] or 0) / k["target"]))
     for k in bad:
-        out.append([k["name"], f"{k['value']}% vs {k['target']}%. {SHORT_FIX[k['key']]}"])
+        out.append([k["name"], f"{k['value']}{k['unit']} vs {k['target']}{k['unit']}. {SHORT_FIX[k['key']]}"])
     return out[:2] or [["Keep it up", "Every target hit. Same plan tomorrow."]]
 
-def build(metrics, out_dir):
+def draw_box(m, week):
+    """The draw box (Sheila, Nov 16, 2026): only for Jose and Jordan, Nov 16 to Nov 29. week = draw-week-*.json
+    from setter_draw.py merge (the week so far, from the tracker sheet); without it the box shows the day only."""
+    key = (m.get("setter") or {}).get("key")
+    if key not in setter_draw.SETTER_NAMES or not setter_draw.in_draw(m["date"]): return None
+    v = setter_draw.draw_day(m)
+    out = dict(met=v["met"], amount=setter_draw.DRAW["amount"], needed=setter_draw.DRAW["days_needed"],
+               checks=[dict(name=c["name"], shown=c["shown"], met=c["met"], owed=c.get("owed", True),
+                            target=("60 leads" if c["key"] == "leads" else "60%" if c["key"] == "speed" else "100%"))
+                       for c in v["checks"]],
+               misses=v["misses"])
+    if week:
+        out["week"] = week
+    return out
+
+def build(metrics, out_dir, draw_week=None):
     tpl = (HERE / "template.html").read_text()
     cov = (HERE / "cover.html").read_text()
     font = (HERE / "manrope.b64").read_text().strip()
     win = pick_win(metrics)
     key, name, since = setter(metrics)
     data = dict(setter=dict(key=key, name=name, since=since), metrics=metrics, baseline=BASE, win=win, fix=pick_fix(metrics), footnote=FOOT.format(hours=work_hours(metrics)), cover=cover(metrics, win))
+    data["draw"] = draw_box(metrics, draw_week)
     # cover markup goes before the summary card; its script goes after the data block
     i = cov.index("<script>"); cov_html, cov_js = cov[:i], cov[i:]
     tpl = tpl.replace('<div class="card" id="card1">', cov_html + '\n<div class="card" id="card1">', 1)
@@ -403,7 +452,8 @@ def build(metrics, out_dir):
     od = pathlib.Path(out_dir).resolve()
     rec = dict(date=metrics['date'], saved_at=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
                win=data['win'], wins=data['cover']['wins'], fix=data['fix'], fixes=data['cover']['fixes'], kpis=data['cover']['kpis'],
-               track=data['cover']['track'], closes=data['cover']['closes'], baseline=BASE, targets=TARGETS, metrics=metrics)
+               track=data['cover']['track'], closes=data['cover']['closes'], baseline=BASE, targets=TARGETS, metrics=metrics,
+               draw=data['draw'])
     pre = "" if key == "bali" else key + "-"
     (od / f"daily-{pre}{metrics['date']}.json").write_text(json.dumps(rec, indent=1, default=str))
     d = metrics['date']
@@ -423,7 +473,10 @@ async def _shot(src, outs):
         await b.close()
 
 if __name__ == "__main__":
-    m = json.load(open(sys.argv[1]))
-    d, a, p = build(m, sys.argv[2])
-    print(json.dumps({"win": d["win"], "fix": d["fix"], "fixes": d["cover"]["fixes"], "artifact_file": a, "pngs": p,
-                      "daily_file": str(pathlib.Path(sys.argv[2]).resolve() / f"daily-{'' if setter(m)[0] == 'bali' else setter(m)[0] + '-'}{m['date']}.json")}))
+    args = sys.argv[1:]; dw = None
+    if "--draw" in args:
+        i = args.index("--draw"); dw = json.load(open(args[i + 1])); del args[i:i + 2]
+    m = json.load(open(args[0]))
+    d, a, p = build(m, args[1], dw)
+    print(json.dumps({"win": d["win"], "fix": d["fix"], "fixes": d["cover"]["fixes"], "draw": d["draw"], "artifact_file": a, "pngs": p,
+                      "daily_file": str(pathlib.Path(args[1]).resolve() / f"daily-{'' if setter(m)[0] == 'bali' else setter(m)[0] + '-'}{m['date']}.json")}))

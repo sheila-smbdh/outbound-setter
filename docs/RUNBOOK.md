@@ -8,6 +8,19 @@ Owner: Sheila Xu. Set up Sep 29, 2026. Round two starts Wed, Sep 30. Scorecard v
 
 **This section wins over anything older below it.**
 
+- **$1,000 draw for Jose and Jordan, Nov 16 to 29 (Sheila, Nov 16, 2026):** see `docs/DRAW.md`. The draw KPIs are 60 leads dialed, 60% speed to lead within 20 minutes, and 100% of the day's handoff steps, on 5 of 7 days a week.
+  - Speed to lead on Jose's and Jordan's cards is now judged at 20 minutes (`speed_min`), and Leads dialed is a scored tile with a target of 60.
+  - The cover has a draw box with the day's verdict, the reason for each miss, and the week so far.
+  - The routine also checks weekend days on Monday and keeps the Google Sheet "Setter Draw Tracker".
+  - A setter with no outbound calls on a day gets no card and no "no calls" line.
+  - Card layout:
+    - Wins and fixes are gone. Sets and closes since start sit under the title, then the draw box.
+    - Speed, leads dialed and the handoff tile are on top; everything else is smaller below.
+    - The handoff tile (the day's steps done, target 100%) replaces the show rate tile. Show rate is a small line on it, with no target.
+  - Speed to lead leaves out sign-ups during the scheduled team meeting and training (`MEETINGS_ON` and `MEETINGS_WEEKLY` in `bali_cover.py`). The setters' own inbound calls still count (Sheila, Nov 16).
+  - The card says "the draw" with no dollar amount.
+  - The morning-of reminder isn't owed when the lead accepted the calendar invite. That is an incoming "Accepted:" email on the lead, after the booking and before the call day (`_touch()` in `bali_show.py`).
+
 - **Bali left the team (Sheila, Nov 11, 2026):** the daily scorecards are Jose's and Jordan's only. Don't build, post or mention a card for Bali, and don't post a "no calls" line for him. `run_direct.py` now runs jose and jordan by default; `SETTERS['bali']` stays in `bali_show.py` for old days and the other Bali tools. His Abandoned Typeform card routine is paused and the Setter Follow-up Tracker no longer refreshes his tab.
 - **Abandoned Typeform leads join Jose's and Jordan's cards (Sheila, Nov 11, 2026):** the abandoned leads are now worked by Jose and Jordan and count on their daily card like any Welcome Series lead. Close keeps the two smart views separate ("Incomplete Typeform User" vs "Initial Contact User"), but the card treats them as one list: `SETTERS[...]['merge_ab']` makes `use_setter()` add the setter's Incomplete Typeform leads to `LIST`, drop `EXCLUDE`, and count entries into the abandoned bucket (`AB_SEQ`, "001- Incomplete Typeform Lead Distribution") as sign-ups for speed to lead, new sign-ups and backlog. Calls, sets, show rate, handoff steps and closes on those leads count too. On Nov 11 neither of them had an abandoned lead assigned yet, so nothing earlier changes. Bali's old days keep the Oct 28 split (no `merge_ab`).
 - **Day-before and morning-of reminders (Sheila, Nov 11, 2026):** a call set for the next day (or the same day) owes no day-before reminder, only the morning-of one, so the lead isn't contacted too often. The day-before reminder is owed only when the closer call was booked 2 or more days ahead (this was already the rule in `lead_steps()`; checked Nov 11 on Jose's and Jordan's Nov 10 runs: all 19 day-before reminders counted were for calls booked 2 to 9 days ahead). **One reminder per lead per day:** a lead with two live closer meetings was counted, and missed, twice. Lisa Song (one person, one Close lead) had Solomon House booked Nov 3 for Sat Nov 7 and a second Solomon House booking made Nov 4 for Fri Nov 6, which Solomon later declined; while both were live, Fri Nov 6 owed her a day-before and a morning-of reminder. Now a lead owes at most one reminder a day; when both fall on the same day the morning-of one is kept. `m['show']['step_rows']` lists every step in the 7-day window with the lead, booking date and call date, for checking a card (not shown on the card).
