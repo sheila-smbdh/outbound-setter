@@ -25,6 +25,10 @@ def build(bundle_p, grades_p, existing, out):
     bundle, grades = json.load(open(bundle_p)), json.load(open(grades_p))
     day = bundle['date']
     if grades.get('day') != day: fail(f"day {grades.get('day')!r} does not match the bundle's {day!r}")
+    # Setters covered that day come from the bundle (oc_collect.py drops Bali from Nov 11, 2026).
+    dials = bundle.get('calls_by_setter') or {k: 0 for k in SETTERS}
+    covered = [k for k in SETTERS if k in dials]
+    short = [SETTERS[k] for k in covered]
     by_id = {r['id']: r for r in bundle['rows']}
     graded = {c['call_id']: c for c in grades.get('calls', [])}
     missing = sorted(set(by_id) - set(graded))
@@ -60,15 +64,14 @@ def build(bundle_p, grades_p, existing, out):
 
     coaching = []
     for c in grades.get('coaching', []):
-        if c.get('setter') not in SHORT: fail(f"coaching setter {c.get('setter')!r} not one of {SHORT}")
+        if c.get('setter') not in short: fail(f"coaching setter {c.get('setter')!r} not one of {short}")
         coaching.append({'day': day, 'setter': c['setter'], **{k: clean(c.get(k), f'coaching {k}') for k in
                          ('focus', 'lead_said', 'setter_said', 'script_says', 'best_moment')}})
     flags = []
     for f in grades.get('flags', []):
-        if f.get('setter') not in SHORT: fail(f"flag setter {f.get('setter')!r} not one of {SHORT}")
+        if f.get('setter') not in short: fail(f"flag setter {f.get('setter')!r} not one of {short}")
         flags.append({'day': day, 'setter': f['setter'], 'flag': clean(f.get('flag'), 'flag'), 'detail': clean(f.get('detail'), 'flag detail')})
-    dials = bundle.get('calls_by_setter', {})
-    days = [{'day': day, 'setter': SETTERS[k], 'dials': dials.get(k, 0)} for k in SETTERS]
+    days = [{'day': day, 'setter': SETTERS[k], 'dials': dials.get(k, 0)} for k in covered]
 
     new = {'calls': calls, 'objections': objections, 'coaching': coaching, 'flags': flags, 'days': days}
     os.makedirs(out, exist_ok=True)
@@ -80,7 +83,7 @@ def build(bundle_p, grades_p, existing, out):
         json.dump(rows, open(os.path.join(out, f'oc-{ds}.json'), 'w'), indent=1)
 
     lines = []
-    for s in SHORT:
+    for s in short:
         g = [o for o in objections if o['setter'] == s and o['grade']]
         conv = sum(1 for c in calls if c['setter'] == s and c['type'] == 'conversation')
         booked = sum(1 for c in calls if c['setter'] == s and c['booked_live'] == 'yes')

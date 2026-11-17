@@ -11,6 +11,12 @@ SETTERS = {
     'user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC': 'Jordan Kempster',
     'user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk': 'Jose Rodriguez',
 }
+# Last day a setter is covered. Bali left the team: covered through Nov 10, 2026, not from Nov 11 (Sheila, Nov 17).
+LAST_DAY = {'user_c0wPSKtEPsqkIh08OnjiGaj6XHeFBjGSp2jyVxAggDl': dt.date(2026, 11, 10)}
+
+def active(D):
+    """Setters covered on day D: everyone in SETTERS whose LAST_DAY (if any) is on or after D."""
+    return {u: n for u, n in SETTERS.items() if D <= LAST_DAY.get(u, D)}
 MIN_SEC = 60          # real conversations only: recordings of 60+ seconds (Sheila, Oct 25)
 MODEL = 'small.en'    # faster-whisper model the Claude session runs
 MODEL_FILES = ('config.json', 'tokenizer.json', 'vocabulary.txt', 'model.bin')
@@ -30,7 +36,7 @@ def day_calls(D):
     a = dt.datetime(D.year, D.month, D.day, tzinfo=ET); b = a + dt.timedelta(days=1)
     q = {'date_created__gte': a.astimezone(dt.timezone.utc).isoformat(), 'date_created__lt': b.astimezone(dt.timezone.utc).isoformat()}
     calls = []
-    for uid in SETTERS: calls += _page('/activity/call/', dict(q, user_id=uid))
+    for uid in active(D): calls += _page('/activity/call/', dict(q, user_id=uid))
     return calls
 
 def lead_names(ids):
@@ -61,7 +67,7 @@ def _share(path):
     return r.headers.get('location') or up['s3_url']
 
 def _prepare(D):
-    """Pull the three setters' calls on D (ET), keep recordings of 60+ sec, sign each recording link, and share the
+    """Pull the covered setters' calls on D (ET), keep recordings of 60+ sec, sign each recording link, and share the
     list as one JSON file. Returns a small summary with `calls_link` for the Claude session."""
     calls = day_calls(D)
     keep = [c for c in calls if c.get('recording_url') and (c.get('recording_duration') or 0) >= MIN_SEC]
@@ -77,7 +83,7 @@ def _prepare(D):
         'close_url': f"https://app.close.com/lead/{c['lead_id']}/#activityId={c['id']}", 'audio_url': signed.get(c['id']),
     } for c in sorted(keep, key=lambda c: -(c.get('recording_duration') or 0))]
     p = f'/home/user/oc-calls-{D.isoformat()}.json'
-    by_setter = {n: sum(1 for c in calls if SETTERS[c['user_id']] == n) for n in SETTERS.values()}
+    by_setter = {n: sum(1 for c in calls if SETTERS[c['user_id']] == n) for n in active(D).values()}
     json.dump({'date': D.isoformat(), 'calls_by_setter': by_setter, 'rows': rows}, open(p, 'w'))
     return {'date': D.isoformat(), 'calls_by_setter': by_setter, 'recordings_60s': len(rows),
             'unsigned': sum(1 for r in rows if not r['audio_url']),

@@ -1,6 +1,6 @@
 # Setter objection check (daily): runbook
 
-Owner: Sheila Xu (sheila@smbdealhunter.xyz). Set up Oct 25, 2026. Setters: Bali (Jabali Dumas), Jordan Kempster, Jose Rodriguez.
+Owner: Sheila Xu (sheila@smbdealhunter.xyz). Set up Oct 25, 2026. Setters: Jordan Kempster, Jose Rodriguez. Bali (Jabali Dumas) was covered from Oct 23 through Nov 10, 2026; he left the team and is not covered from Nov 11 (Sheila, Nov 17). His earlier rows stay on both dashboards, and a rerun of a day up to Nov 10 still includes him. `LAST_DAY` in `kit/oc_collect.py` sets this; `oc_publish.py` follows whichever setters the day's bundle lists.
 
 How well each setter handled objections on their real conversations, graded against the objection section of the "Setter Inbound Call Script_Oct 2026" (the Welcome Series Outbound SOP, Step 4, points there). It is its own routine, separate from Bali's scorecard and from the "Setter handoff check" task (Sheila, Oct 25).
 
@@ -29,7 +29,7 @@ Both read attached JSON files. Each run adds the new day's rows to those files (
 | --- | --- |
 | `SCRIPT-objections.md` | Snapshot of the script's objection sections (Oct 25). The live Google Doc `1qjF3Q-VngJ2LwSl_zHItRZTPHHR6uQu2X55M1rTWqk4` wins |
 | `RUBRIC.md` | Which calls count, objection tags, Hit / Partial / Miss rules, roll-up |
-| `kit/oc_collect.py` | **Workbench.** `prepare(D)`: the three setters' calls on D, recordings of 60+ sec, lead names and outcomes, a signed audio link per call (1 hour), all in one shared JSON (`calls_link`). `model_links()`: signed links to the faster-whisper `small.en` files. Both run in a kernel thread: call again until the answer isn't `'working'` |
+| `kit/oc_collect.py` | **Workbench.** `prepare(D)`: the covered setters' calls on D, recordings of 60+ sec, lead names and outcomes, a signed audio link per call (1 hour), all in one shared JSON (`calls_link`). `model_links()`: signed links to the faster-whisper `small.en` files. Both run in a kernel thread: call again until the answer isn't `'working'` |
 | `kit/oc_local.py` | **Claude container.** `model LINKS.json DIR` fetches the model; `run CALLS_LINK WORKDIR MODEL_DIR` downloads every recording, transcribes them in parallel and writes `WORKDIR/bundle.json` |
 | `kit/oc_tx.py` | Transcribes one recording (PyAV decode, 2-minute chunks, VAD, a vocabulary prompt for our words) |
 | `kit/oc_publish.py` | **Claude container.** `build BUNDLE GRADES EXISTING_DIR OUT_DIR`: checks the grades file against the bundle, turns it into rows, merges them into the dashboards' current files (replacing that day) and writes `headline.txt` |
@@ -45,7 +45,7 @@ Workbench notes:
 - Signed links expire after 1 hour: run `oc_local.py run` right after `prepare(D)`; it downloads all audio first.
 - In the container: `pip install faster-whisper` (PyPI is reachable). faster-whisper's own decoder fails with the installed `av`, which is why `oc_tx.py` decodes with PyAV itself.
 
-## Daily run (weekdays, 6:37am ET, done well before Bali's 8:45 scorecard uses the workbench)
+## Daily run (weekdays, 6:37am ET, done before the setter scorecards run)
 
 1. Days to cover: the previous day in ET. On Monday cover Friday, Saturday and Sunday (setters do dial on weekends). Run each day below in turn, oldest first.
 2. Re-read the live script doc (Google Drive `read_file_content`, id above). If the objection sections differ from `SCRIPT-objections.md`, grade against the live doc and add one line to Sheila: "The script changed since the Oct 25 snapshot: <what>."
@@ -54,7 +54,7 @@ Workbench notes:
 5. Grade every call by `RUBRIC.md` yourself in this session (don't hand it to the workbench `invoke_llm`), and write the result as `<scratch>/grades-D.json` in the format under "Grades file". Every call in the bundle gets an entry, voicemails included.
 6. Publish to both dashboards as in "Publishing" below: download their current files, `python3 objections/kit/oc_publish.py build <scratch>/oc-D/bundle.json <scratch>/grades-D.json <scratch>/pub/existing <scratch>/pub/out`, upload, point the datasets at the new files. If `build` stops with a "grades file problem", fix the grades file and run it again. On Monday, run days oldest first; each day's `out` is the next day's `existing`, and you upload once at the end.
 7. Tell Sheila with one PushNotification (status proactive) and nothing else: "Setter objection check, <Weekday Mon DD>:" then the lines of `headline.txt`, then the two links (scorecard first, then library). On Monday, one line block per day. Add "The script changed since the Oct 25 snapshot: <what>." when step 2 found a change.
-8. A day where none of the three made a call of 60+ seconds still gets published (dials only, so the cards say "no real conversations").
+8. A day where none of the covered setters made a call of 60+ seconds still gets published (dials only, so the cards say "no real conversations").
 9. If transcription failed for some calls, give them type `unclear` with no objections, say how many in the message, and grade the rest; never guess a call's content from Close fields.
 10. If publishing fails, send the headline lines and say the pages weren't updated and why; don't retry more than once.
 
@@ -75,7 +75,7 @@ One JSON object per day. `oc_publish.py` takes lead, time, length, setter and th
     {"call_id": "acti_...", "type": "voicemail", "booked_live": false, "objections": []}
   ],
   "coaching": [
-    {"setter": "Bali", "focus": "One-line main miss", "lead_said": "Quote (Lead, HH:MM)",
+    {"setter": "Jose Rodriguez", "focus": "One-line main miss", "lead_said": "Quote (Lead, HH:MM)",
      "setter_said": "Quote", "script_says": "The script line", "best_moment": "One sentence with a quote, or empty"}
   ],
   "flags": [{"setter": "Jordan Kempster", "flag": "Short name", "detail": "What was said, with the quote and lead"}]
@@ -87,7 +87,7 @@ One JSON object per day. `oc_publish.py` takes lead, time, length, setter and th
 - `objection` (RUBRIC tag in brackets): `Price` (price), `Send me info` (send_info), `Not right now` (not_now), `Is this legit` (legit), `I can do this myself` (diy), `Quick answer` (quick:*), `Other` (other). A conversation with no objection has `"objections": []`.
 - `grade`: `Hit`, `Partial` or `Miss`. `decided_by`: the setter's words or action that decided it. `instead`: for a Partial or Miss, what the setter should have said per the script, fitted to the call (empty for a Hit).
 - `coaching`: one entry per setter who had conversations; `focus` empty if nothing to coach. `flags`: off-script claims and leads handled against the qualifying rules (RUBRIC section 4).
-- Setter names exactly: `Bali`, `Jordan Kempster`, `Jose Rodriguez`. Quotes are the transcript's words. No em dashes (the script refuses them).
+- Setter names exactly: `Jordan Kempster`, `Jose Rodriguez` (and `Bali` only for days through Nov 10, 2026; `build` rejects him after that). Quotes are the transcript's words. No em dashes (the script refuses them).
 
 ## Publishing
 

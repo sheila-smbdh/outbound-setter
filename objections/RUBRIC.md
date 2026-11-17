@@ -4,7 +4,7 @@ Source: `SCRIPT-objections.md` (the live "Setter Inbound Call Script_Oct 2026" w
 
 ## 1. Which calls are in
 
-- The three setters' calls on the day (ET), any direction, with a recording of **60+ seconds** (Sheila, Oct 25). Shorter calls are not transcribed.
+- The covered setters' calls on the day (Jose and Jordan; Bali only for days through Nov 10, 2026) (ET), any direction, with a recording of **60+ seconds** (Sheila, Oct 25). Shorter calls are not transcribed.
 - From the transcript, decide the call type first. Only **live conversations with the lead** are graded:
   - `conversation`: the setter and the lead actually talk about the lead's search.
   - Not graded (counted only): `voicemail` (screener or voicemail greeting, then the setter's message), `screener` (never got through), `logistics` (confirming or moving a meeting already booked, a wrong person, a callback about something else), `unclear` (audio too poor to tell).
