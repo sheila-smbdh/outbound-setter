@@ -105,7 +105,15 @@ def main():
     a = ap.parse_args()
     ex = json.load(open(a.days)) if os.path.exists(a.days) and os.path.getsize(a.days) else {}
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=-5))).strftime('%Y-%m-%d %H:%M')
-    ms = [json.load(open(p)) for p in a.metrics]
+    ms = []
+    for p in a.metrics:
+        m = json.load(open(p))
+        # a no-calls metrics file had no setter key before Nov 17, 2026 (Jordan's Nov 16 row came out blank): fall back
+        # to the file name, metrics-<key>.json
+        k = os.path.basename(p)[len('metrics-'):-len('.json')] if os.path.basename(p).startswith('metrics-') else ''
+        if not (m.get('setter') or {}).get('key') and k:
+            m['setter'] = dict(key=k, name=SETTER_NAMES.get(k, k))
+        ms.append(m)
     vs = [draw_day(m) for m in ms if in_draw(m['date'])]
     # a weekend day with no outbound calls is not a row: they aren't expected to work weekends (Sheila, Nov 16)
     vs = [v for v in vs if v['dialed'] or dt.date.fromisoformat(v['date']).weekday() < 5]

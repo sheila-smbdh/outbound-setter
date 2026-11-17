@@ -193,7 +193,8 @@ def lead_steps(l, nm, set_t, meetings, D):
     return out
 
 def run_show(D, m, now=None):
-    if not m.get('dialed'): return m
+    if not m.get('dialed'):   # Nov 17, 2026: say whose day it was even with no calls (setter_draw.py needs the key)
+        m['setter'] = dict(key=SETTER['key'], name=SETTER['name'], since=CLOSES_FROM.isoformat()); return m
     now = now or dt.datetime.now(UTC)
     sets = closer_sets(D); seen = {}; rows = []; steps = []
     for d, l, nm, x in sets:
