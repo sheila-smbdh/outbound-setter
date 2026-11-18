@@ -63,6 +63,7 @@ def closes_to_date(D):
         for x in sorted(ms, key=lambda x: x['_t']):
             if x.get('user_id') not in CLOSERS: continue
             if any(y['_t'] < mine[0]['_t'] and same_person(y, x) for y in ms): continue   # already booked before Bali dialed
+            if dq_before(x, lc): continue   # Nov 18, 2026 (Sheila): setter disqualified the lead, who booked on their own
             lcs = [c for c in talks if c['_t'] <= x['_t'] and x['_t'] - c['_t'] <= dt.timedelta(hours=24)]
             if lcs: after = lcs[-1]['_t']
             else:

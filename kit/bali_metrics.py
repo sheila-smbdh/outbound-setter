@@ -240,6 +240,18 @@ def _handoff(x,oc,lm,msgs):
     conv=_conversations(oc,lm)
     hs=[h for h in hs if conv and h>min(conv)]
     return max(hs) if hs else None
+def dq_before(x,oc):
+    """Nov 18, 2026 (Sheila): True when the setter's last outbound call to the lead before closer meeting x was booked
+    is tagged "Disqualified" (the last call where he reached the person; no-answers and voicemails after it don't
+    matter). The lead booked the closer on their own after the setter disqualified them, so it is not the setter's set
+    and owes no handoff steps. Found with Mayank Dwivedi (Jose, Nov 17): 79 sec call tagged Disqualified at 4:08pm ET,
+    a 0 sec no-answer redial at 4:11pm, booked VeJohn Heinemann himself at 4:12pm. A later pickup the setter didn't tag
+    Disqualified (re-qualified) lifts it. oc = the lead's calls from Close."""
+    mine=[o for o in oc if o.get('user_id')==BALI and o.get('call_method')!='external' and o.get('direction')=='outbound'
+          and pt(o['date_created'])<=x['_t'] and classify(o)=='talk']
+    if not mine: return False
+    last=max(mine,key=lambda o:pt(o['date_created']))
+    return OUTCOMES.get(last.get('outcome_id') or '','').startswith('disqualified')
 def _bookings(D,data,byl):
     """Closer calls and self-sets created on D (rules from round one, plus the changes dated below):
     a closer meeting within 24h after a setter pickup, no other rep's call in between. From Oct 13 a callback the
@@ -273,6 +285,7 @@ def _bookings(D,data,byl):
         for y in lm: y['_t']=pt(y['date_created'])
         first=mine or [z['_t'] for z in zoom_talks(lm)]   # Zoom-only lead: the Zoom is the first contact (Bob Nicholson rule)
         if first and any(y['_t']<min(first) and same_person(y,x) for y in lm): continue
+        if dq_before(x,oc): continue   # Nov 18, 2026 (Sheila): the setter disqualified the lead, who then booked on their own
         if lcs: after=lcs[-1]['_t']
         else:
             after=_handoff(x,oc,lm,sent.get(l,[]))
