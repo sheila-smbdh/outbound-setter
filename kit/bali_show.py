@@ -101,7 +101,10 @@ def lead_show(l, set_t, D, now):
     if ev_show:
         t = min(ev_show)
         att = [x for x in ms if _start(x) <= t] or past or ms
-        return dict(status='showed', date=etd(_start(att[-1])) if att else etd(t), meetings=ms)
+        # showed_at: start of the first discovery call the lead attended (Sheila, Nov 18, 2026: closer meetings that
+        # start after it are follow-ups, and lead_steps owes the setter no reminders for them)
+        return dict(status='showed', date=etd(_start(att[-1])) if att else etd(t), meetings=ms,
+                    showed_at=_start(att[-1]) if att else t)
     ahead = [x for x in ms if _start(x) >= endD and not _dead(x)]
     if ahead: return dict(status='pending', date=etd(_start(ahead[0])), meetings=ms)
     if not past: return dict(status='pending', date=None, meetings=ms)
@@ -155,9 +158,12 @@ def _closer_note(l, set_t):
               if x.get('custom_activity_type_id') == PRE_DISC_TYPE and x.get('status') != 'draft' and ok(x)]
     return any(len(_strip(s)) >= NOTE_MIN_CHARS for s in texts)
 
-def lead_steps(l, nm, set_t, meetings, D):
+def lead_steps(l, nm, set_t, meetings, D, showed_at=None):
     """The three handoff steps for one set lead, each with the ET date it was due. Only steps due Oct 13 or later,
-    and through D. A step that isn't owed (call booked for the next day or the same day) is left out."""
+    and through D. A step that isn't owed (call booked for the next day or the same day) is left out.
+    showed_at: when the lead's first discovery call that showed started (lead_show). Closer meetings that start after
+    it are follow-ups the closer confirms, so they owe no setter reminders (Sheila, Nov 18, 2026). Meetings up to and
+    including that call, such as a rebook after a no-show, still do."""
     mine, handoff, inbound, accepted = _touch(l); out = []
     if STEPS_FROM <= etd(set_t) <= D:
         ok = any(set_t - dt.timedelta(minutes=10) <= t <= set_t + dt.timedelta(minutes=HANDOFF_MIN) for t in handoff)
@@ -166,6 +172,7 @@ def lead_steps(l, nm, set_t, meetings, D):
     rem = {}                                        # reminders owed, by the ET day they are due
     for x in meetings:
         if _dead(x): continue
+        if showed_at and _start(x) > showed_at: continue   # follow-up after the discovery call showed (Nov 18, 2026)
         s = _start(x); S = etd(s); booked = etd(x['_t'])
         info = dict(booked=booked.isoformat(), call=S.isoformat())
         # Day-before reminder: owed only when the call was booked 2+ days ahead. A call set for the next day (or the
@@ -205,7 +212,7 @@ def run_show(D, m, now=None):
             r['status'] = 'pending'                 # the meeting falls after D: not counted yet on this card
         rows.append(dict(lead=nm, lead_id=l, set=d.isoformat(), status=r['status'],
                          date=r['date'].isoformat() if r['date'] else None))
-        steps += lead_steps(l, nm, set_t, r['meetings'], D)
+        steps += lead_steps(l, nm, set_t, r['meetings'], D, r.get('showed_at'))
     lo = (D - dt.timedelta(days=6)).isoformat(); hi = D.isoformat()
     win = [r for r in rows if r['date'] and lo <= r['date'] <= hi and r['status'] in ('showed', 'missed')]
     alln = [r for r in rows if r['status'] in ('showed', 'missed')]

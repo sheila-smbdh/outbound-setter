@@ -207,8 +207,9 @@ def handoff_marks(l, nm, set_t, D):
     """The four handoff steps for one closer set, as marks: y = done, n = missed, later = due after D, na = not owed.
     Same rules as lead_steps in bali_show.py; 'later' steps carry the date they are due."""
     r = lead_show(l, set_t, D, dt.datetime.now(UTC))
-    got = {s['step']: s for s in lead_steps(l, nm, set_t, r['meetings'], D)}
-    live = [x for x in r['meetings'] if not _dead(x)]
+    got = {s['step']: s for s in lead_steps(l, nm, set_t, r['meetings'], D, r.get('showed_at'))}
+    sa = r.get('showed_at')   # follow-ups after the discovery call showed owe no setter reminders (Nov 18, 2026)
+    live = [x for x in r['meetings'] if not _dead(x) and not (sa and _start(x) > sa)]
     x = sorted(live, key=_start)[-1] if live else None
     marks = {}; due = {}
     for k in ('email', 'note'):
