@@ -90,7 +90,7 @@ The handoff is what makes the lead show up. Do all four steps.
 | --- | --- |
 | Right after booking | Send the **Setter to Closer Handoff** email (template in Close). |
 | By end of the booking day | Leave your **setter notes in Close** (the lead's background) so the closer can read them before the call. Send every resource you promised. If you promised to pull deals for the closer to walk through, follow [these instructions](https://heymitch.notion.site/Setter-Handoff-PDF-how-setters-and-closers-use-it-3f8aee68e52f818ea71dd9fad252f198?source=copy_link). |
-| Day before the call | Send a reminder about the call. |
+| Day before the call | Send a reminder about the call. This covers the first discovery call and any rebook after a no-show. Once the lead has had their discovery call, the closer confirms any follow-up calls. |
 | Morning of the call | If they haven't responded, send another personal reminder. |
 
 ### 4B: Log the call outcome
