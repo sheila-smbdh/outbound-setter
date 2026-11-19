@@ -1,0 +1,217 @@
+<!-- MOCKUP v1 (Nov 19, 2026): inbound setter cards (Jose and Jordan; Dave) and Jose's Incomplete Typeform outbound card.
+     Static made-up numbers, not from Close or the bots. Styles come from kit/template.html and kit/cover.html (see render.py). -->
+<style>
+.sample{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--older);border-radius:999px;padding:3px 9px}
+.inb .eyebrow{color:var(--accent)} .ob .eyebrow{color:var(--older)}
+.kpis.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kpis.k1{grid-template-columns:1fr}
+.kpi .who{font-size:11.5px;color:var(--bad);font-weight:600}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+.tbl td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.tbl td.c{text-align:center;font-weight:800}
+.tbl .ok{color:var(--good)} .tbl .no{color:var(--bad)} .tbl .na{color:var(--ink3);font-weight:600}
+.tbl tr.miss td{background:var(--bad-soft)}
+.tbl td.r{color:var(--ink2);font-size:12px}
+.note{font-size:12.5px;color:var(--ink2);border:1px dashed var(--ink3);border-radius:10px;padding:8px 12px}
+.note b{color:var(--ink)}
+.quote{font-size:12px;color:var(--ink2);font-style:italic}
+@media (max-width:560px){.kpis.k3{grid-template-columns:1fr}}
+</style>
+
+<!-- ============ 1. INBOUND: Jose (Jordan's card is the same) ============ -->
+<div class="card inb" id="m1">
+  <header>
+    <div class="sample">Sample: made-up numbers</div>
+    <div class="eyebrow" style="margin-top:10px">Inbound Setter</div>
+    <h1>Jose's Day: Wednesday, Nov 18</h1>
+    <div class="meta">14 inbound calls taken · 6 set to a closer · 10:31am to 6:24pm ET</div>
+  </header>
+
+  <div class="big2">
+    <div class="b2"><div class="n">6</div><div class="t">set to a closer today</div></div>
+    <div class="b2"><div class="n">23</div><div class="t">set to a closer this week</div></div>
+  </div>
+
+  <div class="draw">
+    <div class="dh"><div class="dt">Not a compliant day: 2 of 3 KPIs</div><div class="wc n">This week <span>2 of 3</span> compliant days</div></div>
+    <ul>
+      <li>Price: you mentioned price on 1 call (Mark Delaney, 2:14pm).</li>
+    </ul>
+    <div class="wf">
+      <div class="days"><span class="y">Mon</span><span class="y">Tue</span><span class="n">Wed</span><span>Thu</span><span>Fri</span></div>
+      <div class="ws">Weekly draw needs <b>all 3 KPIs</b> on <b>[? of 5]</b> days</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Draw KPIs: hit all 3 for a compliant day</h2>
+    <div class="kpis k3">
+      <div class="kpi hit">
+        <div class="nm">1. Handoff steps</div>
+        <div class="v">100%</div>
+        <div class="of">
+          <div class="steps">
+            <div class="r"><span>Handoff email to closer</span><span class="ok">6 of 6</span></div>
+            <div class="r"><span>Closer note attached</span><span class="ok">6 of 6</span></div>
+            <div class="r"><span>Day-before text</span><span class="ok">4 of 4</span></div>
+            <div class="r"><span>Day-of text (no reply)</span><span class="ok">3 of 3</span></div>
+          </div>
+        </div>
+        <div class="nt">Due by the end of your workday.</div>
+        <div class="tbar"><i style="width:100%"></i><b style="left:100%"></b></div>
+        <div class="st"><span>Target 100%</span><span class="pill">Hit</span></div>
+      </div>
+      <div class="kpi miss">
+        <div class="nm">2. No price on calls</div>
+        <div class="v">1 call</div>
+        <div class="of">mentioned price, of 14 calls the bot checked
+          <div class="who" style="margin-top:6px">Mark Delaney, 2:14pm</div>
+          <div class="quote">"...it's around ten grand for the year..."</div>
+        </div>
+        <div class="nt">Checked by the script bot.</div>
+        <div class="st"><span>Target 0 calls</span><span class="pill">Missed</span></div>
+      </div>
+      <div class="kpi hit">
+        <div class="nm">3. No direct closer bookings</div>
+        <div class="v">0 of 6</div>
+        <div class="of">sets booked straight onto one closer's calendar. All 6 went through the team booking link.</div>
+        <div class="nt">Checked by the booking bot.</div>
+        <div class="st"><span>Target 0</span><span class="pill">Hit</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Today's sets</h2>
+    <table class="tbl">
+      <tr><th>Lead</th><th>Closer call</th><th>Email</th><th>Note</th><th>Day before</th><th>Day of</th><th>Price</th><th>Booked</th></tr>
+      <tr><td>Rachel Kim</td><td class="r">Thu 11am</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">n/a</td><td class="c ok">✓</td><td class="c ok">Clean</td><td class="c ok">Team</td></tr>
+      <tr class="miss"><td>Mark Delaney</td><td class="r">Fri 2pm</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">due Thu</td><td class="c na">due Fri</td><td class="c no">Price</td><td class="c ok">Team</td></tr>
+      <tr><td>Omar Siddiqui</td><td class="r">Mon 1pm</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">due Sun</td><td class="c na">due Mon</td><td class="c ok">Clean</td><td class="c ok">Team</td></tr>
+      <tr><td colspan="8" class="r">+ 3 more, all clean</td></tr>
+    </table>
+    <p class="lead" style="margin-top:8px">The handoff tile also counts day-before and day-of texts owed today for calls set on earlier days.</p>
+  </section>
+</div>
+
+<!-- ============ 2. INBOUND: Dave (handoff only) ============ -->
+<div class="card inb" id="m2">
+  <header>
+    <div class="sample">Sample: made-up numbers</div>
+    <div class="eyebrow" style="margin-top:10px">Inbound Setter</div>
+    <h1>Dave's Day: Wednesday, Nov 18</h1>
+    <div class="meta">11 inbound calls taken · 4 set to a closer · 9:02am to 5:11pm ET</div>
+  </header>
+
+  <div class="big2">
+    <div class="b2"><div class="n">4</div><div class="t">set to a closer today</div></div>
+    <div class="b2"><div class="n">15</div><div class="t">set to a closer this week</div></div>
+  </div>
+
+  <section>
+    <h2>Your KPI: handoff steps</h2>
+    <div class="kpis k1">
+      <div class="kpi miss">
+        <div class="nm">Handoff steps done</div>
+        <div class="v">87%</div>
+        <div class="of">13 of 15 steps done
+          <div class="steps" style="margin-top:6px">
+            <div class="r"><span>Handoff email to closer</span><span class="ok">4 of 4</span></div>
+            <div class="r"><span>Closer note attached</span><span class="no">3 of 4</span></div>
+            <div class="r"><span>Day-before text</span><span class="ok">3 of 3</span></div>
+            <div class="r"><span>Day-of text (no reply)</span><span class="no">3 of 4</span></div>
+          </div>
+          <div class="who" style="margin-top:6px">Missed: closer note for Lena Ortiz · day-of text for Paul Greer</div>
+        </div>
+        <div class="nt">Due by the end of your workday.</div>
+        <div class="tbar"><i style="width:87%"></i><b style="left:100%"></b></div>
+        <div class="st"><span>Target 100%</span><span class="pill">Missed</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Steps owed today</h2>
+    <table class="tbl">
+      <tr><th>Lead</th><th>Closer call</th><th>Email</th><th>Note</th><th>Day before</th><th>Day of</th></tr>
+      <tr class="miss"><td>Lena Ortiz</td><td class="r">Fri 10am (set today)</td><td class="c ok">✓</td><td class="c no">✗</td><td class="c na">due Thu</td><td class="c na">due Fri</td></tr>
+      <tr class="miss"><td>Paul Greer</td><td class="r">Wed 3pm (set Mon)</td><td class="c na">done</td><td class="c na">done</td><td class="c ok">✓</td><td class="c no">✗</td></tr>
+      <tr><td>Nina Shah</td><td class="r">Thu 4pm (set today)</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">n/a</td><td class="c na">due Thu</td></tr>
+      <tr><td colspan="6" class="r">+ 5 more, all done</td></tr>
+    </table>
+  </section>
+</div>
+
+<!-- ============ 3. OUTBOUND: Jose, Incomplete Typeform (tracked only) ============ -->
+<div class="card ob" id="m3">
+  <header>
+    <div class="sample">Sample: made-up numbers</div>
+    <div class="eyebrow" style="margin-top:10px">Incomplete Typeform Outbound</div>
+    <h1>Jose's Outbound Day: Wednesday, Nov 18</h1>
+    <div class="meta">19 dials to 12 leads · 11:05am to 5:48pm ET</div>
+  </header>
+
+  <div class="big2">
+    <div class="b2"><div class="n">9</div><div class="t">sets to a closer from Incomplete Typeform since Nov 11</div></div>
+    <div class="b2"><div class="n">1</div><div class="t">close since Nov 11: Dana Fuller</div></div>
+  </div>
+
+  <div class="note"><b>Tracked only.</b> This card does not count toward your KPIs or the weekly draw. Your inbound card decides the draw.</div>
+
+  <section>
+    <h2>Top numbers</h2>
+    <div class="kpis" id="gtop">
+      <div class="stk">
+        <div class="kpi close">
+          <div class="nm">Speed to lead</div>
+          <div class="v">50%</div>
+          <div class="of">4 of 8 new leads called within 20 min
+            <div class="nt" style="margin-top:4px">Average wait for the 7 you called: 31 min</div></div>
+          <div class="tbar"><i style="width:50%"></i><b style="left:60%"></b></div>
+          <div class="st"><span>Target 60%</span><span class="pill">Almost</span></div>
+        </div>
+        <div class="kpi track">
+          <div class="nm">Leads dialed</div>
+          <div class="v">12</div>
+          <div class="of">19 dials to 12 leads</div>
+          <div class="st"><span>No target</span><span class="pill">Tracking</span></div>
+        </div>
+      </div>
+      <div class="kpi hit k-handoff">
+        <div class="nm">Handoff steps</div>
+        <div class="v">100%</div>
+        <div class="of">
+          <div class="steps">
+            <div class="r"><span>Handoff email to closer</span><span class="ok">2 of 2</span></div>
+            <div class="r"><span>Closer note attached</span><span class="ok">2 of 2</span></div>
+            <div class="r"><span>Day-before text</span><span class="ok">1 of 1</span></div>
+            <div class="r"><span>Day-of text (no reply)</span><span class="ok">2 of 2</span></div>
+          </div>
+          <div class="shw"><div class="sh">Show rate, last 7 days (no target)</div>3 of 4 closer calls showed</div>
+        </div>
+        <div class="tbar"><i style="width:100%"></i><b style="left:100%"></b></div>
+        <div class="st"><span>Target 100%</span><span class="pill">Hit</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rest">
+    <h2>Other numbers</h2>
+    <div class="kpis" id="grest">
+      <div class="kpi hit"><div class="nm">Pickup rate</div><div class="v">33%</div><div class="of">4 of 12 leads picked up</div>
+        <div class="tbar"><i style="width:100%"></i><b style="left:76%"></b></div><div class="st"><span>Target 25%</span><span class="pill">Hit</span></div></div>
+      <div class="kpi hit"><div class="nm">Connect rate</div><div class="v">25%</div><div class="of">3 of 12 leads had a real conversation</div>
+        <div class="tbar"><i style="width:100%"></i><b style="left:40%"></b></div><div class="st"><span>Target 10%</span><span class="pill">Hit</span></div></div>
+      <div class="kpi track"><div class="nm">Set to a closer</div><div class="v">2</div><div class="of">Dana Fuller, Kevin Park</div>
+        <div class="st"><span>No target</span><span class="pill">Tracking</span></div></div>
+      <div class="kpi hit"><div class="nm">Voicemail</div><div class="v">88%</div><div class="of">7 of 8 no-answers got a voicemail</div>
+        <div class="tbar"><i style="width:100%"></i><b style="left:97%"></b></div><div class="st"><span>Target 85%</span><span class="pill">Hit</span></div></div>
+      <div class="kpi miss"><div class="nm">Text</div><div class="v">50%</div><div class="of">4 of 8 no-answers got a text</div>
+        <div class="tbar"><i style="width:59%"></i><b style="left:100%"></b></div><div class="st"><span>Target 85%</span><span class="pill">Missed</span></div></div>
+      <div class="kpi close"><div class="nm">Double dial</div><div class="v">75%</div><div class="of">6 of 8 no-answers redialed</div>
+        <div class="tbar"><i style="width:88%"></i><b style="left:100%"></b></div><div class="st"><span>Target 85%</span><span class="pill">Almost</span></div></div>
+    </div>
+  </section>
+</div>
