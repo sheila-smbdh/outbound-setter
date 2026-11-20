@@ -2,6 +2,7 @@
      Static made-up numbers, not from Close or the bots. Styles come from kit/template.html and kit/cover.html (see render.py).
      v2 (Sheila, Nov 20): inbound cards drop the KPI tiles; one table of every lead with a step owed that day,
      and a totals row at the bottom that carries each KPI's result.
+     v6 (Sheila, Nov 20): today and this week count inbound sets only; the third tile counts outbound sets only.
      v5 (Sheila, Nov 20): three tiles on top of Jose's and Jordan's cards: sets today, sets this week, closes / sets since outbound start.
      v4 (Sheila, Nov 20): every done step is a check; reminders not yet due are one gray "not due yet" block.
      v3 (Sheila, Nov 20): Jose's and Jordan's inbound cards get one tile under the title: closes / sets since they started outbound. -->
@@ -52,13 +53,13 @@
     <div class="sample">Sample: made-up numbers</div>
     <div class="eyebrow" style="margin-top:10px">Inbound Setter</div>
     <h1>Jose's Day: Wednesday, Nov 18</h1>
-    <div class="meta">14 inbound calls taken · 6 set to a closer · 10:31am to 6:24pm ET</div>
+    <div class="meta">14 inbound calls taken · 6 inbound sets to a closer · 10:31am to 6:24pm ET</div>
   </header>
 
   <div class="top3">
-    <div class="t3"><div class="n">6</div><div class="t">set to a closer today</div></div>
-    <div class="t3"><div class="n">23</div><div class="t">set to a closer this week</div></div>
-    <div class="t3"><div class="n">3<span> / 41</span></div><div class="t"><b>3 closed</b> of the <b>41 sets</b> you've made since you started outbound on Oct 20</div></div>
+    <div class="t3"><div class="n">6</div><div class="t"><b>inbound</b> sets to a closer today</div></div>
+    <div class="t3"><div class="n">23</div><div class="t"><b>inbound</b> sets to a closer this week</div></div>
+    <div class="t3"><div class="n">3<span> / 41</span></div><div class="t"><b>3 closed</b> of the <b>41 outbound sets</b> you've made since you started outbound on Oct 20</div></div>
   </div>
 
   <div class="verdict">
