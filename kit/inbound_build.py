@@ -23,6 +23,7 @@ def verdict_box(r):
     t = r.get("today") or {}
     v = t.get("verdict")
     why = []
+    if t.get("idle"): why.append("no intro calls")
     if t.get("steps_due") and t["steps_done"] < t["steps_due"]:
         n = t["steps_due"] - t["steps_done"]; why.append(f"{n} handoff step{'s' if n != 1 else ''} missed")
     if t.get("price"):

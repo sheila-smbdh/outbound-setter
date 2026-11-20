@@ -124,7 +124,16 @@ def run_inbound(D, key, flags_dir=None, now=None):
         if live: s['call'] = _start(live[0])
         ledger.append(s)
     HANDOFF_MIN = 60
-    # each weekday Mon..D: sets, handoff steps due, price and booking flags, verdict
+    # intro calls taken per day this week: Zooms on the setter's calendar that a lead joined
+    a, b = day_bounds(D); zoom_by_day = collections.defaultdict(list)
+    for y in get_all('/activity/meeting/', {'user_id': U, 'date_created__gte': (day_bounds(mon)[0] - dt.timedelta(days=IN_LOOK)).astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ'),
+                                             'date_created__lt': b.astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}):
+        if y.get('user_id') != U or _dead_meeting(y): continue
+        z = _zoom(y)
+        if z and z[2] and day_bounds(mon)[0] <= z[0] < b: zoom_by_day[etd(z[0])].append(z)
+    # each weekday Mon..D: sets, handoff steps due, price and booking flags, verdict.
+    # A weekday with no intro calls, no sets and no steps due is not compliant (Sheila, Nov 20: compliant Monday to
+    # Friday for the weekly draw); Sheila or Jay override days off in the tracker.
     days = []
     for i in range((D - mon).days + 1):
         d = mon + dt.timedelta(days=i)
@@ -134,11 +143,13 @@ def run_inbound(D, key, flags_dir=None, now=None):
         ph = _mine(fl['price']['hits'], key); bh = _mine(fl['booking']['hits'], key)
         n_sets = sum(1 for s in ledger if etd(s['set_t']) == d)
         hand_ok = all(x['done'] for x in due)
+        calls = len(zoom_by_day.get(d, []))
+        idle = not calls and not n_sets and not due
         if d < IN_FROM: v = 'off'
-        elif ph or bh or not hand_ok: v = 'no'
+        elif ph or bh or not hand_ok or idle: v = 'no'
         elif not fl['price']['checked'] or not fl['booking']['checked']: v = 'unchecked'
         else: v = 'yes'
-        days.append(dict(date=d.isoformat(), dow=d.strftime('%a'), verdict=v, sets=n_sets, steps_due=len(due),
+        days.append(dict(date=d.isoformat(), dow=d.strftime('%a'), verdict=v, sets=n_sets, steps_due=len(due), calls=calls, idle=idle,
                          steps_done=sum(x['done'] for x in due), price=ph, booking=bh,
                          price_checked=fl['price']['checked'], booking_checked=fl['booking']['checked'],
                          missed=[f"{STEP_SHORT_IN[x['step']]} for {x['lead']}" for x in due if not x['done']]))
@@ -179,14 +190,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
     res['booking_other'] = [h for h in bh if _ln(h.get('lead')) not in named]
     res['price'] = dict(checked=flags['price']['checked'], hits=ph)
     res['booking'] = dict(checked=flags['booking']['checked'], hits=bh)
-    # intro calls taken on D: Zooms on the setter's calendar that a lead joined
-    a, b = day_bounds(D)
-    zz = []
-    for y in get_all('/activity/meeting/', {'user_id': U, 'date_created__gte': (a - dt.timedelta(days=IN_LOOK)).astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                                             'date_created__lt': b.astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}):
-        if y.get('user_id') != U or _dead_meeting(y): continue
-        z = _zoom(y)
-        if z and z[2] and a <= z[0] < b: zz.append(z)
+    zz = zoom_by_day.get(D, [])
     res['calls_taken'] = len(zz)
     clk = lambda t: t.astimezone(ET).strftime('%-I:%M%p').lower()
     res['span'] = f"{clk(min(z[0] for z in zz))} to {clk(max(z[1] for z in zz))} ET" if zz else ''
