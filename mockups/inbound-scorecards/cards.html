@@ -1,23 +1,35 @@
-<!-- MOCKUP v1 (Nov 19, 2026): inbound setter cards (Jose and Jordan; Dave) and Jose's Incomplete Typeform outbound card.
-     Static made-up numbers, not from Close or the bots. Styles come from kit/template.html and kit/cover.html (see render.py). -->
+<!-- MOCKUP v2 (Nov 20, 2026): inbound setter cards (Jose and Jordan; Dave) and Jose's Incomplete Typeform outbound card.
+     Static made-up numbers, not from Close or the bots. Styles come from kit/template.html and kit/cover.html (see render.py).
+     v2 (Sheila, Nov 20): inbound cards drop the KPI tiles; one table of every lead with a step owed that day,
+     and a totals row at the bottom that carries each KPI's result. -->
 <style>
 .sample{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--older);border-radius:999px;padding:3px 9px}
 .inb .eyebrow{color:var(--accent)} .ob .eyebrow{color:var(--older)}
-.kpis.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.kpis.k1{grid-template-columns:1fr}
-.kpi .who{font-size:11.5px;color:var(--bad);font-weight:600}
+.todo{margin:0 0 10px;padding-left:20px;font-size:13.5px;color:var(--ink2);display:flex;flex-direction:column;gap:2px}
+.todo b{color:var(--ink)}
 .tbl{width:100%;border-collapse:collapse;font-size:12.5px}
-.tbl th{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
-.tbl td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-.tbl td:first-child{font-weight:700;white-space:nowrap}
-.tbl td.c{text-align:center;font-weight:800}
-.tbl .ok{color:var(--good)} .tbl .no{color:var(--bad)} .tbl .na{color:var(--ink3);font-weight:600}
-.tbl tr.miss td{background:var(--bad-soft)}
-.tbl td.r{color:var(--ink2);font-size:12px}
+.tbl th{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);text-align:center;padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:bottom;line-height:1.25}
+.tbl th:first-child,.tbl th.l{text-align:left}
+.tbl th.kg{color:var(--ink2);border-bottom:2px solid var(--ink3);padding-bottom:3px}
+.tbl td{padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:center}
+.tbl td:first-child{font-weight:700;white-space:nowrap;text-align:left}
+.tbl td.r{color:var(--ink2);font-size:12px;text-align:left;white-space:nowrap}
+.tbl td.ok{color:var(--good);font-weight:800} .tbl td.no{color:#fff;background:var(--bad);font-weight:800}
+.tbl td.na{color:var(--ink3);font-size:11.5px}
+.tbl tr.grp td{background:var(--track);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:4px 6px}
+.tbl tr.tot td{border-bottom:0;border-top:2px solid var(--ink);padding:8px 4px;font-size:13px;font-weight:800}
+.tbl tr.tot td.ok{background:var(--good);color:#fff} .tbl tr.tot td.no{background:var(--bad);color:#fff}
+.tbl tr.tot td.lab{text-align:left;color:var(--ink)}
+.tbl tr.tgt td{border-bottom:0;padding:2px 4px 0;font-size:10.5px;color:var(--ink3);font-weight:600}
+.verdict{border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border:2px solid var(--bad);background:var(--bad-soft)}
+.verdict.met{border-color:var(--good);background:var(--good-soft)}
+.verdict .dt{font-size:19px;font-weight:800;color:var(--bad)} .verdict.met .dt{color:var(--good)}
+.verdict .days{display:flex;gap:4px;align-items:center;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.verdict .days span{font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--card);color:var(--ink3);border:1px solid var(--line)}
+.verdict .days span.y{background:var(--good);color:#fff;border-color:var(--good)} .verdict .days span.n{background:var(--bad);color:#fff;border-color:var(--bad)}
 .note{font-size:12.5px;color:var(--ink2);border:1px dashed var(--ink3);border-radius:10px;padding:8px 12px}
 .note b{color:var(--ink)}
-.quote{font-size:12px;color:var(--ink2);font-style:italic}
-@media (max-width:560px){.kpis.k3{grid-template-columns:1fr}}
+@media (max-width:560px){.tbl{font-size:11px}.tbl th{font-size:9px}}
 </style>
 
 <!-- ============ 1. INBOUND: Jose (Jordan's card is the same) ============ -->
@@ -29,70 +41,35 @@
     <div class="meta">14 inbound calls taken · 6 set to a closer · 10:31am to 6:24pm ET</div>
   </header>
 
-  <div class="big2">
-    <div class="b2"><div class="n">6</div><div class="t">set to a closer today</div></div>
-    <div class="b2"><div class="n">23</div><div class="t">set to a closer this week</div></div>
-  </div>
-
-  <div class="draw">
-    <div class="dh"><div class="dt">Not a compliant day: 2 of 3 KPIs</div><div class="wc n">This week <span>2 of 3</span> compliant days</div></div>
-    <ul>
-      <li>Price: you mentioned price on 1 call (Mark Delaney, 2:14pm).</li>
-    </ul>
-    <div class="wf">
-      <div class="days"><span class="y">Mon</span><span class="y">Tue</span><span class="n">Wed</span><span>Thu</span><span>Fri</span></div>
-      <div class="ws">Weekly draw needs <b>all 3 KPIs</b> on <b>[? of 5]</b> days</div>
-    </div>
+  <div class="verdict">
+    <div class="dt">Not a compliant day: price came up on 1 call</div>
+    <div class="days">This week <span class="y">Mon</span><span class="y">Tue</span><span class="n">Wed</span><span>Thu</span><span>Fri</span></div>
   </div>
 
   <section>
-    <h2>Draw KPIs: hit all 3 for a compliant day</h2>
-    <div class="kpis k3">
-      <div class="kpi hit">
-        <div class="nm">1. Handoff steps</div>
-        <div class="v">100%</div>
-        <div class="of">
-          <div class="steps">
-            <div class="r"><span>Handoff email to closer</span><span class="ok">6 of 6</span></div>
-            <div class="r"><span>Closer note attached</span><span class="ok">6 of 6</span></div>
-            <div class="r"><span>Day-before text</span><span class="ok">4 of 4</span></div>
-            <div class="r"><span>Day-of text (no reply)</span><span class="ok">3 of 3</span></div>
-          </div>
-        </div>
-        <div class="nt">Due by the end of your workday.</div>
-        <div class="tbar"><i style="width:100%"></i><b style="left:100%"></b></div>
-        <div class="st"><span>Target 100%</span><span class="pill">Hit</span></div>
-      </div>
-      <div class="kpi miss">
-        <div class="nm">2. No price on calls</div>
-        <div class="v">1 call</div>
-        <div class="of">mentioned price, of 14 calls the bot checked
-          <div class="who" style="margin-top:6px">Mark Delaney, 2:14pm</div>
-          <div class="quote">"...it's around ten grand for the year..."</div>
-        </div>
-        <div class="nt">Checked by the script bot.</div>
-        <div class="st"><span>Target 0 calls</span><span class="pill">Missed</span></div>
-      </div>
-      <div class="kpi hit">
-        <div class="nm">3. No direct closer bookings</div>
-        <div class="v">0 of 6</div>
-        <div class="of">sets booked straight onto one closer's calendar. All 6 went through the team booking link.</div>
-        <div class="nt">Checked by the booking bot.</div>
-        <div class="st"><span>Target 0</span><span class="pill">Hit</span></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <h2>Today's sets</h2>
+    <h2>Every set, every step: all of it, every day, for the draw</h2>
+    <ol class="todo">
+      <li><b>Handoff steps, 100%:</b> email the closer and attach the closer note on every set, text the day before, and text the morning of the call if they haven't replied. All done by the end of your workday.</li>
+      <li><b>Never mention price</b> on a call.</li>
+      <li><b>Book through the team link</b>, never straight onto one closer's calendar.</li>
+    </ol>
     <table class="tbl">
-      <tr><th>Lead</th><th>Closer call</th><th>Email</th><th>Note</th><th>Day before</th><th>Day of</th><th>Price</th><th>Booked</th></tr>
-      <tr><td>Rachel Kim</td><td class="r">Thu 11am</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">n/a</td><td class="c ok">✓</td><td class="c ok">Clean</td><td class="c ok">Team</td></tr>
-      <tr class="miss"><td>Mark Delaney</td><td class="r">Fri 2pm</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">due Thu</td><td class="c na">due Fri</td><td class="c no">Price</td><td class="c ok">Team</td></tr>
-      <tr><td>Omar Siddiqui</td><td class="r">Mon 1pm</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">due Sun</td><td class="c na">due Mon</td><td class="c ok">Clean</td><td class="c ok">Team</td></tr>
-      <tr><td colspan="8" class="r">+ 3 more, all clean</td></tr>
+      <tr><th rowspan="2" class="l">Lead</th><th rowspan="2" class="l">Closer call</th><th colspan="4" class="kg">1. Handoff steps</th><th class="kg">2. Price</th><th class="kg">3. Booking</th></tr>
+      <tr><th>Email to closer</th><th>Closer note</th><th>Day-before text</th><th>Day-of text</th><th>No price said</th><th>Team link</th></tr>
+      <tr class="grp"><td colspan="8">Set today</td></tr>
+      <tr><td>Rachel Kim</td><td class="r">Thu 11am</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">not owed</td><td class="na">due Thu</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Mark Delaney</td><td class="r">Fri 2pm</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">due Thu</td><td class="na">due Fri</td><td class="no">✗ 2:14pm</td><td class="ok">✓</td></tr>
+      <tr><td>Omar Siddiqui</td><td class="r">Mon 1pm</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">due Sun</td><td class="na">due Mon</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Grace Liu</td><td class="r">Fri 4pm</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">due Thu</td><td class="na">due Fri</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Ben Okafor</td><td class="r">Mon 10am</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">due Sun</td><td class="na">due Mon</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Tara Nguyen</td><td class="r">Thu 3pm</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">not owed</td><td class="na">due Thu</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr class="grp"><td colspan="8">Set earlier, reminder due today</td></tr>
+      <tr><td>Sam Patel</td><td class="r">Wed 2pm</td><td class="na">done</td><td class="na">done</td><td class="ok">✓</td><td class="ok">✓</td><td class="na"></td><td class="na"></td></tr>
+      <tr><td>Erin Walsh</td><td class="r">Wed 5pm</td><td class="na">done</td><td class="na">done</td><td class="ok">✓</td><td class="na">replied</td><td class="na"></td><td class="na"></td></tr>
+      <tr><td>Luis Romero</td><td class="r">Thu 12pm</td><td class="na">done</td><td class="na">done</td><td class="ok">✓</td><td class="na">due Thu</td><td class="na"></td><td class="na"></td></tr>
+      <tr class="tot"><td class="lab" colspan="2">Total</td><td colspan="4" class="ok">100% · 16 of 16 steps</td><td class="no">1 call</td><td class="ok">0 direct</td></tr>
+      <tr class="tgt"><td colspan="2"></td><td colspan="4">Target 100%</td><td>Target 0</td><td>Target 0</td></tr>
     </table>
-    <p class="lead" style="margin-top:8px">The handoff tile also counts day-before and day-of texts owed today for calls set on earlier days.</p>
   </section>
 </div>
 
@@ -105,41 +82,29 @@
     <div class="meta">11 inbound calls taken · 4 set to a closer · 9:02am to 5:11pm ET</div>
   </header>
 
-  <div class="big2">
-    <div class="b2"><div class="n">4</div><div class="t">set to a closer today</div></div>
-    <div class="b2"><div class="n">15</div><div class="t">set to a closer this week</div></div>
+  <div class="verdict">
+    <div class="dt">Handoff steps: 11 of 13 done, 2 missed</div>
   </div>
 
   <section>
-    <h2>Your KPI: handoff steps</h2>
-    <div class="kpis k1">
-      <div class="kpi miss">
-        <div class="nm">Handoff steps done</div>
-        <div class="v">87%</div>
-        <div class="of">13 of 15 steps done
-          <div class="steps" style="margin-top:6px">
-            <div class="r"><span>Handoff email to closer</span><span class="ok">4 of 4</span></div>
-            <div class="r"><span>Closer note attached</span><span class="no">3 of 4</span></div>
-            <div class="r"><span>Day-before text</span><span class="ok">3 of 3</span></div>
-            <div class="r"><span>Day-of text (no reply)</span><span class="no">3 of 4</span></div>
-          </div>
-          <div class="who" style="margin-top:6px">Missed: closer note for Lena Ortiz · day-of text for Paul Greer</div>
-        </div>
-        <div class="nt">Due by the end of your workday.</div>
-        <div class="tbar"><i style="width:87%"></i><b style="left:100%"></b></div>
-        <div class="st"><span>Target 100%</span><span class="pill">Missed</span></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <h2>Steps owed today</h2>
+    <h2>Every set, every step: 100% done by the end of your workday</h2>
+    <ol class="todo">
+      <li>Email the closer and attach the closer note on every set.</li>
+      <li>Text the day before the call, and the morning of the call if they haven't replied.</li>
+    </ol>
     <table class="tbl">
-      <tr><th>Lead</th><th>Closer call</th><th>Email</th><th>Note</th><th>Day before</th><th>Day of</th></tr>
-      <tr class="miss"><td>Lena Ortiz</td><td class="r">Fri 10am (set today)</td><td class="c ok">✓</td><td class="c no">✗</td><td class="c na">due Thu</td><td class="c na">due Fri</td></tr>
-      <tr class="miss"><td>Paul Greer</td><td class="r">Wed 3pm (set Mon)</td><td class="c na">done</td><td class="c na">done</td><td class="c ok">✓</td><td class="c no">✗</td></tr>
-      <tr><td>Nina Shah</td><td class="r">Thu 4pm (set today)</td><td class="c ok">✓</td><td class="c ok">✓</td><td class="c na">n/a</td><td class="c na">due Thu</td></tr>
-      <tr><td colspan="6" class="r">+ 5 more, all done</td></tr>
+      <tr><th class="l">Lead</th><th class="l">Closer call</th><th>Email to closer</th><th>Closer note</th><th>Day-before text</th><th>Day-of text</th></tr>
+      <tr class="grp"><td colspan="6">Set today</td></tr>
+      <tr><td>Lena Ortiz</td><td class="r">Fri 10am</td><td class="ok">✓</td><td class="no">✗</td><td class="na">due Thu</td><td class="na">due Fri</td></tr>
+      <tr><td>Nina Shah</td><td class="r">Thu 4pm</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">not owed</td><td class="na">due Thu</td></tr>
+      <tr><td>Chris Moore</td><td class="r">Mon 11am</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">due Sun</td><td class="na">due Mon</td></tr>
+      <tr><td>Ava Brooks</td><td class="r">Fri 1pm</td><td class="ok">✓</td><td class="ok">✓</td><td class="na">due Thu</td><td class="na">due Fri</td></tr>
+      <tr class="grp"><td colspan="6">Set earlier, reminder due today</td></tr>
+      <tr><td>Paul Greer</td><td class="r">Wed 3pm</td><td class="na">done</td><td class="na">done</td><td class="ok">✓</td><td class="no">✗</td></tr>
+      <tr><td>Jake Rivera</td><td class="r">Wed 11am</td><td class="na">done</td><td class="na">done</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Mia Chen</td><td class="r">Thu 2pm</td><td class="na">done</td><td class="na">done</td><td class="ok">✓</td><td class="na">due Thu</td></tr>
+      <tr class="tot"><td class="lab" colspan="2">Total</td><td colspan="4" class="no">85% · 11 of 13 steps</td></tr>
+      <tr class="tgt"><td colspan="2"></td><td colspan="4">Target 100%</td></tr>
     </table>
   </section>
 </div>
