@@ -2,6 +2,7 @@
      Static made-up numbers, not from Close or the bots. Styles come from kit/template.html and kit/cover.html (see render.py).
      v2 (Sheila, Nov 20): inbound cards drop the KPI tiles; one table of every lead with a step owed that day,
      and a totals row at the bottom that carries each KPI's result.
+     v5 (Sheila, Nov 20): three tiles on top of Jose's and Jordan's cards: sets today, sets this week, closes / sets since outbound start.
      v4 (Sheila, Nov 20): every done step is a check; reminders not yet due are one gray "not due yet" block.
      v3 (Sheila, Nov 20): Jose's and Jordan's inbound cards get one tile under the title: closes / sets since they started outbound. -->
 <style>
@@ -34,6 +35,12 @@
 .cum .n{font-size:40px;font-weight:800;color:var(--good);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .cum .n span{color:var(--ink2);font-weight:700}
 .cum .t{font-size:14px;font-weight:600;color:var(--ink2)} .cum .t b{color:var(--ink)}
+.top3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.5fr);gap:10px}
+.top3 .t3{border-radius:12px;background:var(--good-soft);padding:10px 14px;display:flex;flex-direction:column;gap:4px}
+.top3 .n{font-size:40px;font-weight:800;color:var(--good);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.top3 .n span{color:var(--ink2);font-weight:700}
+.top3 .t{font-size:13.5px;font-weight:600;color:var(--ink2);line-height:1.3} .top3 .t b{color:var(--ink)}
+@media (max-width:560px){.top3{grid-template-columns:1fr}}
 .note{font-size:12.5px;color:var(--ink2);border:1px dashed var(--ink3);border-radius:10px;padding:8px 12px}
 .note b{color:var(--ink)}
 @media (max-width:560px){.tbl{font-size:11px}.tbl th{font-size:9px}}
@@ -48,9 +55,10 @@
     <div class="meta">14 inbound calls taken · 6 set to a closer · 10:31am to 6:24pm ET</div>
   </header>
 
-  <div class="cum">
-    <div class="n">3<span> / 41</span></div>
-    <div class="t"><b>3 closed</b> out of the <b>41 sets</b> you've made to a closer since you started outbound on Oct 20</div>
+  <div class="top3">
+    <div class="t3"><div class="n">6</div><div class="t">set to a closer today</div></div>
+    <div class="t3"><div class="n">23</div><div class="t">set to a closer this week</div></div>
+    <div class="t3"><div class="n">3<span> / 41</span></div><div class="t"><b>3 closed</b> of the <b>41 sets</b> you've made since you started outbound on Oct 20</div></div>
   </div>
 
   <div class="verdict">
