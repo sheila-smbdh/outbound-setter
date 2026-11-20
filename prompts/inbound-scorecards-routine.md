@@ -7,6 +7,8 @@ Weekdays at 9:00am ET (`CRON_TZ=America/New_York 0 9 * * 1-5`), a fresh cloud se
 
 Run problems go to Sheila's own DM (`D0BLE68V517`). Layout and rules: `docs/INBOUND-SCORECARD.md`. The routine was created paused: Sheila turns it on once Messi's price and direct-booking reports are running again.
 
+Trigger id `trig_01AHuok3nMbS23ugAwxef6VF`, created Nov 20, 2026 and paused right away. It was created without connectors or a repo attached (this session couldn't pass them on): add Slack and this repo in the claude.ai Routines settings. Its first run time came back as 9:07am ET.
+
 Connectors the routine needs: **Slack** (read the two Messi channels, post the cards). Close needs no connector: the cloud proxy signs in to api.close.com. The repo `sheila-smbdh/outbound-setter` should be attached. Composio is only the Close fallback.
 
 Stored prompt, word for word:
