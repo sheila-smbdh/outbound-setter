@@ -89,6 +89,14 @@ COVER_FOOT = ("From Close, times in ET. Speed to lead: new sign-ups during your 
               "Sets to a closer so far: every closer call booked off your pickups since Sep 16, under the same rule. "
               "Closes: Won deals from closer calls booked off your pickups, since Sep 16.")
 
+# Nov 20, 2026 (Sheila): other cards built from the same cover, by setter key. Jose's Incomplete Typeform outbound card
+# is tracked only: no draw box, Leads dialed has no target, and a note says it does not count toward the draw.
+CARDS = dict(jose_it=dict(
+    eyebrow="Incomplete Typeform Outbound", day="Outbound Day", top="Top numbers",
+    rest="Tracked. Green: hit. Yellow: almost. Red: missed. Blue: no target.",
+    note="<b>Tracked only.</b> This card does not count toward your KPIs or the weekly draw. Your inbound card decides the draw.",
+    sets_from=" from Incomplete Typeform", leads_track=True))
+
 def setter(m):
     """(key, name, start date label) of the setter this card is for; Bali when the metrics don't say (older records)."""
     s = m.get("setter") or {}
@@ -439,6 +447,7 @@ def build(metrics, out_dir, draw_week=None):
     key, name, since = setter(metrics)
     data = dict(setter=dict(key=key, name=name, since=since), metrics=metrics, baseline=BASE, win=win, fix=pick_fix(metrics), footnote=FOOT.format(hours=work_hours(metrics)), cover=cover(metrics, win))
     data["draw"] = draw_box(metrics, draw_week)
+    data["card"] = CARDS.get(key)
     # cover markup goes before the summary card; its script goes after the data block
     i = cov.index("<script>"); cov_html, cov_js = cov[:i], cov[i:]
     tpl = tpl.replace('<div class="card" id="card1">', cov_html + '\n<div class="card" id="card1">', 1)
@@ -465,7 +474,8 @@ def build(metrics, out_dir, draw_week=None):
 async def _shot(src, outs):
     from playwright.async_api import async_playwright
     async with async_playwright() as p:
-        b = await p.chromium.launch()
+        try: b = await p.chromium.launch()
+        except Exception: b = await p.chromium.launch(executable_path="/opt/pw-browsers/chromium")   # cloud container's Chromium
         pg = await b.new_page(viewport={"width": 780, "height": 900}, device_scale_factor=2, color_scheme="light")
         await pg.goto("file://" + src); await pg.wait_for_timeout(400)
         for sel, out in zip(["#card0", "#card1"], outs):

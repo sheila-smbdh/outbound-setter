@@ -1,6 +1,16 @@
 # Inbound setter scorecards: data sources (Sheila, Nov 20, 2026)
 
-Approved layouts: `mockups/inbound-scorecards/` (v7). Not built yet. Delivery (where the cards post) is still to be decided with Sheila.
+Approved layouts: `mockups/inbound-scorecards/` (v7). Built Nov 20, 2026. Delivery: the routine in `prompts/inbound-scorecards-routine.md` (weekdays 9am ET; inbound cards to #setter-sync `C095GLLCU2U`, Jose's outbound card to `C0C9VANP6QN`), created paused until Messi's two reports run again.
+
+## Files
+
+| File | What it does |
+|---|---|
+| `kit/inbound.py` | Inbound sets, handoff steps, the week's verdicts and the table rows (`run_inbound`). Runs after `bali_metrics.py`, `bali_cover.py`, `bali_show.py` |
+| `kit/run_inbound.py` | `python3 run_inbound.py <D> jose jordan dave --flags ../flags --out <dir>` writes `inbound-<key>.json` (GET only, same Close access as `run_direct.py`) |
+| `kit/inbound_build.py`, `kit/inbound.css` | Render `inbound-<key>.json` to `inbound-<key>-<D>.png` |
+| `flags/<D>.json` | Messi's price and booking results for a day, written by the routine from Slack (format in `kit/inbound.py`) |
+| `jose_it` in `SETTERS` (`kit/bali_show.py`) | Jose's Incomplete Typeform outbound card: `python3 run_direct.py <D> jose_it`, then `build.py` (labels in `CARDS`, `kit/build.py`) |
 
 ## Cards
 
@@ -50,5 +60,4 @@ Only inbound sets count. Reminders still owed on old Welcome Series outbound set
 ## Still open
 
 - Draw rule: how many compliant days a week earn the weekly draw.
-- Delivery: where and when the cards post.
 - The draw tracker for Jose and Jordan.

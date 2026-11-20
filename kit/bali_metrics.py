@@ -22,6 +22,9 @@ EXCLUDE=None
 AB_SEQ='seq_0i6NE63SCuSdwb4E7kXQc3'   # 001- Incomplete Typeform Lead Distribution
 AB_MERGE=False
 AB_LIST=set()   # the setter's Incomplete Typeform leads while AB_MERGE is on
+# Nov 20, 2026 (Sheila): Jose's Incomplete Typeform outbound card ('jose_it' in SETTERS) counts only his Incomplete
+# Typeform leads. ONLY holds those lead ids while it is selected; load() drops every other lead. None keeps every lead.
+ONLY=None
 def list_leads(uid, field=ICU_FIELD):
     """Lead ids whose user field `field` (default Initial Contact User) is uid. GET lead search, read only
     (Nov 4, 2026: was a POST /data/search/; GET keeps the whole kit GET-only for the direct Close API run)."""
@@ -174,6 +177,11 @@ def load(D, back=16):
         if 'do not contact' in (x.get('new_status_label') or '').lower() and x.get('lead_id'):
             t=pt(x['date_created'])
             if x['lead_id'] not in dnc or t<dnc[x['lead_id']]: dnc[x['lead_id']]=t
+    if ONLY is not None:   # Nov 20 (Sheila): Jose's Incomplete Typeform card, his Incomplete Typeform leads only
+        keep=lambda x: x.get('lead_id') in ONLY
+        calls=[c for c in calls if keep(c)]; inbound=[c for c in inbound if keep(c)]
+        sms=[s for s in sms if keep(s)]; ms=[m for m in ms if keep(m)]; enr={l:x for l,x in enr.items() if l in ONLY}
+        emails=[e for e in emails if keep(e)]; inbound_any=[c for c in inbound_any if keep(c)]
     if EXCLUDE:   # Oct 28 (Sheila): Abandoned Typeform leads count only on their own card
         keep=lambda x: x.get('lead_id') not in EXCLUDE
         calls=[c for c in calls if keep(c)]; inbound=[c for c in inbound if keep(c)]

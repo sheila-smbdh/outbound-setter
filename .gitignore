@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+/d/
+/out/
+/flags/
+/draw/

@@ -39,6 +39,10 @@ SETTERS = dict(
     # speed_min (Sheila, Nov 16, 2026): speed to lead within 20 minutes for Jose and Jordan (the draw KPI); default 15
     jose=dict(name='Jose', speed_min=20, user='user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk', since=dt.date(2026, 10, 20), merge_ab=True,
               hours=[(dt.date(2026, 10, 20), 'America/New_York', '10:30', '18:30', 'ET')]),
+    # Nov 20, 2026 (Sheila): Jose's Incomplete Typeform outbound card, his only outbound since the inbound switch.
+    # ab_only: only his "Incomplete Typeform User" leads (ONLY in bali_metrics.py). Tracked only, no draw (build.py CARDS).
+    jose_it=dict(name='Jose', speed_min=20, user='user_msFtSHmZcoRAYvHX8aGrnygBzOy4u1GnLrRSFfIdcgk', since=dt.date(2026, 11, 11), ab_only=True,
+                 hours=[(dt.date(2026, 10, 20), 'America/New_York', '10:30', '18:30', 'ET')]),
     jordan=dict(name='Jordan', speed_min=20, user='user_3IrYZLUcCBZrg2mb49wCybrxGBFTCxa5eqTHhE1ApuC', since=dt.date(2026, 10, 20), merge_ab=True,
                 hours=[(dt.date(2026, 10, 20), 'America/Denver', '09:00', '17:00', 'MT'),
                        (dt.date(2026, 11, 1), 'America/Chicago', '09:00', '17:00', 'CT')]))
@@ -47,12 +51,14 @@ SETTER = dict(key='bali', **SETTERS['bali'])
 def use_setter(key):
     """Point every helper at one setter: their Close user (BALI), their list (LIST) and their start dates.
     Call before run_cover / run_show / week, and again before switching setters."""
-    global BALI, LIST, EXCLUDE, CLOSES_FROM, STEPS_FROM, SETTER, AB_MERGE, AB_LIST
+    global BALI, LIST, EXCLUDE, CLOSES_FROM, STEPS_FROM, SETTER, AB_MERGE, AB_LIST, ONLY
     s = SETTERS[key]
     BALI = s['user']; LIST = list_leads(s['user']); CLOSES_FROM = s['since']
     ab = list_leads(s['user'], AB_USER_FIELD)
-    AB_MERGE = bool(s.get('merge_ab')); AB_LIST = ab if AB_MERGE else set()
-    if AB_MERGE:   # Nov 11, 2026 (Sheila): Jose's and Jordan's Abandoned Typeform leads count on their card
+    AB_MERGE = bool(s.get('merge_ab') or s.get('ab_only')); AB_LIST = ab if AB_MERGE else set(); ONLY = None
+    if s.get('ab_only'):   # Nov 20, 2026 (Sheila): Incomplete Typeform leads only (Jose's outbound card)
+        LIST = set(ab); EXCLUDE = None; ONLY = set(ab)
+    elif AB_MERGE:   # Nov 11, 2026 (Sheila): Jose's and Jordan's Abandoned Typeform leads count on their card
         LIST = LIST | ab; EXCLUDE = None
     else:          # Oct 28, 2026 (Sheila): Bali's Abandoned Typeform leads stayed off his card (they had their own)
         EXCLUDE = ab
