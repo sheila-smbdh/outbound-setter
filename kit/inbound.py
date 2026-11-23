@@ -59,7 +59,7 @@ def _match(h, lead_id, name):
     return bool(a) and (a in b or b in a)
 
 
-def _booking_by_day(flags_dir, key, first, D, ledger):
+def _booking_by_day(flags_dir, key, first, D, ledger, it_leads=frozenset()):
     """Messi's direct-booking alerts for this setter, by the day they count on (Sheila, Nov 23, 2026). An alert lands
     in the thread of the day Messi found it, which can be days after the booking (Nov 21's thread held Jose's Nov 19
     bookings), so an alert about one of the setter's sets counts on the day that set was made; any other alert counts
@@ -73,7 +73,16 @@ def _booking_by_day(flags_dir, key, first, D, ledger):
             if k in seen: continue
             seen.add(k)
             s = next((s for s in ledger if _match(h, s['lead_id'], s['name'])), None)
-            out[etd(s['set_t']) if s else (_booked_day(h, d) or d)].append(h)
+            # the lead's name on every alert, so it can be traced (Sheila, Nov 23, 2026): Close's name when Messi's
+            # alert only carries the Close link
+            if h.get('lead_id') and not h.get('lead'):
+                r_, e_ = _q(proxy_execute, 'GET', f"/lead/{h['lead_id']}/", 'close', query_params={'_fields': 'display_name'})
+                h['lead'] = ((r_ or {}).get('data') or {}).get('display_name') or ''
+            if s: out[etd(s['set_t'])].append(h); continue
+            bd, dead = _booked_day(h, d)
+            h['not_a_set'] = ('Incomplete Typeform lead, on the outbound card' if h.get('lead_id') in it_leads else
+                              'meeting canceled' if dead else 'not an inbound set')
+            out[bd or d].append(h)
     return out
 
 
@@ -81,12 +90,15 @@ def _booked_day(h, d):
     """The ET day the flagged closer meeting was booked, from Close, for an alert that isn't one of the setter's sets
     (Sheila, Nov 23, 2026: Drew Davis, Jose, Nov 19: booked on Kevin Manuel's own link, flagged in Nov 21's thread, and
     the meeting was canceled afterwards, so it is no set; the booking still counts on Nov 19). Canceled meetings count.
-    The meeting with the named closer booked on or before the alert's day, the latest one; None when Close has none."""
-    if not h.get('lead_id'): return None
+    The meeting with the named closer booked on or before the alert's day, the latest one: (its ET day, canceled or
+    not), or (None, False) when Close has none."""
+    if not h.get('lead_id'): return None, False
     first = _ln(h.get('closer')).split(' ')[0] if h.get('closer') else ''
     ms = [x for x in _q(get_all, '/activity/meeting/', {'lead_id': h['lead_id']}) if x.get('user_id') in CLOSERS
           and pt(x['date_created']) < day_bounds(d)[1] and (not first or first in _ln(x.get('user_name')))]
-    return etd(max(pt(x['date_created']) for x in ms)) if ms else None
+    if not ms: return None, False
+    x = max(ms, key=lambda x: pt(x['date_created']))
+    return etd(pt(x['date_created'])), _dead_meeting(x)
 
 
 def inbound_sets(D, U, start, it_leads):
@@ -173,7 +185,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
     # A weekday with no intro calls, no sets and no steps due is not compliant (Sheila, Nov 20: compliant Monday to
     # Friday for the weekly draw); Sheila or Jay override days off in the tracker.
     days = []
-    book_by_day = _booking_by_day(flags_dir, key, start, D, ledger)
+    book_by_day = _booking_by_day(flags_dir, key, start, D, ledger, it_leads)
     for i in range((D - mon).days + 1):
         d = mon + dt.timedelta(days=i)
         if d.weekday() > 4: continue

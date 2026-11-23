@@ -97,7 +97,10 @@ def table(r):
         extra.append(f'<li>Price on a call with {E(h.get("lead") or "a lead")}' + (f' at {E(h["time"])}' if h.get("time") else "") +
                      (f': <i>"{E(h["quote"])}"</i>' if h.get("quote") else "") + "</li>")
     for h in r.get("booking_other") or []:
-        extra.append(f'<li>Direct booking: {E(h.get("lead") or "a lead")}' + (f' with {E(h["closer"])}' if h.get("closer") else "") + "</li>")
+        # lead name, closer and call time, so the booking can be traced (Sheila, Nov 23, 2026)
+        extra.append(f'<li>Direct booking: <b>{E(h.get("lead") or "a lead")}</b>' + (f' with {E(h["closer"])}' if h.get("closer") else "") +
+                     (f', call {E(h["time"])}' if h.get("time") else "") +
+                     (f' (not a set: {E(h["not_a_set"])})' if h.get("not_a_set") else "") + "</li>")
     if extra: out.append('<ul class="xtra">' + "".join(extra) + "</ul>")
     return "".join(out)
 

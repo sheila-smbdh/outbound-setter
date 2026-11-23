@@ -40,7 +40,8 @@ def day_row(key, x, now):
         why.append(f"Price on a call with {h.get('lead') or 'a lead'}" + (f" at {h['time']}" if h.get('time') else '') +
                    (f': "{h["quote"]}"' if h.get('quote') else ''))
     for h in x['booking']:
-        why.append(f"Direct booking: {h.get('lead') or 'a lead'}" + (f" with {h['closer']}" if h.get('closer') else ''))
+        why.append(f"Direct booking: {h.get('lead') or 'a lead'}" + (f" with {h['closer']}" if h.get('closer') else '') +
+                   (f", call {h['time']}" if h.get('time') else '') + (f" (not a set: {h['not_a_set']})" if h.get('not_a_set') else ''))
     if price == 'Not checked': why.append("Messi's price check didn't come in")
     if book == 'Not checked': why.append("Messi's booking check didn't come in")
     return [week_of(x['date']), x['date'], x['dow'], NAMES[key], x.get('calls', ''), x['sets'], x['steps_due'],
