@@ -80,8 +80,9 @@ def _booking_by_day(flags_dir, key, first, D, ledger, it_leads=frozenset()):
                 h['lead'] = ((r_ or {}).get('data') or {}).get('display_name') or ''
             if s: out[etd(s['set_t'])].append(h); continue
             bd, dead = _booked_day(h, d)
-            h['not_a_set'] = ('Incomplete Typeform lead, on the outbound card' if h.get('lead_id') in it_leads else
-                              'meeting canceled' if dead else 'not an inbound set')
+            # the note shown in brackets after the booking (Sheila, Nov 23, 2026)
+            h['not_a_set'] = ('not an inbound set: Incomplete Typeform lead, counted on the outbound card'
+                              if h.get('lead_id') in it_leads else 'not a set: meeting canceled' if dead else 'not an inbound set')
             out[bd or d].append(h)
     return out
 

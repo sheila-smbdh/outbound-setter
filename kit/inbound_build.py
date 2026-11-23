@@ -100,7 +100,7 @@ def table(r):
         # lead name, closer and call time, so the booking can be traced (Sheila, Nov 23, 2026)
         extra.append(f'<li>Direct booking: <b>{E(h.get("lead") or "a lead")}</b>' + (f' with {E(h["closer"])}' if h.get("closer") else "") +
                      (f', call {E(h["time"])}' if h.get("time") else "") +
-                     (f' (not a set: {E(h["not_a_set"])})' if h.get("not_a_set") else "") + "</li>")
+                     (f' ({E(h["not_a_set"])})' if h.get("not_a_set") else "") + "</li>")
     if extra: out.append('<ul class="xtra">' + "".join(extra) + "</ul>")
     return "".join(out)
 
