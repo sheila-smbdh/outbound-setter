@@ -19,9 +19,11 @@ DAYS_TAB, WEEKS_TAB = 'Inbound Days', 'Inbound Weeks'
 DAY_COLS = ['Week of', 'Date', 'Day', 'Setter', 'Intro calls', 'Inbound sets', 'Handoff steps due',
             'Handoff steps done', 'Handoff 100%', 'No price on calls', 'No direct bookings', 'Day verdict',
             'Why', 'Missed handoff steps', 'Checked at (ET)',
-            'Override (Sheila/Jay)', 'Override note', 'Counts as']          # P:Q typed by Sheila/Jay; R formula
+            'Override (Sheila/Jay)', 'Override note', 'Counts as',          # P:Q typed by Sheila/Jay; R formula
+            'Booked calls', 'Scheduled calls', 'Live calls']                # S:U, written by the routine (Sheila, Nov 23, 2026)
 WEEK_COLS = ['Week of', 'Setter', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Compliant days (of 5)', 'Auto result',
-             'Override (Sheila/Jay)', 'Override note', 'Eligible for the draw']   # J:K typed by Sheila/Jay; L formula
+             'Override (Sheila/Jay)', 'Override note', 'Eligible for the draw',   # J:K typed by Sheila/Jay; L formula
+             'Booked calls', 'Scheduled calls', 'Live calls']                      # M:O, week totals (formulas)
 VERDICT = dict(yes='Compliant', no='Not compliant', unchecked='Not checked')
 
 
@@ -44,7 +46,7 @@ def day_row(key, x, now):
                    (f", call {h['time']}" if h.get('time') else '') + (f" ({h['not_a_set']})" if h.get('not_a_set') else ''))
     if price == 'Not checked': why.append("Messi's price check didn't come in")
     if book == 'Not checked': why.append("Messi's booking check didn't come in")
-    return [week_of(x['date']), x['date'], x['dow'], NAMES[key], x.get('calls', ''), x['sets'], x['steps_due'],
+    return [week_of(x['date']), x['date'], x['dow'], NAMES.get(key, key.title()), x.get('calls', ''), x['sets'], x['steps_due'],
             x['steps_done'], hand, price, book, VERDICT.get(x['verdict'], x['verdict']), '. '.join(why),
             '; '.join(x.get('missed') or []), now]
 
@@ -68,15 +70,17 @@ def main():
     load = lambda p: json.load(open(p)) if os.path.exists(p) and os.path.getsize(p) else {}
     ex_d, ex_w = load(a.days), load(a.weeks)
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=-5))).strftime('%Y-%m-%d %H:%M')
-    new_days, weeks = [], set()
+    new_days, weeks, calls_by = [], set(), {}
     for p in a.inbound:
         r = json.load(open(p)); key = r['key']
         if key not in NAMES: continue                       # Dave has no draw
         for x in r['days']:
             if x['date'] < DRAW_FROM: continue
             new_days.append(day_row(key, x, now)); weeks.add((week_of(x['date']), NAMES[key]))
+            calls_by[(x['date'], NAMES[key])] = [x.get('booked', ''), x.get('scheduled', ''), x.get('live', '')]
     # Week of and Date as text keys: the sheet stores them as dates, read back as YYYY-MM-DD (FORMATTED_VALUE with
     # the tab's yyyy-mm-dd format)
+    old_calls = {(str(r[1]), str(r[3])): (list(r[18:21]) + ['', '', ''])[:3] for r in (ex_d.get('values') or [])[1:] if len(r) > 3}
     days = upsert(ex_d, new_days, lambda r: (str(r[1]), str(r[3])), 15)
     n = len(days) + 1
     new_weeks = [[w, s] for w, s in sorted(weeks)]
@@ -94,7 +98,15 @@ def main():
         dict(range=f"'{WEEKS_TAB}'!A1:I{m}", majorDimension='ROWS',
              values=[WEEK_COLS[:9]] + [r + w for r, w in zip(wk, wrows)]),
         dict(range=f"'{WEEKS_TAB}'!L1:L{m}", majorDimension='ROWS',
-             values=[[WEEK_COLS[11]]] + [[f'=IF(J{i}<>"",J{i},I{i})'] for i in range(2, m + 1)])])
+             values=[[WEEK_COLS[11]]] + [[f'=IF(J{i}<>"",J{i},I{i})'] for i in range(2, m + 1)]),
+        # booked, scheduled and live calls (Sheila, Nov 23, 2026): per day in S:U (rows from earlier runs keep theirs),
+        # week totals in M:O
+        dict(range=f"{D}!S1:U{n}", majorDimension='ROWS',
+             values=[DAY_COLS[18:21]] + [calls_by.get((str(r[1]), str(r[3])), old_calls.get((str(r[1]), str(r[3])), ['', '', '']))
+                                         for r in days]),
+        dict(range=f"'{WEEKS_TAB}'!M1:O{m}", majorDimension='ROWS',
+             values=[WEEK_COLS[12:15]] + [[f'=SUMIFS({D}!{c}$2:{c},{D}!$A$2:$A,$A{i},{D}!$D$2:$D,$B{i})' for c in 'STU']
+                                          for i in range(2, m + 1)])])
     os.makedirs(a.out, exist_ok=True)
     json.dump(body, open(os.path.join(a.out, 'inbound-draw-sheet.json'), 'w'))
     print(json.dumps(dict(day_rows=n - 1, week_rows=m - 1,

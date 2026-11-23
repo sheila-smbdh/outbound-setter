@@ -11,6 +11,9 @@ Approved layouts: `mockups/inbound-scorecards/` (v7). Built Nov 20, 2026. Delive
 | `kit/inbound_build.py`, `kit/inbound.css` | Render `inbound-<key>.json` to `inbound-<key>-<D>.png` |
 | `flags/<D>.json` | Messi's price and booking results for a day, written by the routine from Slack (format in `kit/inbound.py`) |
 | `kit/inbound_draw.py` | Merge the run into the tracker tabs: `python3 inbound_draw.py <days.json> <weeks.json> <inbound-*.json> --out <dir>` writes the Sheets `values:batchUpdate` body |
+| `kit/inbound_supabase.py` | Supabase rows for a run: one JSON file per table plus the curl upsert for each |
+| `kit/inbound_corrections.json` | One-off fixes Sheila or Jay approved in a card thread |
+| `supabase/inbound_scorecards.sql` | The Supabase tables (run once) |
 | `jose_it` in `SETTERS` (`kit/bali_show.py`) | Jose's Incomplete Typeform outbound card: `python3 run_direct.py <D> jose_it`, then `build.py` (labels in `CARDS`, `kit/build.py`) |
 
 ## Cards
@@ -90,3 +93,33 @@ Two tabs in the Google Sheet "Setter Draw Tracker" (`1hvHFzqlPJzOq2ght4Ld4iZopX_
 - Both tabs are protected: only Sheila and Jay can edit them. Everyone the sheet is shared with can still view them (10 editors and the smbdealhunter.xyz domain as of Nov 20).
 - The routine writes Inbound Days A:O and R, and Inbound Weeks A:I and L, nothing else. Rows are upserted by (date, setter) and (week, setter), so overrides stay on their rows.
 - The card's week dots come from the run's own verdicts, not the overrides.
+- **Booked, scheduled and live calls** (Sheila, Nov 23, 2026): Inbound Days S:U per day (the routine writes them), Inbound Weeks M:O the week's totals (SUMIFS formulas). Jose and Jordan only; Dave's are in Supabase.
+
+## Supabase (Sheila, Nov 23, 2026)
+
+Every run records everything in setter-data (`suoblmuvrmyfmuvlhqce`), tables in `supabase/inbound_scorecards.sql` (run once in the SQL editor; Claude's Supabase access can't create tables). `kit/inbound_supabase.py` writes one JSON file per table and prints the curl upsert for each; the routine sends each with one inline curl (standing approval, Sheila, Nov 23, 2026).
+
+| Table | One row per |
+|---|---|
+| `inbound_sc_days` | setter (Jose, Jordan, Dave) per weekday: intro calls, sets, booked/scheduled/live, the three KPIs, verdict and why, Messi's hits, outbound totals |
+| `inbound_sc_sets` | inbound set: lead, closer, set and call times, each handoff step, price and booking |
+| `inbound_sc_calls` | lead per day on the setter's calendar: scheduled, live, why removed |
+| `outbound_sc_days` | Jose's Incomplete Typeform card per day (key numbers and the full metrics) |
+| `inbound_sc_runs` | run: card day, status, summary |
+| `inbound_sc_feedback` | setter's claim in a card thread, Sheila's or Jay's decision, what changed |
+
+Rows are upserted on their keys, so a rerun or a correction replaces them in place.
+
+## Feedback in the card threads (Sheila, Nov 23, 2026)
+
+- Each run reads the threads on the cards posted in the last 14 days (#setter-sync and the outbound channel). A setter's reply saying a number is wrong, and why, is recorded in `inbound_sc_feedback` as pending.
+- It changes nothing unless **Sheila or Jay** reply in that thread agreeing ("your response makes sense"). A setter's word alone never changes a number. A disagreement from Sheila or Jay marks it rejected.
+- An approved claim is applied by the routine:
+  - a one-off fix about specific leads goes in `kit/inbound_corrections.json` (format above `corrections()` in `kit/inbound.py`: a call's scheduled or live, a set excluded, a handoff step done or missed);
+  - a change to how something is counted goes in "Approved corrections" below, with the code change in `kit/inbound*.py`.
+  - The routine re-runs the affected days, checks the disputed number now matches what was agreed, commits to main, refreshes Supabase and the tracker for those days, and DMs Sheila a line per change. If it can't make the numbers match, it commits nothing and asks Sheila.
+- The routine never replies in the card threads.
+
+## Approved corrections
+
+Rules added from approved feedback, newest last (date, setter, what changes, thread, who approved). None yet.

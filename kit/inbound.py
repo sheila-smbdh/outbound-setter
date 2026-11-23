@@ -28,6 +28,7 @@ IN_FROM = dt.date(2026, 11, 16)    # inbound handoff steps count from this week 
 IN_LOOK = 21                       # days back for sets whose reminders fall in the week
 IN_DIAL_BACK = dt.timedelta(days=14)
 IN_WINDOW = dt.timedelta(hours=24)
+CORR = []
 
 
 def _monday(d): return d - dt.timedelta(days=d.weekday())
@@ -175,12 +176,32 @@ CANCEL_RE = re.compile(r"\bcancel|can'?t make|cannot make|won'?t (be able to )?m
                        r"unable to (make|attend|join)|no longer (interested|able|available)", re.I)
 
 
-def call_counts(D, U):
+# Approved corrections (Sheila, Nov 23, 2026): when a setter disputes a number in their card's Slack thread and Sheila or
+# Jay agree, the routine records a one-off fix in kit/inbound_corrections.json (a rule change goes in the docs and the
+# code instead). Each entry: {"setter", "day", "lead_id", "lead", "what", "field", "value", "reason", "thread",
+# "approved_by"}. what = "call" (field: scheduled | live, value true/false), "set" (field: exclude, value true: not
+# the setter's set) or "step" (field: email | note | day_before | morning_of, value true/false: done or missed).
+def corrections(key):
+    p = os.path.join(os.path.dirname(os.path.abspath(globals().get('__file__', 'kit/inbound.py'))), 'inbound_corrections.json')
+    for p in (p, os.path.join('kit', 'inbound_corrections.json'), 'inbound_corrections.json'):
+        if os.path.exists(p):
+            return [c for c in json.load(open(p)) if c.get('setter') == key]
+    return []
+
+
+def setter_meetings(D, U, back=90):
+    """Every meeting on the setter's own calendar created in the `back` days up to the end of D (with a lead and a start)."""
     a, b = day_bounds(D)
     utc = lambda t: t.astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
-    ms = get_all('/activity/meeting/', {'user_id': U, 'date_created__gte': utc(a - dt.timedelta(days=90)),
+    ms = get_all('/activity/meeting/', {'user_id': U, 'date_created__gte': utc(a - dt.timedelta(days=back)),
                                         'date_created__lt': utc(b)})
-    ms = [x for x in ms if x.get('user_id') == U and x.get('lead_id') and x.get('starts_at')]
+    return [x for x in ms if x.get('user_id') == U and x.get('lead_id') and x.get('starts_at')]
+
+
+def call_counts(D, U, ms=None):
+    a, b = day_bounds(D)
+    if ms is None: ms = setter_meetings(D, U)
+    ms = [x for x in ms if pt(x['date_created']) < b]
     byl = collections.defaultdict(list)
     for x in ms:
         if a <= pt(x['starts_at']) < b: byl[x['lead_id']].append(x)
@@ -219,8 +240,14 @@ def call_counts(D, U):
                 if a <= t and RESCHED_RE.search(txt):
                     why = 'asked to reschedule before the call (message)'; break
         sched = live or why is None
-        rows.append(dict(lead=name or l, lead_id=l, start=start.astimezone(ET).strftime('%-I:%M%p').lower(),
-                         booked=True, scheduled=sched, live=live, removed=None if sched else why))
+        row = dict(lead=name or l, lead_id=l, start=start.astimezone(ET).strftime('%-I:%M%p').lower(),
+                   booked=True, scheduled=sched, live=live, removed=None if sched else why)
+        for c in CORR:   # approved corrections (Sheila or Jay) for this lead and day
+            if c.get('what') == 'call' and c.get('lead_id') == l and c.get('day') == D.isoformat() and c.get('field') in ('scheduled', 'live'):
+                row[c['field']] = bool(c['value']); row['corrected'] = c.get('reason')
+                if row['live']: row['scheduled'] = True
+                row['removed'] = None if row['scheduled'] else (row['removed'] or c.get('reason'))
+        rows.append(row)
     rows.sort(key=lambda r: r['lead'])
     return dict(booked=len(rows), scheduled=sum(r['scheduled'] for r in rows), live=sum(r['live'] for r in rows),
                 rows=rows)
@@ -239,7 +266,11 @@ def run_inbound(D, key, flags_dir=None, now=None):
     it_leads = list_leads(U, AB_USER_FIELD) if key == 'jose' else set()
     BALI = U; SETTER = dict(key=key, name=cfg['name']); STEPS_FROM = IN_FROM
     mon = _monday(D); start = max(min(mon, D) - dt.timedelta(days=IN_LOOK), IN_FROM - dt.timedelta(days=IN_LOOK))
+    global CORR
+    CORR = corrections(key)
     sets = inbound_sets(D, U, start, it_leads)
+    drop = {(c['lead_id'], c.get('day')) for c in CORR if c.get('what') == 'set' and c.get('field') == 'exclude' and c.get('value')}
+    sets = [x for x in sets if (x['lead_id'], etd(x['set_t']).isoformat()) not in drop and (x['lead_id'], None) not in drop]
     # handoff steps for every set: email and note on the set day; reminders on their due days (lead_steps in bali_show.py).
     # Inbound: the handoff email counts when it goes out by the end of the set day (Sheila, Nov 19, 2026), not within an hour.
     ledger = []
@@ -247,6 +278,11 @@ def run_inbound(D, key, flags_dir=None, now=None):
         r = lead_show(s['lead_id'], s['set_t'], D, now)
         HANDOFF_MIN = max(60, int((day_bounds(etd(s['set_t']))[1] - s['set_t']).total_seconds() // 60))
         st = lead_steps(s['lead_id'], s['name'], s['set_t'], r['meetings'], D, r.get('showed_at'))
+        for c in CORR:   # approved corrections to a handoff step
+            if c.get('what') == 'step' and c.get('lead_id') == s['lead_id']:
+                for y in st:
+                    if y['step'] == c.get('field') and (not c.get('day') or y['due'].isoformat() == c['day']):
+                        y['done'] = bool(c['value'])
         s['steps'] = st; s['call'] = None
         live = [x for x in r['meetings'] if not _dead(x) and _start(x) >= s['set_t']]
         if live: s['call'] = _start(live[0])
@@ -264,6 +300,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
     # Friday for the weekly draw); Sheila or Jay override days off in the tracker.
     days = []
     book_by_day = _booking_by_day(flags_dir, key, start, D, ledger, it_leads)
+    week_ms = setter_meetings(D, U)
     for i in range((D - mon).days + 1):
         d = mon + dt.timedelta(days=i)
         if d.weekday() > 4: continue
@@ -278,7 +315,10 @@ def run_inbound(D, key, flags_dir=None, now=None):
         elif ph or bh or not hand_ok or idle: v = 'no'
         elif not fl['price']['checked'] or not fl['booking']['checked']: v = 'unchecked'
         else: v = 'yes'
+        cc = call_counts(d, U, week_ms) if d >= IN_FROM else None   # booked, scheduled, live (Sheila, Nov 23, 2026)
         days.append(dict(date=d.isoformat(), dow=d.strftime('%a'), verdict=v, sets=n_sets, steps_due=len(due), calls=calls, idle=idle,
+                         booked=cc['booked'] if cc else None, scheduled=cc['scheduled'] if cc else None,
+                         live=cc['live'] if cc else None, call_rows=cc['rows'] if cc else [],
                          steps_done=sum(x['done'] for x in due), price=ph, booking=bh,
                          price_checked=fl['price']['checked'], booking_checked=fl['booking']['checked'],
                          missed=[f"{STEP_SHORT_IN[x['step']]} for {x['lead']}" for x in due if not x['done']]))
@@ -313,6 +353,11 @@ def run_inbound(D, key, flags_dir=None, now=None):
         rows.append(row)
     rows.sort(key=lambda r: (r['group'] != 'today', r['lead']))
     res['rows'] = rows
+    # every inbound set in the look-back window, for Supabase (inbound_sc_sets)
+    res['ledger'] = [dict(lead_id=x['lead_id'], name=x['name'], closer=x['closer'], set_at=x['set_t'].isoformat(),
+                          set_day=etd(x['set_t']).isoformat(), call_at=x['call'].isoformat() if x.get('call') else None,
+                          steps=[dict(step=y['step'], due=y['due'].isoformat(), done=y['done']) for y in x['steps']])
+                     for x in ledger]
     # leads Messi flagged that aren't sets on the table (price came up on a call that didn't book)
     today_rows = [r for r in rows if r['group'] == 'today']
     res['price_other'] = [h for h in ph if not any(_match(h, r['lead_id'], r['lead']) for r in today_rows)]
@@ -321,7 +366,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
     res['booking'] = dict(checked=flags['booking']['checked'], hits=bh)
     zz = zoom_by_day.get(D, [])
     res['calls_taken'] = len(zz)
-    res['calls'] = call_counts(D, U)   # booked, scheduled and live calls (Sheila, Nov 23, 2026)
+    res['calls'] = call_counts(D, U, week_ms)   # booked, scheduled and live calls (Sheila, Nov 23, 2026)
     clk = lambda t: t.astimezone(ET).strftime('%-I:%M%p').lower()
     res['span'] = f"{clk(min(z[0] for z in zz))} to {clk(max(z[1] for z in zz))} ET" if zz else ''
     BALI = SETTERS['bali']['user'] if 'bali' in SETTERS else BALI

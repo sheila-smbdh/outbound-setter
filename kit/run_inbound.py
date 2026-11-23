@@ -8,7 +8,7 @@ ap.add_argument('date'); ap.add_argument('keys', nargs='*', default=['jose', 'jo
 ap.add_argument('--flags', default=None); ap.add_argument('--out', default='..')
 a = ap.parse_args()
 here = os.path.dirname(os.path.abspath(__file__))
-G = {'__name__': 'kit', 'dt': dt, 'json': json}
+G = {'__name__': 'kit', 'dt': dt, 'json': json, '__file__': os.path.join(here, 'inbound.py')}
 exec(open(os.path.join(here, 'close_direct.py')).read(), G)
 for f in ['bali_metrics.py', 'bali_cover.py', 'bali_show.py', 'inbound.py']:
     exec(compile(open(os.path.join(here, f)).read(), f, 'exec'), G)
