@@ -14,7 +14,8 @@
 # Price and direct-to-closer bookings come from Messi in Slack. The routine reads them and writes flags/<D>.json:
 #   {"date": "YYYY-MM-DD",
 #    "price":   {"checked": true, "hits": [{"setter": "dave", "lead": "...", "time": "3:15pm", "quote": "..."}]},
-#    "booking": {"checked": true, "hits": [{"setter": "jose", "lead": "...", "closer": "...", "time": "..."}]}}
+#    "booking": {"checked": true, "hits": [{"setter": "jose", "lead": "...", "lead_id": "lead_...", "closer": "...", "time": "..."}]}}
+# A booking hit goes in the file of the day Messi posted it; _booking_by_day moves it to the day the set was made.
 # checked false (or no file) means the check didn't run for that day: the card shows "not checked", never green.
 
 import os
@@ -49,6 +50,43 @@ def _mine(hits, key):
 
 
 def _ln(s): return re.sub(r'[^a-z ]', '', (s or '').lower()).strip()
+
+
+def _match(h, lead_id, name):
+    """A Messi hit is about this lead: same Close lead id (booking alerts carry the Close link), or the same name."""
+    if h.get('lead_id'): return h['lead_id'] == lead_id
+    a, b = _ln(h.get('lead')), _ln(name)
+    return bool(a) and (a in b or b in a)
+
+
+def _booking_by_day(flags_dir, key, first, D, ledger):
+    """Messi's direct-booking alerts for this setter, by the day they count on (Sheila, Nov 23, 2026). An alert lands
+    in the thread of the day Messi found it, which can be days after the booking (Nov 21's thread held Jose's Nov 19
+    bookings), so an alert about one of the setter's sets counts on the day that set was made; any other alert counts
+    on its thread's day."""
+    out = collections.defaultdict(list); seen = set()
+    last = max(D, dt.datetime.now(ET).date())   # alerts found after D (up to the run day) can be about D's sets
+    for i in range((last - first).days + 1):
+        d = first + dt.timedelta(days=i)
+        for h in _mine(_flags(flags_dir, d)['booking']['hits'], key):
+            k = (h.get('lead_id') or _ln(h.get('lead')), h.get('time') or '', h.get('closer') or '')
+            if k in seen: continue
+            seen.add(k)
+            s = next((s for s in ledger if _match(h, s['lead_id'], s['name'])), None)
+            out[etd(s['set_t']) if s else (_booked_day(h, d) or d)].append(h)
+    return out
+
+
+def _booked_day(h, d):
+    """The ET day the flagged closer meeting was booked, from Close, for an alert that isn't one of the setter's sets
+    (Sheila, Nov 23, 2026: Drew Davis, Jose, Nov 19: booked on Kevin Manuel's own link, flagged in Nov 21's thread, and
+    the meeting was canceled afterwards, so it is no set; the booking still counts on Nov 19). Canceled meetings count.
+    The meeting with the named closer booked on or before the alert's day, the latest one; None when Close has none."""
+    if not h.get('lead_id'): return None
+    first = _ln(h.get('closer')).split(' ')[0] if h.get('closer') else ''
+    ms = [x for x in _q(get_all, '/activity/meeting/', {'lead_id': h['lead_id']}) if x.get('user_id') in CLOSERS
+          and pt(x['date_created']) < day_bounds(d)[1] and (not first or first in _ln(x.get('user_name')))]
+    return etd(max(pt(x['date_created']) for x in ms)) if ms else None
 
 
 def inbound_sets(D, U, start, it_leads):
@@ -135,12 +173,13 @@ def run_inbound(D, key, flags_dir=None, now=None):
     # A weekday with no intro calls, no sets and no steps due is not compliant (Sheila, Nov 20: compliant Monday to
     # Friday for the weekly draw); Sheila or Jay override days off in the tracker.
     days = []
+    book_by_day = _booking_by_day(flags_dir, key, start, D, ledger)
     for i in range((D - mon).days + 1):
         d = mon + dt.timedelta(days=i)
         if d.weekday() > 4: continue
         due = [x for s in ledger for x in s['steps'] if x['due'] == d]
         fl = _flags(flags_dir, d)
-        ph = _mine(fl['price']['hits'], key); bh = _mine(fl['booking']['hits'], key)
+        ph = _mine(fl['price']['hits'], key); bh = book_by_day.get(d, [])
         n_sets = sum(1 for s in ledger if etd(s['set_t']) == d)
         hand_ok = all(x['done'] for x in due)
         calls = len(zoom_by_day.get(d, []))
@@ -159,7 +198,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
     res['sets_week'] = sum(1 for s in ledger if mon <= etd(s['set_t']) <= D)
     # table rows: sets made on D, then earlier sets with a reminder due on D
     flags = _flags(flags_dir, D)
-    ph = _mine(flags['price']['hits'], key); bh = _mine(flags['booking']['hits'], key)
+    ph = _mine(flags['price']['hits'], key); bh = book_by_day.get(D, [])
     rows = []
     for s in ledger:
         sd_ = etd(s['set_t'])
@@ -176,8 +215,8 @@ def run_inbound(D, key, flags_dir=None, now=None):
         row = dict(lead=s['name'], lead_id=s['lead_id'], group='today' if sd_ == D else 'earlier',
                    call=_when(s['call']) if s['call'] else '', cells=cell)
         if sd_ == D:
-            p = [h for h in ph if _ln(h.get('lead')) and (_ln(h.get('lead')) in _ln(s['name']) or _ln(s['name']) in _ln(h.get('lead')))]
-            b_ = [h for h in bh if _ln(h.get('lead')) and (_ln(h.get('lead')) in _ln(s['name']) or _ln(s['name']) in _ln(h.get('lead')))]
+            p = [h for h in ph if _match(h, s['lead_id'], s['name'])]
+            b_ = [h for h in bh if _match(h, s['lead_id'], s['name'])]
             row['price'] = 'miss' if p else ('ok' if flags['price']['checked'] else 'unchecked')
             row['price_time'] = (p[0].get('time') or '') if p else ''
             row['booking'] = 'miss' if b_ else ('ok' if flags['booking']['checked'] else 'unchecked')
@@ -185,9 +224,9 @@ def run_inbound(D, key, flags_dir=None, now=None):
     rows.sort(key=lambda r: (r['group'] != 'today', r['lead']))
     res['rows'] = rows
     # leads Messi flagged that aren't sets on the table (price came up on a call that didn't book)
-    named = {_ln(r['lead']) for r in rows}
-    res['price_other'] = [h for h in ph if _ln(h.get('lead')) not in named]
-    res['booking_other'] = [h for h in bh if _ln(h.get('lead')) not in named]
+    today_rows = [r for r in rows if r['group'] == 'today']
+    res['price_other'] = [h for h in ph if not any(_match(h, r['lead_id'], r['lead']) for r in today_rows)]
+    res['booking_other'] = [h for h in bh if not any(_match(h, r['lead_id'], r['lead']) for r in today_rows)]
     res['price'] = dict(checked=flags['price']['checked'], hits=ph)
     res['booking'] = dict(checked=flags['booking']['checked'], hits=bh)
     zz = zoom_by_day.get(D, [])

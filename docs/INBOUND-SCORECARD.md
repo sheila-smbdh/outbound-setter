@@ -1,6 +1,6 @@
 # Inbound setter scorecards: data sources (Sheila, Nov 20, 2026)
 
-Approved layouts: `mockups/inbound-scorecards/` (v7). Built Nov 20, 2026. Delivery: the routine in `prompts/inbound-scorecards-routine.md` (weekdays 9am ET; inbound cards to #setter-sync `C095GLLCU2U`, Jose's outbound card to `C0C9VANP6QN`), created paused until Messi's two reports run again.
+Approved layouts: `mockups/inbound-scorecards/` (v7). Built Nov 20, 2026. Delivery: the routine in `prompts/inbound-scorecards-routine.md` (weekdays 9am ET; inbound cards to #setter-sync `C095GLLCU2U`, Jose's outbound card to `C0C9VANP6QN`), created paused; Messi's two reports were fixed Nov 23, 2026, and Sheila turns the routine on.
 
 ## Files
 
@@ -45,18 +45,20 @@ Only inbound sets count. Reminders still owed on old Welcome Series outbound set
 
 ## KPI 2: price (Messi, #ai-call-review-test `C0C3JB44155`)
 
-- Messi's setter price job (`d054ebfd6f6c`) checks the previous day's calls for Dave, Jose and Jordan at 5:00am ET: Zoom recordings for inbound, Close call transcripts for Jose's outbound.
+- Nov 23, 2026 (Sheila): fixed. One top-level "Setter Program Price Check · <date>" post per day, the day after, with "no price dropped, all clear" or the alerts. It runs at 5am ET (Sheila, Nov 23; the Nov 22 one posted at 11:05am only because of testing), before the 9am routine. No post for a day means price shows "not checked" for it.
+
+- Messi's setter price job (`d054ebfd6f6c`) checks the previous day's calls for Dave, Jose and Jordan: Zoom recordings for inbound, Close call transcripts for Jose's outbound.
 - It flags only a concrete dollar amount for the program (Messi learned rule #67). Sheila's approved wording for the price question is not a miss (#66).
 - Each alert has the setter, lead, time and exact quote, posted as a new top-level message in the channel.
 - On a clean day Messi posts a one-line all-clear (Sheila asked Messi, Nov 20). The card marks price green only when it sees that line. With no alert and no all-clear, it shows "not checked", not green.
-- Status Nov 20: the job is paused until Mitch approves posting to the channel (request #69).
 - Messi's "Setter Call Script Compliance Report" (red/green per setter) is not used on the card (Sheila, Nov 20).
 
 ## KPI 3: direct-to-closer bookings (Messi, #sales-reports `C0C5CGGGE1M`)
 
+- Nov 23, 2026 (Sheila): fixed. A dated parent post each day; in its thread nothing (or "clear") means all clear, an error reply means Sheila must fix the bot, and "New booking alert" replies list "Setter → Closer · call time" with the lead's Close link. Alerts are matched to sets by Close lead id (`_match`, `_booking_by_day` in `kit/inbound.py`). An alert can land days after the booking (Nov 21's thread held Jose's Nov 19 bookings of Shrikar Archak and Drew Davis on Kevin Manuel's own link), so an alert about one of the setter's sets counts on the day the set was made, and every run refreshes the whole week.
+
 - Messi posts a dated "DIRECT-TO-CLOSER BOOKING ALERTS" thread each day and adds a reply for each direct booking it finds. It runs every 15 minutes.
 - Silence means clean (Sheila, Nov 20). Messi posts a one-liner in the thread when a run errors (Sheila asked Messi, Nov 20). A day with an error line shows "not checked" on the card, not green.
-- Status Nov 18 to 20: runs were failing on a Calendly 403. Sheila asked Messi to resume.
 
 ## The draw (Sheila, Nov 20, 2026)
 
