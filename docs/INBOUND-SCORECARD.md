@@ -26,6 +26,20 @@ Approved layouts: `mockups/inbound-scorecards/` (v7). Built Nov 20, 2026. Delive
 - **Inbound sets to a closer today / this week:** inbound sets only. Jose's Incomplete Typeform sets stay on his outbound card.
 - **Closes / outbound sets since Oct 20** (Jose and Jordan only): every outbound set since they started outbound on Oct 20, Welcome Series and, for Jose, Incomplete Typeform (since Nov 11). A is the closes from those sets.
 
+## Booked, scheduled and live calls (Sheila, Nov 23, 2026)
+
+Three blue tiles under the sets tiles on every inbound card (Jose, Jordan, Dave). Tracked only: no target, no green or red. Counted for the card's day, one per lead, from every call on the setter's own calendar (intro calls and the setter's follow-ups). `call_counts()` in `kit/inbound.py`.
+
+- **Booked:** every lead with a call on the setter's calendar starting that day, canceled or not. A rebooked call counts again on its new day.
+- **Scheduled:** booked, minus:
+  - calls canceled or asked to be rescheduled **before the call day**;
+  - reschedules asked **on the call day before the start time**.
+  - A cancel on the call day, or a reschedule asked after the start time, stays in: it is a no-show.
+  - A reschedule is: the call canceled with a new call booked for the same lead within 30 minutes; a new call with the setter booked before the old one's start; or a text or email from the lead asking to move it ("reschedule", "push to Monday", "another time", ...). A cancel is: canceled with nothing rebooked, or a message saying they can't make it or want to cancel. Calendly's own emails and quoted earlier messages are skipped. Close keeps no cancel time, so a canceled call's last update stands for it.
+- **Live:** the lead joined the Zoom. A live call always counts as scheduled.
+- Checked Nov 20, 2026: Dave 8 booked, 6 scheduled (Paul Caruana texted "I will have to reschedule" at 1pm for 4pm; Scott Nowicki emailed "Going to have to push to Monday" and rebooked before 2:30pm), 3 live. Jose 10, 10, 7 (Mir Karim canceled at 3:01pm for 4pm, nothing rebooked: a no-show).
+- Message reading is a word match, so an unusual phrasing can be missed; the card JSON (`calls.rows`) lists each lead and why it was removed.
+
 ## What counts as an inbound set
 
 Same rules as the outbound card's sets (`_bookings` in `kit/bali_metrics.py`), plus confirmation that the setter actually set the lead (Sheila: check, double-check, triple-check):

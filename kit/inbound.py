@@ -149,6 +149,83 @@ def inbound_sets(D, U, start, it_leads):
     return sorted(out, key=lambda s: s['set_t'])
 
 
+# Booked, scheduled and live calls on the setter's own calendar (Sheila, Nov 23, 2026). Tracked tiles, no target.
+# For the call day D, counted by lead (one per lead per day):
+#   Booked: every lead with a call on the setter's calendar that starts on D, canceled or not. Every call on their
+#     calendar counts (intro calls and the setter's follow-ups). A rebooked call counts again on its new day.
+#   Scheduled: booked, minus calls canceled or asked to be rescheduled before D, minus reschedules asked on D before the
+#     start time. A cancel on D, or a reschedule asked after the start, stays in: it is a no-show.
+#     A reschedule is the call canceled with a new call booked for the same lead within RESCHED_GAP of the cancel, or a
+#     text or email from the lead asking to move it (RESCHED_RE). A cancel is the call canceled with nothing rebooked,
+#     or a message saying they can't make it or want to cancel (CANCEL_RE). Close has no cancel time, so a canceled
+#     call's last update (date_updated) stands for it.
+#   Live: the lead joined the Zoom (_zoom). A live call always counts as scheduled.
+RESCHED_GAP = dt.timedelta(minutes=30)
+RESCHED_RE = re.compile(r"resched|re-sched|another (day|time)|different (day|time)|other (day|time)|later (date|time)|"
+                        r"\bmove (it|the call|our call|the meeting|our meeting|to)\b|\bpush (it|the call|our call|back|to)\b|"
+                        r"(can|could) we (do|move|push|switch|change)", re.I)
+CAL_MAIL = re.compile(r"^\s*(new event|accepted|declined|updated|canceled|cancelled|invitation|event accepted|event canceled)", re.I)
+
+
+def _own_words(txt):
+    """The lead's own words in an email: quoted earlier messages ("On ... wrote:", "> ...") cut off."""
+    txt = re.split(r"\n\s*On .{0,200}?wrote:|\n>", txt or '', maxsplit=1, flags=re.S)[0]
+    return txt[:1500]
+CANCEL_RE = re.compile(r"\bcancel|can'?t make|cannot make|won'?t (be able to )?make|not (be )?able to make|"
+                       r"unable to (make|attend|join)|no longer (interested|able|available)", re.I)
+
+
+def call_counts(D, U):
+    a, b = day_bounds(D)
+    utc = lambda t: t.astimezone(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
+    ms = get_all('/activity/meeting/', {'user_id': U, 'date_created__gte': utc(a - dt.timedelta(days=90)),
+                                        'date_created__lt': utc(b)})
+    ms = [x for x in ms if x.get('user_id') == U and x.get('lead_id') and x.get('starts_at')]
+    byl = collections.defaultdict(list)
+    for x in ms:
+        if a <= pt(x['starts_at']) < b: byl[x['lead_id']].append(x)
+    rows = []
+    for l, xs in byl.items():
+        name = (xs[0].get('title') or '').replace('Canceled:', '').split(' and ')[0].strip()
+        live = any((z := _zoom(x)) and z[2] for x in xs)
+        alive = [x for x in xs if not _dead_meeting(x)]
+        start = min(pt(x['starts_at']) for x in (alive or xs))
+        why = None
+        if not alive:          # every call that day canceled
+            x = max(xs, key=lambda x: pt(x.get('date_updated') or x['date_created']))
+            ct = pt(x.get('date_updated') or x['date_created'])
+            lm = _q(get_all, '/activity/meeting/', {'lead_id': l})
+            rebooked = any(y.get('id') != x.get('id') and abs(pt(y['date_created']) - ct) <= RESCHED_GAP
+                           and y.get('user_id') == U for y in lm)
+            if etd(ct) < D: why = 'rescheduled before the call day' if rebooked else 'canceled before the call day'
+            elif rebooked and ct < start: why = 'rescheduled before the call'
+        if why is None and not live and alive:   # moved on the calendar: a new call booked with the setter before this one
+            lm = _q(get_all, '/activity/meeting/', {'lead_id': l})
+            nb = [pt(y['date_created']) for y in lm if y.get('user_id') == U and y.get('starts_at') and pt(y['starts_at']) >= b
+                  and not _dead_meeting(y) and min(pt(x['date_created']) for x in alive) < pt(y['date_created']) < start]
+            if nb: why = 'rescheduled before the call day' if etd(min(nb)) < D else 'rescheduled before the call'
+        if why is None and not live:   # a text or email asking to cancel or move it
+            booked_t = min(pt(x['date_created']) for x in xs)
+            msgs = [(pt(m.get('date_sent') or m['date_created']), (m.get('text') or m.get('body_text') or m.get('subject') or ''))
+                    for m in _q(get_all, '/activity/sms/', {'lead_id': l, '_fields': 'id,date_created,date_sent,direction,text'})
+                    if m.get('direction') == 'inbound'] + \
+                   [(pt(m.get('date_sent') or m['date_created']), _own_words(m.get('body_text')))
+                    for m in _q(get_all, '/activity/email/', {'lead_id': l, '_fields': 'id,date_created,date_sent,direction,subject,body_text'})
+                    if m.get('direction') == 'incoming' and not CAL_MAIL.match(m.get('subject') or '')]   # not calendar notices
+            for t, txt in sorted(msgs):
+                if not (booked_t <= t < start): continue
+                if t < a and (RESCHED_RE.search(txt) or CANCEL_RE.search(txt)):
+                    why = 'asked to cancel or move it before the call day (message)'; break
+                if a <= t and RESCHED_RE.search(txt):
+                    why = 'asked to reschedule before the call (message)'; break
+        sched = live or why is None
+        rows.append(dict(lead=name or l, lead_id=l, start=start.astimezone(ET).strftime('%-I:%M%p').lower(),
+                         booked=True, scheduled=sched, live=live, removed=None if sched else why))
+    rows.sort(key=lambda r: r['lead'])
+    return dict(booked=len(rows), scheduled=sum(r['scheduled'] for r in rows), live=sum(r['live'] for r in rows),
+                rows=rows)
+
+
 def run_inbound(D, key, flags_dir=None, now=None):
     global BALI, STEPS_FROM, HANDOFF_MIN, SETTER, CLOSES_FROM
     cfg = IN_SETTERS[key]; U = cfg['user']; now = now or dt.datetime.now(UTC)
@@ -244,6 +321,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
     res['booking'] = dict(checked=flags['booking']['checked'], hits=bh)
     zz = zoom_by_day.get(D, [])
     res['calls_taken'] = len(zz)
+    res['calls'] = call_counts(D, U)   # booked, scheduled and live calls (Sheila, Nov 23, 2026)
     clk = lambda t: t.astimezone(ET).strftime('%-I:%M%p').lower()
     res['span'] = f"{clk(min(z[0] for z in zz))} to {clk(max(z[1] for z in zz))} ET" if zz else ''
     BALI = SETTERS['bali']['user'] if 'bali' in SETTERS else BALI

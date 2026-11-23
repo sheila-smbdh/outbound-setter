@@ -114,13 +114,26 @@ def card(r):
     if ob:
         tiles += (f'<div class="t3"><div class="n">{ob["closes"]}<span> / {ob["sets"]}</span></div><div class="t"><b>{ob["closes"]} closed</b> of the '
                   f'<b>{ob["sets"]} outbound sets</b> you\'ve made since you started outbound on {_short(ob["since"])}</div></div>')
+    # booked, scheduled and live calls on the setter's calendar (Sheila, Nov 23, 2026): tracked, no target
+    c = r.get("calls")
+    if c:
+        rm = [x for x in c["rows"] if not x["scheduled"]]
+        ns = c["scheduled"] - c["live"]
+        tiles2 = (f'<div class="t3"><div class="n">{c["booked"]}</div><div class="t"><b>booked</b> calls on your calendar today</div></div>'
+                  f'<div class="t3"><div class="n">{c["scheduled"]}</div><div class="t"><b>scheduled</b>: booked, minus calls canceled or moved ahead of time'
+                  + (f' ({len(rm)} removed)' if rm else '') + '</div></div>'
+                  f'<div class="t3"><div class="n">{c["live"]}</div><div class="t"><b>live</b>: the lead joined'
+                  + (f' ({ns} no-show{"s" if ns != 1 else ""})' if ns > 0 else '') + '</div></div>')
+        tiles2 = f'<div class="top3 trk">{tiles2}</div>'
+    else:
+        tiles2 = ""
     head = "Every set, every step: all of it, every day" + (", for the draw" if draw else "")
     todo = ('<ol class="todo"><li><b>Handoff steps, 100%:</b> email the closer and attach the closer note on every set, text the day before, '
             "and text the morning of the call if they haven't replied. All done by the end of your workday.</li>"
             "<li><b>Never mention price</b> on a call.</li><li><b>Book through the team link</b>, never straight onto one closer's calendar.</li></ol>")
     return (f'<div class="card inb" id="card0"><header><div class="eyebrow">Inbound Setter</div>'
             f'<h1>{E(name)}\'s Day: {_day(r["date"])}</h1><div class="meta">{E(meta)}</div></header>'
-            f'<div class="top3{"" if ob else " two"}">{tiles}</div>{verdict_box(r)}'
+            f'<div class="top3{"" if ob else " two"}">{tiles}</div>{tiles2}{verdict_box(r)}'
             f'<section><h2>{head}</h2>{todo}{table(r)}</section></div>')
 
 
