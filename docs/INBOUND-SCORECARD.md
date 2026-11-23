@@ -78,11 +78,11 @@ Only inbound sets count. Reminders still owed on old Welcome Series outbound set
 - Messi posts a dated "DIRECT-TO-CLOSER BOOKING ALERTS" thread each day and adds a reply for each direct booking it finds. It runs every 15 minutes.
 - Silence means clean (Sheila, Nov 20). Messi posts a one-liner in the thread when a run errors (Sheila asked Messi, Nov 20). A day with an error line shows "not checked" on the card, not green.
 
-## Compliant weeks (Sheila, Nov 20, 2026)
+## The draw (Sheila, Nov 20, 2026)
 
-- **No draw wording anywhere (Sheila, Nov 23, 2026):** whether Jose and Jordan get a draw from December isn't decided. The cards and the tracker don't mention a draw. The tracker still tracks compliant days and weeks.
+- **No draw wording on the scorecards (Sheila, Nov 23, 2026):** whether Jose and Jordan get a draw from December isn't decided, so no card mentions a draw: the inbound cards' heading is "Every set, every step: all of it, every day" and Jose's Incomplete Typeform card says "This card does not count toward your KPIs. Your inbound card has your KPIs." The tracker is unchanged.
 
-- A **compliant week** for Jose and Jordan is **every weekday, Monday to Friday, compliant** on all 3 KPIs. Draw weeks start **Mon Nov 23, 2026**. Dave has no draw.
+- Jose and Jordan are eligible for a week's draw when **every weekday, Monday to Friday, is compliant** on all 3 KPIs. Draw weeks start **Mon Nov 23, 2026**. Dave has no draw.
 - A weekday with no intro calls, no inbound sets and no handoff steps due is not compliant. Sheila or Jay override days off.
 - A day Messi's price or booking check didn't come in for is "Not checked" (not compliant, not missed) until Messi reports it or Sheila or Jay override it. Each run refreshes every day of the week so far, so a late Messi report fixes the day on the next run.
 
@@ -91,7 +91,7 @@ Only inbound sets count. Reminders still owed on old Welcome Series outbound set
 Two tabs in the Google Sheet "Setter Draw Tracker" (`1hvHFzqlPJzOq2ght4Ld4iZopX_9RgfYnMbWRuGScOzE`), written by the inbound scorecards routine each run (`kit/inbound_draw.py`; standing approval, Sheila, Nov 20):
 
 - **Inbound Days:** one row per setter per weekday: intro calls, inbound sets, handoff steps due and done, the three KPIs (Met, Missed, None due, Not checked), the day verdict and why. **P "Override (Sheila/Jay)"** (Compliant or Not compliant) and **Q "Override note"** are Sheila's and Jay's; the routine never writes them. **R "Counts as"** is the override if set, else the verdict.
-- **Inbound Weeks:** one row per setter per week: Mon to Fri ("Counts as" from Inbound Days), compliant days of 5, the auto result (Compliant week at 5 of 5, Not a compliant week once any day is not compliant, else In progress). **J "Override (Sheila/Jay)"** (Compliant week or Not a compliant week) and **K "Override note"** are theirs; **L "Week result"** is the override if set, else the auto result.
+- **Inbound Weeks:** one row per setter per week: Mon to Fri ("Counts as" from Inbound Days), compliant days of 5, the auto result (Eligible at 5 of 5, Not eligible once any day is not compliant, else In progress). **J "Override (Sheila/Jay)"** (Eligible or Not eligible) and **K "Override note"** are theirs; **L "Eligible for the draw"** is the override if set, else the auto result.
 - Both tabs are protected: only Sheila and Jay can edit them. Everyone the sheet is shared with can still view them (10 editors and the smbdealhunter.xyz domain as of Nov 20).
 - The routine writes Inbound Days A:O and R, and Inbound Weeks A:I and L, nothing else. Rows are upserted by (date, setter) and (week, setter), so overrides stay on their rows.
 - The card's week dots come from the run's own verdicts, not the overrides.

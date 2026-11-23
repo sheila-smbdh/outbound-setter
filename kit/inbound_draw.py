@@ -1,4 +1,4 @@
-# Inbound compliance tracker (Sheila, Nov 20, 2026; no draw wording since Nov 23: not decided). A week is compliant when every weekday,
+# Inbound draw tracker (Sheila, Nov 20, 2026): Jose and Jordan are eligible for a week's draw when every weekday,
 # Monday to Friday, is compliant on all 3 inbound KPIs (handoff steps 100%, no price on calls, no direct-to-closer
 # bookings). Draw weeks start Mon Nov 23, 2026. Sheila and Jay can override any day or week in the sheet.
 # Plain Python, no Close calls: reads the inbound-<key>.json files run_inbound.py wrote (each carries Mon..D of its week,
@@ -22,7 +22,7 @@ DAY_COLS = ['Week of', 'Date', 'Day', 'Setter', 'Intro calls', 'Inbound sets', '
             'Override (Sheila/Jay)', 'Override note', 'Counts as',          # P:Q typed by Sheila/Jay; R formula
             'Booked calls', 'Scheduled calls', 'Live calls']                # S:U, written by the routine (Sheila, Nov 23, 2026)
 WEEK_COLS = ['Week of', 'Setter', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Compliant days (of 5)', 'Auto result',
-             'Override (Sheila/Jay)', 'Override note', 'Week result',   # J:K typed by Sheila/Jay; L formula
+             'Override (Sheila/Jay)', 'Override note', 'Eligible for the draw',   # J:K typed by Sheila/Jay; L formula
              'Booked calls', 'Scheduled calls', 'Live calls']                      # M:O, week totals (formulas)
 VERDICT = dict(yes='Compliant', no='Not compliant', unchecked='Not checked')
 
@@ -89,7 +89,7 @@ def main():
     D = f"'{DAYS_TAB}'"
     look = lambda i, off: (f'=IFERROR(INDEX(FILTER({D}!$R$2:$R,{D}!$B$2:$B=$A{i}+{off},{D}!$D$2:$D=$B{i}),1),"")')
     wrows = [[look(i, o) for o in range(5)] + [f'=COUNTIF(C{i}:G{i},"Compliant")',
-             f'=IF(H{i}=5,"Compliant week",IF(COUNTIF(C{i}:G{i},"Not compliant")>0,"Not a compliant week","In progress"))']
+             f'=IF(H{i}=5,"Eligible",IF(COUNTIF(C{i}:G{i},"Not compliant")>0,"Not eligible","In progress"))']
              for i in range(2, m + 1)]
     body = dict(valueInputOption='USER_ENTERED', data=[
         dict(range=f"{D}!A1:O{n}", majorDimension='ROWS', values=[DAY_COLS[:15]] + days),
