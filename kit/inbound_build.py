@@ -127,7 +127,7 @@ def card(r):
         tiles2 = f'<div class="top3 trk">{tiles2}</div>'
     else:
         tiles2 = ""
-    head = "Every set, every step: all of it, every day" + (", for the draw" if draw else "")
+    head = "Every set, every step: all of it, every day"   # no draw wording anywhere (Sheila, Nov 23, 2026: not decided)
     todo = ('<ol class="todo"><li><b>Handoff steps, 100%:</b> email the closer and attach the closer note on every set, text the day before, '
             "and text the morning of the call if they haven't replied. All done by the end of your workday.</li>"
             "<li><b>Never mention price</b> on a call.</li><li><b>Book through the team link</b>, never straight onto one closer's calendar.</li></ol>")

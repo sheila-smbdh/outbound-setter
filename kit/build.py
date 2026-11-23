@@ -94,7 +94,7 @@ COVER_FOOT = ("From Close, times in ET. Speed to lead: new sign-ups during your 
 CARDS = dict(jose_it=dict(
     eyebrow="Incomplete Typeform Outbound", day="Outbound Day", top="Top numbers",
     rest="Tracked. Green: hit. Yellow: almost. Red: missed. Blue: no target.",
-    note="<b>Tracked only.</b> This card does not count toward your KPIs or the weekly draw. Your inbound card decides the draw.",
+    note="<b>Tracked only.</b> This card does not count toward your KPIs. Your inbound card has your KPIs.",   # no draw wording (Sheila, Nov 23, 2026)
     sets_from=" from Incomplete Typeform", leads_track=True))
 
 def setter(m):
