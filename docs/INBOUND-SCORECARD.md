@@ -24,6 +24,8 @@ Approved layouts: `mockups/inbound-scorecards/` (v7). Built Nov 20, 2026. Delive
 | Inbound | Dave (David Martin, Close user `user_sByZkVjk2If3ioL4CC26O5JmTWuzzKzDEjr9fzZHJ26`) | Same 3 KPIs | No draw; no draw wording, no outbound tile |
 | Incomplete Typeform outbound | Jose | Same tiles as the Welcome Series v5 card | Tracked only, no effect on KPIs or the draw |
 
+No Incomplete Typeform dials on the day (Sheila, Nov 25, 2026): no card; the routine posts one line to C0C9VANP6QN instead, "@Jose @Jay @Sheila No Incomplete Typeform outbound dials were made on Tuesday, Nov 24.", so Jay and Sheila see the outbound activity every day.
+
 ## Top tiles (inbound cards)
 
 - **Inbound sets to a closer today / this week:** inbound sets only. Jose's Incomplete Typeform sets stay on his outbound card.
