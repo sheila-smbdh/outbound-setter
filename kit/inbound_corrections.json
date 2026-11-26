@@ -1,1 +1,26 @@
-[]
+[
+ {
+  "setter": "dave",
+  "day": "2026-11-24",
+  "lead_id": "",
+  "lead": "Alfonso Chavez",
+  "what": "price",
+  "field": "exclude",
+  "value": true,
+  "reason": "Dave's own self-set closing call (Connect W/ David link, 45 minutes), where quoting the fee is allowed; Messi confirmed both as self-sets and withdrew the alert",
+  "thread": "https://dylanhelen.slack.com/archives/C095GLLCU2U/p1795617268766329?thread_ts=1795616713.014979&cid=C095GLLCU2U",
+  "approved_by": "Sheila Xu and Jay DeCristofaro (Nov 25, 2026)"
+ },
+ {
+  "setter": "dave",
+  "day": "2026-11-24",
+  "lead_id": "",
+  "lead": "Silky",
+  "what": "price",
+  "field": "exclude",
+  "value": true,
+  "reason": "Dave's own self-set closing call (Connect W/ David link, 45 minutes), where quoting the fee is allowed; Messi confirmed both as self-sets and withdrew the alert",
+  "thread": "https://dylanhelen.slack.com/archives/C095GLLCU2U/p1795617268766329?thread_ts=1795616713.014979&cid=C095GLLCU2U",
+  "approved_by": "Sheila Xu and Jay DeCristofaro (Nov 25, 2026)"
+ }
+]

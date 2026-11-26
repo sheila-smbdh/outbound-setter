@@ -53,6 +53,13 @@ def _mine(hits, key):
 def _ln(s): return re.sub(r'[^a-z ]', '', (s or '').lower()).strip()
 
 
+def _price_kept(hits, d):
+    """Messi's price hits for day d, minus those an approved correction drops (what "price", field "exclude")."""
+    drop = [c for c in CORR if c.get('what') == 'price' and c.get('field') == 'exclude' and c.get('value')
+            and c.get('day') == d.isoformat()]
+    return [h for h in hits if not any(_match(h, c.get('lead_id') or '', c.get('lead') or '') for c in drop)]
+
+
 def _match(h, lead_id, name):
     """A Messi hit is about this lead: same Close lead id (booking alerts carry the Close link), or the same name."""
     if h.get('lead_id'): return h['lead_id'] == lead_id
@@ -180,7 +187,9 @@ CANCEL_RE = re.compile(r"\bcancel|can'?t make|cannot make|won'?t (be able to )?m
 # Jay agree, the routine records a one-off fix in kit/inbound_corrections.json (a rule change goes in the docs and the
 # code instead). Each entry: {"setter", "day", "lead_id", "lead", "what", "field", "value", "reason", "thread",
 # "approved_by"}. what = "call" (field: scheduled | live, value true/false), "set" (field: exclude, value true: not
-# the setter's set) or "step" (field: email | note | day_before | morning_of, value true/false: done or missed).
+# the setter's set), "step" (field: email | note | day_before | morning_of, value true/false: done or missed) or
+# "price" (field: exclude, value true: drop Messi's price hit on this lead that day, e.g. a setter's own self-set
+# closing call, where quoting the fee is allowed; matched by lead_id or name, like _match).
 def corrections(key):
     p = os.path.join(os.path.dirname(os.path.abspath(globals().get('__file__', 'kit/inbound.py'))), 'inbound_corrections.json')
     for p in (p, os.path.join('kit', 'inbound_corrections.json'), 'inbound_corrections.json'):
@@ -306,7 +315,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
         if d.weekday() > 4: continue
         due = [x for s in ledger for x in s['steps'] if x['due'] == d]
         fl = _flags(flags_dir, d)
-        ph = _mine(fl['price']['hits'], key); bh = book_by_day.get(d, [])
+        ph = _price_kept(_mine(fl['price']['hits'], key), d); bh = book_by_day.get(d, [])
         n_sets = sum(1 for s in ledger if etd(s['set_t']) == d)
         hand_ok = all(x['done'] for x in due)
         calls = len(zoom_by_day.get(d, []))
@@ -328,7 +337,7 @@ def run_inbound(D, key, flags_dir=None, now=None):
     res['sets_week'] = sum(1 for s in ledger if mon <= etd(s['set_t']) <= D)
     # table rows: sets made on D, then earlier sets with a reminder due on D
     flags = _flags(flags_dir, D)
-    ph = _mine(flags['price']['hits'], key); bh = book_by_day.get(D, [])
+    ph = _price_kept(_mine(flags['price']['hits'], key), D); bh = book_by_day.get(D, [])
     rows = []
     for s in ledger:
         sd_ = etd(s['set_t'])
