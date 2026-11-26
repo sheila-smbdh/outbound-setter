@@ -58,7 +58,7 @@ If 1 to 3 hold but the note or the email is missing, it still counts as the sett
 
 ## KPI 1: handoff steps
 
-Same as the outbound card (`lead_steps()` in `kit/bali_show.py`): handoff email to the closer and closer note in Close, day-before and day-of texts sent from Close, with the same rules (no day-before text when the call is the next day; no day-of text owed when the lead replied or accepted the invite; none for follow-up closer calls after the first show). Done by the end of the setter's workday.
+Same as the outbound card (`lead_steps()` in `kit/bali_show.py`): handoff email to the closer and closer note in Close, day-before and day-of texts sent from Close, with the same rules (no day-before text when the call is the next day; no day-of text owed when the lead replied or accepted the invite; none for follow-up closer calls after the first show). Done by the end of the setter's workday. The handoff email counts when it uses the "Setter to Closer Handoff" template, has its subject line, or (Sheila, Nov 26, 2026) is one email from the setter to both the lead and the set's closer that introduces them, naming the closer and the call (`_intro_email()`; runbook, Handoff steps).
 
 Only inbound sets count. Reminders still owed on old Welcome Series outbound sets do not go on the inbound card (Sheila, Nov 20).
 

@@ -8,7 +8,8 @@
 # and counts on the date of that meeting. No-shows, cancels (lead or closer side) and reschedule requests with no
 # new meeting booked count as not showed. A past meeting with no outcome logged yet is left out and listed.
 # Main number: leads whose meeting fell in the 7 days ending D. Under it: every lead set since Sep 16.
-# Handoff steps (from Oct 13, 2026): 1) the "Setter to Closer Handoff" email right after booking; 2) a reminder the
+# Handoff steps (from Oct 13, 2026): 1) the "Setter to Closer Handoff" email right after booking (or its subject line, or,
+# from Nov 26, 2026, any one email to the lead and the closer that introduces them: _intro_email); 2) a reminder the
 # day before the call; 3) a personal reminder the morning of the call when the lead hasn't responded.
 # Step 4 (Sheila, Oct 15, 2026): a closer note in Close with the lead's background, written by the end of the booking day.
 DISC_TYPE = 'actitype_4mIZqROw9obY6LQWDvGdtn'                   # closer's "002) Discovery Call" activity
@@ -133,7 +134,7 @@ def _touch(l):
     """Bali's outbound emails, texts and calls on a lead, the lead's inbound emails and texts, and when the lead accepted
     a calendar invite (an incoming email whose subject starts "Accepted:", Google Calendar's reply to the closer that
     Close logs on the lead; Sheila, Nov 16, 2026)."""
-    em = _q(get_all, '/activity/email/', {'lead_id': l, '_fields': 'id,date_created,date_sent,date_scheduled,direction,user_id,subject,template_id,status'})
+    em = _q(get_all, '/activity/email/', {'lead_id': l, '_fields': 'id,date_created,date_sent,date_scheduled,direction,user_id,subject,template_id,status,to,cc,bcc,body_text'})
     sm = _q(get_all, '/activity/sms/', {'lead_id': l, '_fields': 'id,date_created,date_sent,date_scheduled,direction,user_id,status'})
     ca = _q(get_all, '/activity/call/', {'lead_id': l, '_fields': 'id,date_created,direction,user_id,call_method'})
     sent = lambda s: s.get('status') not in ('draft', 'error', 'failed', 'scheduled', 'outbox')   # not sent yet: left out
@@ -148,7 +149,34 @@ def _touch(l):
     inbound += [pt(x['date_created']) for x in sm if x.get('direction') == 'inbound']
     accepted = [pt(x['date_created']) for x in em if x.get('direction') == 'incoming'
                 and (x.get('subject') or '').strip().lower().startswith('accepted:')]
-    return sorted(mine), sorted(handoff), sorted(inbound), sorted(accepted)
+    intro = [x for x in em if x.get('user_id') == BALI and x.get('direction') == 'outgoing' and sent(x)]   # 3rd check
+    return sorted(mine), sorted(handoff), sorted(inbound), sorted(accepted), intro
+
+CO_DOMAIN = '@smbdealhunter.xyz'
+_CLOSER_MAIL = {}
+def _closer_mail():
+    """Closer user id -> (their Close login email, first name), from the org's users. Fetched once per run."""
+    if not _CLOSER_MAIL:
+        for u in _q(get_all, '/user/', {}):
+            if u.get('id') in CLOSERS and u.get('email'):
+                _CLOSER_MAIL[u['id']] = (u['email'].strip().lower(), (u.get('first_name') or '').strip().lower())
+    return _CLOSER_MAIL
+
+def _addr(a):
+    m = re.search(r'<([^>]+)>', a or ''); return (m.group(1) if m else (a or '')).strip().lower()
+
+def _intro_email(x, closers):
+    """Third way the handoff email counts (Sheila, Nov 26, 2026), on top of the template and the subject line: the
+    setter sent one email to both the lead and the closer, and its content introduces the lead to the closer. In
+    code: the lead (an address outside smbdealhunter.xyz) and the closer booked on this set are both on To, CC or
+    BCC, and the subject or body names that closer and the call (call, meeting or Zoom). Jose's Nov 25 email to
+    Ravi Patel, CC Omar, with his own subject line, was marked missed before this."""
+    to = {_addr(a) for k in ('to', 'cc', 'bcc') for a in (x.get(k) or [])}
+    if not any(a and not a.endswith(CO_DOMAIN) for a in to): return False
+    names = [fn for u, (em, fn) in _closer_mail().items() if u in closers and em in to and fn]
+    if not names: return False
+    t = ((x.get('subject') or '') + ' ' + _strip(x.get('body_text') or '')).lower()
+    return bool(re.search(r'\b(call|meeting|zoom)\b', t)) and any(re.search(r'\b' + re.escape(n) + r'\b', t) for n in names)
 
 def _strip(s): return re.sub(r'<[^>]+>', ' ', s or '').strip()
 
@@ -170,9 +198,14 @@ def lead_steps(l, nm, set_t, meetings, D, showed_at=None):
     showed_at: when the lead's first discovery call that showed started (lead_show). Closer meetings that start after
     it are follow-ups the closer confirms, so they owe no setter reminders (Sheila, Nov 18, 2026). Meetings up to and
     including that call, such as a rebook after a no-show, still do."""
-    mine, handoff, inbound, accepted = _touch(l); out = []
+    mine, handoff, inbound, accepted, intro = _touch(l); out = []
     if STEPS_FROM <= etd(set_t) <= D:
-        ok = any(set_t - dt.timedelta(minutes=10) <= t <= set_t + dt.timedelta(minutes=HANDOFF_MIN) for t in handoff)
+        lo, hi = set_t - dt.timedelta(minutes=10), set_t + dt.timedelta(minutes=HANDOFF_MIN)
+        ok = any(lo <= t <= hi for t in handoff)
+        if not ok:   # 3rd check (Sheila, Nov 26, 2026): one email to the lead and this set's closer that introduces them
+            closers = {m.get('user_id') for m in meetings if m.get('date_created') and lo <= pt(m['date_created']) <= hi}
+            closers = closers or {m.get('user_id') for m in meetings}
+            ok = any(lo <= _sent_at(x) <= hi and _intro_email(x, closers) for x in intro)
         out.append(dict(step='email', due=etd(set_t), done=ok, lead=nm))
         out.append(dict(step='note', due=etd(set_t), done=_closer_note(l, set_t), lead=nm))   # Oct 15, 2026
     rem = {}                                        # reminders owed, by the ET day they are due
