@@ -56,6 +56,15 @@ Same rules as the outbound card's sets (`_bookings` in `kit/bali_metrics.py`), p
 
 If 1 to 3 hold but the note or the email is missing, it still counts as the setter's set, and the missing step shows as a red miss (Sheila, Nov 20).
 
+Not an inbound set: a lead on Jose's Incomplete Typeform list (an outbound set, on his outbound card), a lead who already had a call with the same closer before the intro call (a reschedule), or a canceled closer meeting. One set per lead.
+
+**Nov 26, 2026 (Sheila): no outbound carve-out.** Jordan does no outbound and Jose's only outbound is the Incomplete Typeform list, so a lead who booked the setter's intro call, joined the Zoom and booked a closer within 24 hours is the setter's inbound set even if the setter called the lead before. Until then, a setter's dial in the 14 days before the intro made it an outbound set; that dropped Eeshan Ahuja (Jordan, Nov 25: booked his intro Nov 19, no-showed Nov 20, Jordan called to chase him, rebooked, joined Nov 25 and booked Omar Kaddoura 14 minutes later).
+
+- **The Zoom is the conversation, not a phone call.** A lead who booked an intro call, never joined a Zoom with the setter, and booked a closer within 24 hours after a phone conversation with the setter is not counted. It is flagged to Sheila instead (`phone_flags` in the card JSON; the routine lists them in her DM). Sheila: a phone call is more likely outbound.
+- **The 24-hour window stays** (Sheila: within 24 hours we know the setter set it; a call booked later is more likely the lead booking on their own). The existing exception stays too: later is fine when the setter sent the lead their own text or email after the Zoom.
+- **No double counting:** an inbound set (from Nov 16) is taken out of the "outbound sets since Oct 20" tile, and its close out of the outbound closes.
+- Effect when it went in (run for Nov 25): Jordan Nov 25 went from 1 set to 2 (Eeshan Ahuja), and his week from 4 to 5. Jose gained 4 inbound sets in the week of Nov 16 (Robert Stanfield, Annie Chou, Joseph Bailey, Fahim N), which left his outbound tile (53 to 49). That week was before the draw started; Robert Stanfield's missing closer note makes Nov 16 not compliant. Dave unchanged.
+
 ## KPI 1: handoff steps
 
 Same as the outbound card (`lead_steps()` in `kit/bali_show.py`): handoff email to the closer and closer note in Close, day-before and day-of texts sent from Close, with the same rules (no day-before text when the call is the next day; no day-of text owed when the lead replied or accepted the invite; none for follow-up closer calls after the first show). Done by the end of the setter's workday. The handoff email counts when it uses the "Setter to Closer Handoff" template, has its subject line, or (Sheila, Nov 26, 2026) is one email from the setter to both the lead and the set's closer that introduces them, naming the closer and the call (`_intro_email()`; runbook, Handoff steps).

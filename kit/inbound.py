@@ -5,10 +5,13 @@
 # An inbound set (Sheila, Nov 20, 2026): the lead booked the setter's intro call (a meeting on the setter's own calendar),
 # joined the Zoom (Close's Zoom integration shows someone besides the setter in the room, _zoom() in bali_cover.py), and
 # a closer meeting was booked within 24 hours after that Zoom started (or later, when the setter sent the lead a text or
-# email of their own after the Zoom and within 14 days before the booking). Not an inbound set: a lead the setter dialed
-# in the 14 days before the intro call was booked, or a lead on the setter's Incomplete Typeform list (both are outbound
-# sets), a lead who already had a closer meeting with the same person before the intro call (a reschedule), or a canceled
-# closer meeting. One set per lead. The closer note and handoff email are checked as handoff steps: a set missing either
+# email of their own after the Zoom and within 14 days before the booking). Not an inbound set: a lead on Jose's
+# Incomplete Typeform list (an outbound set, on his outbound card), a lead who already had a closer meeting with the same
+# person before the intro call (a reschedule), or a canceled closer meeting. One set per lead.
+# Nov 26, 2026 (Sheila): the setter's calls before the intro no longer make it an outbound set (Eeshan Ahuja, Jordan,
+# Nov 25: booked his intro Nov 19, no-showed Nov 20, Jordan called to chase him, rebooked, joined Nov 25, booked Omar).
+# Only the Zoom counts as talking to the lead. A lead who booked an intro, never joined a Zoom, and booked a closer
+# within 24 hours after a phone conversation with the setter is not counted: it is flagged for Sheila (phone_flags). The closer note and handoff email are checked as handoff steps: a set missing either
 # still counts, and the missing step shows red.
 #
 # Price and direct-to-closer bookings come from Messi in Slack. The routine reads them and writes flags/<D>.json:
@@ -26,7 +29,6 @@ IN_SETTERS = dict(
     dave=dict(name='Dave', user='user_sByZkVjk2If3ioL4CC26O5JmTWuzzKzDEjr9fzZHJ26', draw=False, outbound=False))
 IN_FROM = dt.date(2026, 11, 16)    # inbound handoff steps count from this week (Mon Nov 16, 2026)
 IN_LOOK = 21                       # days back for sets whose reminders fall in the week
-IN_DIAL_BACK = dt.timedelta(days=14)
 IN_WINDOW = dt.timedelta(hours=24)
 CORR = []
 
@@ -146,15 +148,36 @@ def inbound_sets(D, U, start, it_leads):
                             and m.get('status') in ('sent', 'delivered', 'inbox')]
                 if not any(zt < t < x['_t'] and x['_t'] - t <= HANDOFF for t in msgs): continue
             first_intro = min(i for _, i in zs)
-            if any(o.get('user_id') == U and o.get('direction') == 'outbound' and o.get('call_method') != 'external'
-                   and first_intro - IN_DIAL_BACK <= pt(o['date_created']) < first_intro for o in oc):
-                break                               # the setter dialed the lead first: an outbound set, not inbound
             if any(y.get('user_id') in CLOSERS and y['_t'] < first_intro and same_person(y, x) for y in lm):
                 break                               # already had a closer meeting with this person: a reschedule
             out.append(dict(lead_id=l, name=(x.get('title') or '').split(' and ')[0].strip() or l, set_t=x['_t'],
                             closer=x.get('user_name') or '', intro_t=zt, meeting=x))
             break                                   # one set per lead
-    return sorted(out, key=lambda s: s['set_t'])
+    # Phone-only (Sheila, Nov 26, 2026): flag, don't count. The lead booked an intro on the setter's calendar, never joined
+    # a Zoom, and a closer meeting was booked within 24 hours after a phone conversation with the setter.
+    phone = []
+    booked = collections.defaultdict(list)
+    for y in intro:
+        if y.get('user_id') == U and y.get('lead_id') and y['lead_id'] not in joined and y['lead_id'] not in it_leads \
+                and not (y.get('title') or '').lower().startswith('canceled'):
+            booked[y['lead_id']].append(pt(y['date_created']))
+    for l, its in booked.items():
+        lm = _q(get_all, '/activity/meeting/', {'lead_id': l})
+        for y in lm: y['_t'] = pt(y['date_created'])
+        if any(y.get('user_id') == U and _zoom(y) and _zoom(y)[2] for y in lm): continue
+        cl = sorted([x for x in lm if x.get('user_id') in CLOSERS and not _dead_meeting(x)
+                     and day_bounds(start)[0] <= x['_t'] < b and x['_t'] > min(its)], key=lambda x: x['_t'])
+        if not cl: continue
+        oc = _q(get_all, '/activity/call/', {'lead_id': l})
+        conv = _conversations(oc, [])
+        for x in cl:
+            if any(y.get('user_id') in CLOSERS and y['_t'] < min(its) and same_person(y, x) for y in lm): break
+            ct = [t for t in conv if min(its) < t <= x['_t'] and x['_t'] - t <= IN_WINDOW]
+            if ct:
+                phone.append(dict(lead_id=l, name=(x.get('title') or '').split(' and ')[0].strip() or l, set_t=x['_t'],
+                                  closer=x.get('user_name') or '', call_t=max(ct)))
+                break
+    return sorted(out, key=lambda s: s['set_t']), sorted(phone, key=lambda s: s['set_t'])
 
 
 # Booked, scheduled and live calls on the setter's own calendar (Sheila, Nov 23, 2026). Tracked tiles, no target.
@@ -269,15 +292,23 @@ def run_inbound(D, key, flags_dir=None, now=None):
     # outbound tile (Jose and Jordan): closes / outbound sets since they started outbound (Oct 20), every list
     if cfg['outbound']:
         use_setter(key)
-        sd = closer_sets_to_date(D); cl = closes_to_date(D)
-        res['outbound'] = dict(sets=sd['count'], closes=len(cl), since=sd['since'],
-                               closes_names=[r.get('lead') for r in cl])
+        osets = closer_sets(D); ocl = closes_to_date(D); since = CLOSES_FROM.isoformat()
     it_leads = list_leads(U, AB_USER_FIELD) if key == 'jose' else set()
     BALI = U; SETTER = dict(key=key, name=cfg['name']); STEPS_FROM = IN_FROM
+    if cfg['outbound']:
+        # Nov 26, 2026 (Sheila): an inbound set (from Nov 16) is not also an outbound set, and its close is not an
+        # outbound close
+        ins, _ = inbound_sets(D, U, IN_FROM, it_leads)
+        in_ids = {x['lead_id'] for x in ins}; in_names = {_ln(x['name']) for x in ins}
+        osets = [x for x in osets if x[1] not in in_ids]
+        ocl = [r for r in ocl if _ln(r.get('lead')) not in in_names]
+        res['outbound'] = dict(sets=len(osets), closes=len(ocl), since=since, closes_names=[r.get('lead') for r in ocl])
     mon = _monday(D); start = max(min(mon, D) - dt.timedelta(days=IN_LOOK), IN_FROM - dt.timedelta(days=IN_LOOK))
     global CORR
     CORR = corrections(key)
-    sets = inbound_sets(D, U, start, it_leads)
+    sets, phone = inbound_sets(D, U, start, it_leads)
+    res['phone_flags'] = [dict(lead_id=x['lead_id'], name=x['name'], closer=x['closer'], set_day=etd(x['set_t']).isoformat(),
+                               call_at=x['call_t'].isoformat(), booked_at=x['set_t'].isoformat()) for x in phone]
     drop = {(c['lead_id'], c.get('day')) for c in CORR if c.get('what') == 'set' and c.get('field') == 'exclude' and c.get('value')}
     sets = [x for x in sets if (x['lead_id'], etd(x['set_t']).isoformat()) not in drop and (x['lead_id'], None) not in drop]
     # handoff steps for every set: email and note on the set day; reminders on their due days (lead_steps in bali_show.py).
