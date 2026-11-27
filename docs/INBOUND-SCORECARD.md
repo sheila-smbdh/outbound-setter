@@ -135,4 +135,7 @@ Rows are upserted on their keys, so a rerun or a correction replaces them in pla
 
 ## Approved corrections
 
-Rules added from approved feedback, newest last (date, setter, what changes, thread, who approved). None yet.
+Rules added from approved feedback, newest last (date, setter, what changes, thread, who approved).
+
+- Nov 26, 2026, Jose (card Nov 25): a handoff email the setter writes themselves counts when it is one email to the lead and the set's closer that introduces them (Ravi Patel, 6:54pm, Omar CC'd). Code: commit 314b6a2 (`_intro_email()`). Thread: https://dylanhelen.slack.com/archives/C095GLLCU2U/p1795703234641739 . Approved by Sheila.
+- Nov 26, 2026, Jordan (card Nov 25): no outbound carve-out for inbound sets; Eeshan Ahuja counts as Jordan's second Nov 25 set (see "What counts as an inbound set", Nov 26). Code: commit efd3a4a. Thread: https://dylanhelen.slack.com/archives/C095GLLCU2U/p1795703243197339 . Approved by Sheila.
