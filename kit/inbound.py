@@ -43,6 +43,8 @@ def _flags(flags_dir, d):
     for k in ('price', 'booking'):
         x = f.get(k) or {}
         out[k] = dict(checked=bool(x.get('checked')), hits=list(x.get('hits') or []))
+    # time off (Sheila, Nov 27, 2026): setters with a full day off on d, from #sales-time-off (C0BNBF35K7D)
+    out['off'] = [(o.get('setter') if isinstance(o, dict) else o or '').strip().lower() for o in (f.get('off') or [])]
     return out
 
 
@@ -336,8 +338,9 @@ def run_inbound(D, key, flags_dir=None, now=None):
         z = _zoom(y)
         if z and z[2] and day_bounds(mon)[0] <= z[0] < b: zoom_by_day[etd(z[0])].append(z)
     # each weekday Mon..D: sets, handoff steps due, price and booking flags, verdict.
-    # A weekday with no intro calls, no sets and no steps due is not compliant (Sheila, Nov 20: compliant Monday to
-    # Friday for the weekly draw); Sheila or Jay override days off in the tracker.
+    # Nov 27, 2026 (Sheila): a day the setter took off (#sales-time-off) is "pto": no card, "-" in the week, "Day off" in
+    # the tracker. A weekday with no intro calls, no sets and no steps due is "none" ("No calls"), not "not compliant".
+    # Neither is compliant or a miss; Sheila or Jay decide the draw week in the tracker.
     days = []
     book_by_day = _booking_by_day(flags_dir, key, start, D, ledger, it_leads)
     week_ms = setter_meetings(D, U)
@@ -351,12 +354,15 @@ def run_inbound(D, key, flags_dir=None, now=None):
         hand_ok = all(x['done'] for x in due)
         calls = len(zoom_by_day.get(d, []))
         idle = not calls and not n_sets and not due
+        pto = key in fl['off']
         if d < IN_FROM: v = 'off'
-        elif ph or bh or not hand_ok or idle: v = 'no'
+        elif pto and not n_sets and not ph and not bh: v = 'pto'   # worked anyway (a set, or Messi flagged a call): judged as usual
+        elif ph or bh or not hand_ok: v = 'no'
+        elif idle: v = 'none'
         elif not fl['price']['checked'] or not fl['booking']['checked']: v = 'unchecked'
         else: v = 'yes'
         cc = call_counts(d, U, week_ms) if d >= IN_FROM else None   # booked, scheduled, live (Sheila, Nov 23, 2026)
-        days.append(dict(date=d.isoformat(), dow=d.strftime('%a'), verdict=v, sets=n_sets, steps_due=len(due), calls=calls, idle=idle,
+        days.append(dict(date=d.isoformat(), dow=d.strftime('%a'), verdict=v, sets=n_sets, steps_due=len(due), calls=calls, idle=idle, pto=pto,
                          booked=cc['booked'] if cc else None, scheduled=cc['scheduled'] if cc else None,
                          live=cc['live'] if cc else None, call_rows=cc['rows'] if cc else [],
                          steps_done=sum(x['done'] for x in due), price=ph, booking=bh,
@@ -364,6 +370,8 @@ def run_inbound(D, key, flags_dir=None, now=None):
                          missed=[f"{STEP_SHORT_IN[x['step']]} for {x['lead']}" for x in due if not x['done']]))
     today = days[-1] if days and days[-1]['date'] == D.isoformat() else None
     res['days'] = days; res['today'] = today
+    # day off on D (Sheila, Nov 27, 2026): the routine posts "<name> took <day> off - no calls" instead of this card
+    res['day_off'] = bool(today and today['verdict'] == 'pto')
     res['sets_today'] = sum(1 for s in ledger if etd(s['set_t']) == D)
     res['sets_week'] = sum(1 for s in ledger if mon <= etd(s['set_t']) <= D)
     # table rows: sets made on D, then earlier sets with a reminder due on D

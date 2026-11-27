@@ -23,7 +23,6 @@ def verdict_box(r):
     t = r.get("today") or {}
     v = t.get("verdict")
     why = []
-    if t.get("idle"): why.append("no intro calls")
     if t.get("steps_due") and t["steps_done"] < t["steps_due"]:
         n = t["steps_due"] - t["steps_done"]; why.append(f"{n} handoff step{'s' if n != 1 else ''} missed")
     if t.get("price"):
@@ -32,10 +31,15 @@ def verdict_box(r):
         n = len(t["booking"]); why.append(f"{n} direct-to-closer booking{'s' if n != 1 else ''}")
     if v == "yes": head, cls = "Compliant day: all 3 KPIs hit", "verdict met"
     elif v == "no": head, cls = "Not a compliant day: " + ", ".join(why), "verdict"
+    # Nov 27, 2026 (Sheila): no calls is not a miss; a day off gets no card at all (the routine posts a line instead)
+    elif v == "none": head, cls = "No calls today: nothing to check", "verdict unc"
+    elif v == "pto": head, cls = "Day off: no calls", "verdict unc"
     else:
         miss = [k for k, c in (("price", t.get("price_checked")), ("booking", t.get("booking_checked"))) if not c]
         head, cls = "Not checked yet: the " + " and ".join(miss) + " check" + ("s" if len(miss) > 1 else "") + " didn't come in", "verdict unc"
-    dots = "".join(f'<span class="{dict(yes="y", no="n", unchecked="u").get(d["verdict"], "")}">{d["dow"]}</span>' for d in r["days"])
+    # a day off shows as "-" (Sheila, Nov 27, 2026); a no-calls day stays plain, neither green nor red
+    dots = "".join('<span>-</span>' if d["verdict"] == "pto" else
+                   f'<span class="{dict(yes="y", no="n", unchecked="u").get(d["verdict"], "")}">{d["dow"]}</span>' for d in r["days"])
     # the rest of the week, not reached yet
     seen = {d["dow"] for d in r["days"]}
     dots += "".join(f"<span>{w}</span>" for w in ("Mon", "Tue", "Wed", "Thu", "Fri") if w not in seen)

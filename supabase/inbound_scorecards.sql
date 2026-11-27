@@ -17,7 +17,7 @@ create table if not exists public.inbound_sc_days (    -- one row per setter per
   booked_calls int, scheduled_calls int, live_calls int,
   steps_due int, steps_done int,
   handoff text, price text, booking text,              -- Met | Missed | None due | Not checked
-  verdict text,                        -- Compliant | Not compliant | Not checked
+  verdict text,                        -- Compliant | Not compliant | Not checked | Day off | No calls
   why text,
   price_hits jsonb, booking_hits jsonb, missed_steps jsonb,
   outbound_sets_total int, outbound_closes_total int,  -- Jose and Jordan, since Oct 20

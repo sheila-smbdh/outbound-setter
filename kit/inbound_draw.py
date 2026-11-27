@@ -24,7 +24,7 @@ DAY_COLS = ['Week of', 'Date', 'Day', 'Setter', 'Intro calls', 'Inbound sets', '
 WEEK_COLS = ['Week of', 'Setter', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Compliant days (of 5)', 'Auto result',
              'Override (Sheila/Jay)', 'Override note', 'Eligible for the draw',   # J:K typed by Sheila/Jay; L formula
              'Booked calls', 'Scheduled calls', 'Live calls']                      # M:O, week totals (formulas)
-VERDICT = dict(yes='Compliant', no='Not compliant', unchecked='Not checked')
+VERDICT = dict(yes='Compliant', no='Not compliant', unchecked='Not checked', pto='Day off', none='No calls')
 
 
 def week_of(d):
@@ -36,7 +36,8 @@ def day_row(key, x, now):
     price = 'Missed' if x['price'] else ('Met' if x['price_checked'] else 'Not checked')
     book = 'Missed' if x['booking'] else ('Met' if x['booking_checked'] else 'Not checked')
     why = []
-    if x.get('idle'): why.append('No intro calls, sets or steps due')
+    if x['verdict'] == 'pto': why.append('Took the day off (#sales-time-off)')
+    elif x.get('idle'): why.append('No intro calls, sets or steps due')
     if hand == 'Missed': why.append(f"{x['steps_due'] - x['steps_done']} of {x['steps_due']} handoff steps missed")
     for h in x['price']:
         why.append(f"Price on a call with {h.get('lead') or 'a lead'}" + (f" at {h['time']}" if h.get('time') else '') +
@@ -89,7 +90,10 @@ def main():
     D = f"'{DAYS_TAB}'"
     look = lambda i, off: (f'=IFERROR(INDEX(FILTER({D}!$R$2:$R,{D}!$B$2:$B=$A{i}+{off},{D}!$D$2:$D=$B{i}),1),"")')
     wrows = [[look(i, o) for o in range(5)] + [f'=COUNTIF(C{i}:G{i},"Compliant")',
-             f'=IF(H{i}=5,"Eligible",IF(COUNTIF(C{i}:G{i},"Not compliant")>0,"Not eligible","In progress"))']
+             # Nov 27, 2026 (Sheila): a day off or a no-calls day is not a miss. A week with one and no other misses is
+             # "Review" until Sheila or Jay set the override (J)
+             f'=IF(H{i}=5,"Eligible",IF(COUNTIF(C{i}:G{i},"Not compliant")>0,"Not eligible",'
+             f'IF(H{i}+COUNTIF(C{i}:G{i},"Day off")+COUNTIF(C{i}:G{i},"No calls")=5,"Review: day off or no calls","In progress")))']
              for i in range(2, m + 1)]
     body = dict(valueInputOption='USER_ENTERED', data=[
         dict(range=f"{D}!A1:O{n}", majorDimension='ROWS', values=[DAY_COLS[:15]] + days),
